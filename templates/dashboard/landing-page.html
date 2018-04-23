@@ -56,22 +56,6 @@
   </div>
   <!-- ./customer -->
   {% endif %}
-    {% if perms.customer.view_customer %}
-  <!-- customer management -->
-  <div class="col-md-3 col-xs-6 hvr-float-shadow ">
-  <a href="{% url 'dashboard:booking-rooms' %}">
- <div class="thumbnail no-padding">
-        <div class="thumb bg-blue">
-          <img src="{% static 'backend/images/landingpage/rooms.png' %}" alt="">   
-        </div>              
-        <div class="caption text-center no-padding">
-          <h6 class="text-semibold no-margin">Property Management </h6>          
-        </div>
-     </div>
-    </a>
-  </div>
-  <!-- ./customer -->
-  {% endif %}
   {% if perms.product.view_product or perms.product.view_stock or perms.product.view_category or perms.product.view_productclass or perms.product.view_productattribute or perms.product.view_stocklocation %}
   <!-- Inventory -->
   <div class="col-md-3 hvr-float-shadow">
