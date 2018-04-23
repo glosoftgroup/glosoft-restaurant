@@ -177,7 +177,8 @@ var showImages = Vue.component('show-images',{
             .then((data)=>{
                 console.log($('#delete-image'+id));
                 $('#delete-image'+id).addClass('hidden').remove();
-                this.$emit('refresh');
+                // this.$emit('refresh');
+                this.refresh();
             })
             .catch((error)=>{
                 console.log(error);

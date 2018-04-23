@@ -4,15 +4,15 @@
 {% load prices_i18n %}
 
 {% block title %}
-  Properties
+  Rooms
 {% endblock %}
 
  {% block breadcrumbs %}
      <li class="">
-         <a href="{% url 'dashboard:room-list' %}">Properties </a>
+         <a href="{% url 'dashboard:room-list' %}">Rooms </a>
      </li>
      <li class="active">
-         {% if room.pk %}Edit {% else %}Add{% endif %} Property
+         {% if room.pk %}Edit {% else %}Add{% endif %} Rooms
      </li>
  {% endblock %}
 
@@ -252,7 +252,7 @@
                                         <div class="form-group">
                                             <div class="row">
                                                 <div class="col-md-12">
-                                                    <label>Property Name:<span class="text-danger">*</span></label>
+                                                    <label>Rooms Name:<span class="text-danger">*</span></label>
                                                     <input  required class="form-control" {% if room.pk %} value="{{room.name}}"{% endif %} name="name" id="name" placeholder="Name" type="text">
                                                     <span class="help-block text-warning"></span>
                                                 </div>
@@ -275,7 +275,7 @@
                                                     </div>
 
                                                     <div class="col-md-6" id="-v">
-                                                        <label >Property Type:<span class="text-danger">*</span></label>
+                                                        <label >Rooms Type:<span class="text-danger">*</span></label>
                                                         <select2 :options="propertytype_options" v-model="propertytype">
                                                             {% if room.room_wing.id %}
                                                             <option value="{{room.room_type.id}}">{{room.room_type}}</option>
@@ -373,7 +373,7 @@
                                     <input type="hidden" id="type_id" name="type_id" {% if room.id %} value="{{room.room_type.id}}" {% endif %}>
 
                                     <div class="text-right col-md-12">
-                                        <button id="add-room-btn" type="submit" class="btn btn-primary legitRipple">{% if room.id %}Edit{% else %}Add Property{% endif %} <i class="icon-arrow-right14 position-right"></i></button>
+                                        <button id="add-room-btn" type="submit" class="btn btn-primary legitRipple">{% if room.id %}Edit{% else %}Add Room{% endif %} <i class="icon-arrow-right14 position-right"></i></button>
                                     </div>
                                  </form>
                                 </div>
@@ -580,7 +580,7 @@
 
 <template id="uploader-temp">
     <div class="row">
-        <show-images :rooms="room_images" refresh="_refresh_images"></show-images>
+        <show-images :rooms="room_images" :refresh="_refresh_images"></show-images>
         <div class="vue_component__upload--image" v-bind:class="{ 'dragover': onDragover }">
         <form v-bind:id="'upload_image_form--' + name" enctype="multipart/form-data">
             <div class="upload_image_form__thumbnails">
