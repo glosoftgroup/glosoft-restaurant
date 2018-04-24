@@ -60,7 +60,7 @@
   <!-- Header and footer fixed -->
     <thead>         
       <tr class="bg-primary">   
-
+        <th>#</th>   
         <th>Name</th>    
         <th>Value</th>                 
         <th class="text-center">Actions</th>
@@ -69,7 +69,7 @@
     <tbody id='content-search'>
     {% for pk, name, values in attributes %}
       <tr>
-
+        <td>{{ pk }}</td>
         <!-- names -->
         <td>{{ name }}</td>
         <!-- values -->

@@ -7,7 +7,7 @@
     {% if variants %}
       <thead>
      
-        <tr id="variant-row{{variant.pk}}" class="bg-primary">
+        <tr id="" class="bg-primary">
           
           <th>
             {% trans "SKU" context "Product variant table header" %}
@@ -19,11 +19,9 @@
             </th>
           {% endfor %}                  
           
-          <th class="right-align">
-            Retail Price
-          </th>
-          <th class="right-align">
-            Wholesale Price
+
+          <th>
+              Supplier
           </th>
           <th class="text-center">Actions</th>
         </tr>
@@ -41,16 +39,13 @@
                 {{ attr_display }}
               </td>
             {% endfor %}
-           
-            <!-- retail price -->
-            <td class="right-align">
-      {% gross variant.get_price_per_item html=True %}
-            </td>
-            <!-- wholesale price -->
-            <td class="right-align">
-            {% if variant.get_wholesale_price_per_item %}
-      {% gross variant.get_wholesale_price_per_item html=True %}
-           {% endif %}
+
+            <td>
+                {% if variant.variant_supplier %}
+                {{variant.variant_supplier}}
+                {% else %}
+                 ---
+                {% endif %}
             </td>
              <!-- actions -->
                     <td class="text-center">

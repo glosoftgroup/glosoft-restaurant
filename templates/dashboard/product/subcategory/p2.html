@@ -31,7 +31,7 @@
                       <!-- name -->
                       <td>{{ name }}</td>
                       <!-- product attributes -->
-                      <td>
+                      <td class="td" data-href="{% url 'dashboard:subcategory-products' pk=pk %}">
                         {% if variant_attributes %}
                        {{ variant_attributes|join:", " }}
                       {% endif %}

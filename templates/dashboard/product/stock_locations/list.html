@@ -86,7 +86,7 @@
               <table class="table table-striped table-hover fixed_headers">
                 <thead>
                   <tr class="bg-primary">
-
+                    <th>#</th>
                     <th>Location Name</th>
                    {% if perms.product.change_stocklocation or perms.product.delete_stocklocation %}
                     <th class="text-center">Actions</th>
@@ -97,7 +97,7 @@
                 {% if locations %}
                   {% for location in locations %}
                     <tr class="td" data-href="{% url 'dashboard:product-stock-location-edit' location.pk %}">
-
+                      <td>{{ forloop.counter }}</td>
                       <td>{{ location }}</td>
                       {% if perms.product.change_stocklocation or perms.product.delete_stocklocation %}
                      <td class="text-center">

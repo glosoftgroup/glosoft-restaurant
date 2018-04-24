@@ -170,8 +170,6 @@ def category_create32(request):
             category.name = request.POST.get('name')
         else:
             return HttpResponse('name required')
-        if request.POST.get('sale_point'):
-            category.sale_point = SalePoint.objects.get(pk=request.POST.get('sale_point'))
         if request.POST.get('description'):
             category.description = request.POST.get('description')
         category.save()

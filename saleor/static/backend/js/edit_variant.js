@@ -59,8 +59,8 @@ $(function(){
       dynamicData['wholesale'] = wprice.val();
     }
     if(!rprice.val()){
-      alertUser('Retail Price field required','bg-warning','Field Error!');
-      return false;
+//      alertUser('Retail Price field required','bg-warning','Field Error!');
+//      return false;
     }else{
       dynamicData['price'] = rprice.val();
     }

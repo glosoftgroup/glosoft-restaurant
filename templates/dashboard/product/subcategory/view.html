@@ -313,7 +313,7 @@ var toggleBtn = $('#toggle-add-form');
 var toggleDiv = $('#toggle-div');
 
 toggleBtn.on('click',function(){
-  toggleDiv.slideToggle('slow');
+  toggleDiv.toggle('slow');
 });
 function refreshList(){
   var url = "{% url 'dashboard:terminal-search' %}";

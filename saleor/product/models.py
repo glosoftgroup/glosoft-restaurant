@@ -25,8 +25,9 @@ from versatileimagefield.fields import VersatileImageField, PPOIField
 from ..discount.models import calculate_discounted_price
 from ..supplier.models import Supplier
 from ..search import index
-from ..salepoints.models import SalePoint
+from saleor.payment.models import PaymentOption
 from .utils import get_attributes_display_map
+from . import Status
 
 
 @python_2_unicode_compatible
@@ -40,10 +41,6 @@ class Category(MPTTModel):
     parent = models.ForeignKey(
         'self', null=True, blank=True, related_name='children',
         verbose_name=pgettext_lazy('Category field', 'parent'))
-    sale_point = models.ForeignKey(
-        SalePoint, null=True, blank=True, related_name='cat_sale_point',
-        verbose_name=pgettext_lazy('Category field', 'sale point'))
-
     hidden = models.BooleanField(
         pgettext_lazy('Category field', 'hidden'), default=False)
 
@@ -118,12 +115,15 @@ class ProductTax(models.Model):
     tax_label = models.CharField(
         pgettext_lazy('Label on invoices', 'Short text printed on invoices'),
         max_length=128, blank=True)
-    tax = models.IntegerField( pgettext_lazy('Product Tax', 'tax %'),
-        validators=[MinValueValidator(0)], unique=True, default=Decimal(0)) 
+    tax = models.IntegerField(pgettext_lazy('Product Tax', 'tax %'),
+        validators=[MinValueValidator(0)], unique=True, default=Decimal(0))
+
     def __str__(self):
-        return self.tax_name +' '+str(self.tax)+' %'
+        return self.tax_name + ' ' + str(self.tax)+' %'
+
     def get_tax(self):
         return self.tax
+
 
 class ProductManager(models.Manager):
 
@@ -152,11 +152,15 @@ class Product(models.Model, ItemRange, index.Indexed):
         pgettext_lazy('Product field', 'price'),
         currency=settings.DEFAULT_CURRENCY, max_digits=12,
         validators=[MinValueValidator(0)], default=Decimal(0), decimal_places=2)
+    minimum_price = PriceField(
+        pgettext_lazy('Product variant field', 'minimum price'),
+        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
+        blank=True, null=True)
     wholesale_price = PriceField(
         pgettext_lazy('Product field', 'Wholesale price'),
         currency=settings.DEFAULT_CURRENCY, blank=True,null=True, max_digits=12, decimal_places=2)
     product_supplier = models.ForeignKey(
-        Supplier, related_name='suppliers',blank=True, null=True,
+        Supplier, related_name='suppliers', blank=True, null=True,
         verbose_name=pgettext_lazy('Product field', 'product supplier'))
     
     available_on = models.DateField(
@@ -215,15 +219,16 @@ class Product(models.Model, ItemRange, index.Indexed):
 
     def total_stock(self):
         return Sum(self.variant.stock.stock_available())
+
     def total_variants(self):
         return len(self.variants.all())
 
-
     def get_first_category(self):
-        for category in self.categories.all():
+        for category in self.categories.all().order_by('id'):
             if not category.hidden:
                 return category
         return None
+
     def get_variants_count(self):
         variants = self.variants.filter(product=self.pk)
         total = 0
@@ -260,13 +265,13 @@ class Product(models.Model, ItemRange, index.Indexed):
 
 class ProductVariantManager(models.Manager):
 
-    def get_in_stock(self):
-        today = datetime.date.today()
-        return self.get_queryset().filter(stock__quantity__gte=1)
-
     def get_low_stock(self):
         today = datetime.date.today()
         return self.get_queryset().filter(stock__quantity__lte=F('low_stock_threshold'))
+
+    def get_in_stock(self):
+        today = datetime.date.today()
+        return self.get_queryset().filter(stock__quantity__gte=1)
 
 
 @python_2_unicode_compatible
@@ -276,14 +281,9 @@ class ProductVariant(models.Model, Item):
     name = models.CharField(
         pgettext_lazy('Product variant field', 'variant name'), max_length=100,
         blank=True)
-    price_override = PriceField(
-        pgettext_lazy('Product variant field', 'price override'),
-        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
-        blank=True, null=True)
-    wholesale_override = PriceField(
-        pgettext_lazy('Product variant field', 'wholesale override'),
-        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
-        blank=True, null=True)
+    variant_supplier = models.ForeignKey(
+        Supplier, related_name='variant_supplier', blank=True, null=True,
+        verbose_name=pgettext_lazy('Product variant field', 'product variant supplier'))
     
     product = models.ForeignKey(Product, related_name='variants')
     attributes = HStoreField(
@@ -307,8 +307,7 @@ class ProductVariant(models.Model, Item):
     def check_quantity(self, quantity):
         available_quantity = self.get_stock_quantity()
         if quantity > available_quantity:
-            raise InsufficientStock(self)    
-
+            raise InsufficientStock(self)
 
     def get_stock_pk(self):
         stock_pk = self.stock.all().values('pk')
@@ -320,20 +319,79 @@ class ProductVariant(models.Model, Item):
         return stock_pk
 
     def get_stock_quantity(self):
-        if not len(self.stock.all()):
+        quantity = self.stock.filter(quantity__gte=1).aggregate(Sum('quantity'))['quantity__sum']
+        if quantity:
+            return quantity
+        else:
             return 0
-        return max([stock.quantity_available for stock in self.stock.all()])
+
+    def get_stock_quantity_single(self):
+        # if not len(self.stock.all()):
+        #     return 0
+        # return max([stock.quantity_available for stock in self.stock.all()])
+        checker = True
+        quantity = 0
+        try:
+            while checker:
+                quantity = self.stock.all().first().quantity
+                if quantity > 0:
+                    quantity = self.stock.all().first().quantity
+                    checker = False
+                else:
+                    self.stock.all().first().delete()
+            return quantity
+        except:
+            return quantity
+
+    def get_min_price_per_item(self):
+        # return self.minimum_price or self.product.minimum_price
+        checker = True
+        price = 0
+        try:
+            while checker:
+                stock = self.stock.all().first().quantity
+                if stock > 0:
+                    price = self.stock.all().first().minimum_price
+                    checker = False
+                else:
+                    self.stock.all().first().delete()
+            return price
+        except Exception as e:
+            return price
 
     def get_price_per_item(self, discounts=None, **kwargs):
-        price = self.price_override or self.product.price
-        price = calculate_discounted_price(self.product, price, discounts,
-                                           **kwargs)
-        return price
+        checker = True
+        price = 0
+        try:
+            while checker:
+                stock = self.stock.all().first().quantity
+                if stock > 0:
+                    price = self.stock.all().first().price_override
+                    checker = False
+                else:
+                    self.stock.all().first().delete()
+            price = calculate_discounted_price(self.product, price, discounts,
+                                               **kwargs)
+            return price
+        except Exception as e:
+            return price
+
     def get_wholesale_price_per_item(self, discounts=None, **kwargs):
-        price = self.wholesale_override or self.product.wholesale_price
-        price = calculate_discounted_price(self.product, price, discounts,
-                                           **kwargs)
-        return price
+        checker = True
+        price = 0
+        try:
+            while checker:
+                quantity = self.stock.all().first().quantity
+                if quantity > 0:
+                    price = self.stock.all().first().wholesale_override
+                    checker = False
+                else:
+                    self.stock.all().first().delete()
+            price = calculate_discounted_price(self.product, price, discounts,
+                                               **kwargs)
+            return price
+        except Exception as e:
+            return price
 
     def get_total_price_cost(self):
         cost = self.get_cost_price() * self.get_stock_quantity()
@@ -354,6 +412,22 @@ class ProductVariant(models.Model, Item):
 
     def is_shipping_required(self):
         return self.product.product_class.is_shipping_required
+
+    def get_stock_cost_price(self):
+        checker = True
+        price = 0
+        try:
+            while checker:
+                quantity = self.stock.all().first().quantity
+                if quantity > 0:
+                    price = self.stock.all().first().cost_price.gross
+                    checker = False
+                else:
+                    self.stock.all().first().delete()
+            return price
+        except Exception as e:
+            return price
+
 
     def is_in_stock(self):
         return any(
@@ -403,8 +477,11 @@ class ProductVariant(models.Model, Item):
             return 0
 
     def product_category(self):
-        category = self.product.categories.first().name
-        return category
+        try:
+            category = self.product.categories.first().name
+            return category
+        except:
+            return ''
 
 
 @python_2_unicode_compatible
@@ -429,17 +506,32 @@ class StockManager(models.Manager):
 
     def decrease_stock(self, stock, quantity):
         stock.quantity = F('quantity') - quantity
-        #stock.quantity_allocated = F('quantity_allocated') - quantity
         stock.save(update_fields=['quantity', 'quantity_allocated'])
 
-    def get_low_stock(self):
-        today = datetime.date.today()
-        return self.get_queryset().filter(quantity__lte=F('low_stock_threshold'))
+    def increase_stock(self, stock, quantity):
+        stock.quantity = F('quantity') + quantity
+        stock.save(update_fields=['quantity', 'quantity_allocated'])
 
+    def get_low_stock(self, all_low_stock=True):
+        """ all low stock of filter non notified stock only"""
+        if all_low_stock:
+            return self.get_queryset().filter(quantity__lte=F('low_stock_threshold'))
+        else:
+            return self.get_queryset().filter(quantity__lte=F('low_stock_threshold'))\
+                .filter(notified=False)
+
+    def get_credit_balance(self, supplier):
+        return self.get_queryset().filter(variant__product__product_supplier=supplier).aggregate(total=Sum(F('total_cost') - F('amount_paid')))['total']
+
+    def get_credit_total(self, supplier):
+        return self.get_queryset().filter(variant__product__product_supplier=supplier).aggregate(total=Sum(F('total_cost')))['total']
 
 
 @python_2_unicode_compatible
 class Stock(models.Model):
+    status = models.CharField(
+        pgettext_lazy('Stock field', 'Credit status'),
+        max_length=32, choices=Status.CHOICES, default=Status.PAYMENT_PENDING)
     variant = models.ForeignKey(
         ProductVariant, related_name='stock',
         verbose_name=pgettext_lazy('Stock item field', 'variant'))
@@ -447,11 +539,9 @@ class Stock(models.Model):
     quantity = models.IntegerField(
         pgettext_lazy('Stock item field', 'quantity'),
         validators=[MinValueValidator(0)], default=Decimal(1))
-    invoice_number = models.CharField(
-        pgettext_lazy('Stock item field', 'invoice_number'), null=True, max_length=36,)  
     low_stock_threshold = models.IntegerField(
         pgettext_lazy('Stock item field', 'low stock threshold'),
-        validators=[MinValueValidator(0)], null=True,blank=True, default=Decimal(10))
+        validators=[MinValueValidator(0)], null=True, blank=True, default=Decimal(10))
     
     quantity_allocated = models.IntegerField(
         pgettext_lazy('Stock item field', 'allocated quantity'),
@@ -460,12 +550,43 @@ class Stock(models.Model):
         pgettext_lazy('Stock item field', 'cost price'),
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
         blank=True, null=True)
+    amount_paid = PriceField(
+        pgettext_lazy('Stock item field', 'cost price'),
+        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
+        blank=True, null=True)
+    total_cost = PriceField(
+        pgettext_lazy('Stock item field', 'total cost price'),
+        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
+        blank=True, null=True)
+    price_override = PriceField(
+        pgettext_lazy('Stock item field', 'price override'),
+        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
+        blank=True, null=True)
+    minimum_price = PriceField(
+        pgettext_lazy('Stock item field', 'minimum price'),
+        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
+        blank=True, null=True)
+    wholesale_override = PriceField(
+        pgettext_lazy('Stock item field', 'wholesale override'),
+        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
+        blank=True, null=True)
+
+    created = models.DateTimeField(
+        pgettext_lazy('Stock field', 'created'),
+        default=now, editable=False)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, blank=True, null=True,
+        verbose_name=pgettext_lazy('Stock history entry field', 'user'))
+    comment = models.CharField(
+        pgettext_lazy('Stock entry field', 'comment'),
+        max_length=100, default='', blank=True)
+    notified = models.BooleanField(default=False, blank=False)
 
     objects = StockManager()
 
     class Meta:
         app_label = 'product'
-        unique_together = ('variant', 'location')
+        # unique_together = ('variant', 'location')
 
     def __str__(self):
         return '%s - %s' % (self.variant.name, self.pk)
@@ -473,12 +594,65 @@ class Stock(models.Model):
     @property
     def quantity_available(self):
         return max(self.quantity - self.quantity_allocated, 0)
+
+    @property
     def cost_priceAsData(self):
         return self.cost_price
-    def varaintName(self):        
-        return self.variant.price_override;
+
+    def get_balance(self):
+        try:
+            return self.cost_price.gross - self.amount_paid.gross
+        except:
+            return 0
+
+    @property
+    def varaintName(self):
+        return self.variant.price_override
+
+    @property
     def Access_pk(self):
         return self.pk
+
+    def get_total_credit(self):
+        return Stock.objects.get_total_credit()
+
+    def get_total_cost(self):
+        try:
+            return (self.cost_price.gross * self.quantity)
+        except:
+            return 0
+
+
+@python_2_unicode_compatible
+class StockCreditHistory(models.Model):
+    date = models.DateTimeField(
+        pgettext_lazy('Stock credit history entry field', 'last history change'),
+        default=now, editable=False)
+    stock = models.ForeignKey(
+        Stock, related_name='credit_history',
+        verbose_name=pgettext_lazy('Stock credit history entry field', 'order'))
+
+    comment = models.CharField(
+        pgettext_lazy('Stock history credit entry field', 'comment'),
+        max_length=100, default='', blank=True)
+    crud = models.CharField(
+        pgettext_lazy('Stock history credit entry field', 'crud'),
+        max_length=30, default='', blank=True)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, blank=True, null=True,
+        verbose_name=pgettext_lazy('Stock history credit entry field', 'user'))
+
+    class Meta:
+        ordering = ('date', )
+        verbose_name = pgettext_lazy(
+            'Stock history credit entry model', 'Stock credit history entry')
+        verbose_name_plural = pgettext_lazy(
+            'Stock history credit entry model', 'Stock credit history entries')
+
+    def __str__(self):
+        return pgettext_lazy(
+            'Stock credit history entry str',
+            'Stock credit HistoryEntry  for Stock #%d') % self.stock.pk
 
 
 @python_2_unicode_compatible
@@ -489,7 +663,7 @@ class StockHistoryEntry(models.Model):
     stock = models.ForeignKey(
         Stock, related_name='history',
         verbose_name=pgettext_lazy('Stock history entry field', 'order'))
-    
+
     comment = models.CharField(
         pgettext_lazy('Stock history entry field', 'comment'),
         max_length=100, default='', blank=True)
@@ -531,9 +705,11 @@ class ProductAttribute(models.Model):
         return self.name
 
     def get_formfield_name(self):
-        return slugify('attribute-%s' % self.slug)    
+        return slugify('attribute-%s' % self.slug)
+
     def has_values(self):
         return self.values.exists()
+
 
 @python_2_unicode_compatible
 class VariantAttribute(models.Model):
@@ -553,7 +729,8 @@ class VariantAttribute(models.Model):
         return self.name
 
     def get_formfield_name(self):
-        return slugify('variant-attribute-%s' % self.slug)    
+        return slugify('variant-attribute-%s' % self.slug)
+
     def has_values(self):
         return self.values.exists()
 
@@ -643,5 +820,12 @@ class VariantImage(models.Model):
     class Meta:
         verbose_name = pgettext_lazy(
             'Variant image model', 'variant image')
-        verbose_name_plural = pgettext_lazy(
-'Variant image model', 'variant images')
+        verbose_name_plural = pgettext_lazy('Variant image model', 'variant images')
+
+
+def get_supplier_credit_balance(supplier=None):
+    return Stock.objects.get_credit_balance(supplier)
+
+
+def get_supplier_credit_total(supplier=None):
+    return Stock.objects.get_credit_total(supplier)

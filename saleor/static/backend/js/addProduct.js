@@ -19,8 +19,8 @@ function addProductDetails(dynamicData,url,method){
       type: method,
       data: dynamicData
     });
-
 }
+
 var dynamicData = {};
 
 $(function() {
@@ -39,6 +39,7 @@ $(function() {
  var thresholdId = $('#id_variant-low_stock_threshold');
  var supplierId  = $('#id_product_supplier');
  var skuId       = $('#id_variant-sku');
+ var variantSupplier = $('#id_variant-variant_supplier');
  var updateStockBtn = $('#updatestock');
  var id_name = $('#id_name');
  var id_categories = $('#id_categories');
@@ -112,17 +113,17 @@ $(function() {
 
  });
  updatePricing.on('click',function(){
-    console.log('update priceing');
     tax = tax_id.val();
     price = newPrice.val();
     wholesalePrice = wholesaleId.val();
     var threshold = thresholdId.val();
-    var sku = skuId.val();
+    var sku = $('#pricingDiv').find('#id_variant-sku').val();
     url = $(this).data('priceurl');
     pk  = $(this).data('productpk');
     if(minimum_price.val()){
        dynamicData['minimum_price'] = minimum_price.val();
     }
+
     dynamicData = {};
     dynamicData['pk'] = pk;
     dynamicData['price'] = price;
@@ -138,6 +139,9 @@ $(function() {
     if(wholesalePrice){
     dynamicData['wholesale_price'] =wholesalePrice;
     }
+    if(variantSupplier.val()){
+        dynamicData['variant_supplier'] = variantSupplier.val();
+    }
     dynamicData['minimum_price'] = $('#id_minimum_price').val();
     dynamicData['track'] = 'add pricing x';
     method = 'post';
@@ -145,6 +149,8 @@ $(function() {
     .done(function(data){
       alertUser('Data sent successfully');
       $('#id_price').val(price);
+      parent.supplier = variantSupplier.val();
+      parent.inputChangeEvent();
     }).fail(function(){
       alertUser('Error occured','bg-danger','Error!');
     });
@@ -165,16 +171,28 @@ function refreshStockVar(dynamicData={},url){
 }
 
 $(function() {
-  var addvariantBtn = $('#addvariantBtn');
-  var retailPriceId = $('#rprice');
-  var wholePriceId  = $('#wprice');
-  var dynamicVariants = $('.dynamicvxx');
-  var newSkuId = $('#new-sku-td');
+  var variantForm = $('#toggleVariant');
+  var addvariantBtn = variantForm.find('#addvariantBtn');
+  var retailPriceId = variantForm.find('#rprice');
+  var wholePriceId  = variantForm.find('#wprice');
+  var minimumPrice  = variantForm.find('#mprice');
+  var variantSupplier = variantForm.find('#id_variant_supplier');
+  var dynamicVariants = variantForm.find('.dynamicvxx');
+  var newSkuId = variantForm.find('#new-sku-td');
   var reorder_levelId = $('#reorder_level');
   var refreshVaraintsContent = $('#refreshvaraintscontent');
   var refreshStockVariants = $('#refreshStockVariants');
   var json = [];
-  addvariantBtn.on('click',function(){
+
+  function addItem(newitemnum, newitemdesc) {
+   var selector = $('#id_variant');
+
+   selector.append('<option value="'+newitemnum+'">'+newitemdesc+'</option>');
+   selector.selectpicker('refresh');
+   selector.selectpicker('val', newitemnum);
+ }
+  addvariantBtn.on('click',function(e){
+    e.preventDefault();
     // map each varaint
     dynamicVariants.map(function() {
       var id = $(this).data('pk');
@@ -186,8 +204,6 @@ $(function() {
     }).get();
     // ./mapping
 
-    wholePrice  = wholePriceId.val();
-    retailPrice = retailPriceId.val();
     newSku      = newSkuId.val();
     reorder_level = reorder_levelId.val();
 
@@ -199,24 +215,14 @@ $(function() {
         return false;
     }
     //validate retail price
-    retailPriceId.on('focusin',function(){
-      $(this).nextAll('.help-block:first').addClass('text-danger').html('');
-    });
-    if(!retailPriceId.val()){
-        retailPriceId.nextAll('.help-block:first').addClass('text-danger').html('Retail price');
-        return false;
-    }
 
-    if(!retailPrice || !newSku ){
-      alertUser('Retail Price, Minimum price & SKU required','bg-danger','Fill required fields!');
-      return false;
-    }
     dynamicData = {};
-    if(wholePrice){
-      dynamicData['wholesale'] = wholePrice;
-    }
+
     if(reorder_level){
       dynamicData['low_stock_threshold'] = reorder_level;
+    }
+    if(variantSupplier.val()){
+        dynamicData['variant_supplier'] = variantSupplier.val();
     }
 
     if ( json.length < 1) {
@@ -224,7 +230,6 @@ $(function() {
       //return false;
     }
 
-    dynamicData['price'] = retailPrice;
 
     dynamicData['sku'] = newSku;
     dynamicData['attributes'] = JSON.stringify(json);
@@ -232,19 +237,23 @@ $(function() {
     dynamicData['pk'] = $(this).data('productpk');
     var method = 'post';
     var url = $(this).data('attrurl');
+    console.log(url);
     var refreshvurl = $(this).data('refreshvurl');
     addProductDetails(dynamicData,url,method)
     .done(function(data){
       alertUser('data sent successfully');
+      document.getElementById("variant_adding_form").reset();
       $('#toggleVariant').slideUp();
       json = [];
       refreshVaraintsContent.html(data);
-      var dynamic = {}
+      var dynamic = {};
       dynamic['template'] = 'select_variant';
       dynamic['get'] = 'variants';
+      dynamic['track'] = 'refresh stock variant field';
+      parent.inputChangeEvent();
       refreshStockVar(dynamic,refreshvurl)
       .done(function(data){
-        refreshStockVariants.html(data);
+        addItem(data['id'],data['value']);
       });
     })
     .fail(function(){
@@ -485,12 +494,17 @@ $(function(){
    var stockInvoiceId  = $('#stockInvoiceNumber');
    var stockLocationId = $('#id_location');
    var stockQuantityId = $('#stock_quantity');
+   var stockAmountPaid = $('#amount_paid');
+   var stockTotalCost  = $('#id_total_cost');
+   var stockPaymentOption = $('#payment_option');
    var reorder_levelId = $('#id_low_stock_threshold');
+   var stockStatus = $('#status');
    var addnewStockBtn  = $('#addnewStockBtn');
 
    // remove helper
    stockVariantId.on('change',function(){
     $(this).nextAll('.help-block:first').addClass('text-danger').html('');
+    $('#variant-help').addClass('text-danger').html('');
    });
    reorder_levelId.on('change',function(){
     $(this).nextAll('.help-block:first').addClass('text-danger').html('');
@@ -510,6 +524,7 @@ $(function(){
    // success
    var refreshDiv = $('#refreshStockitems');
    addnewStockBtn.on('click',function(){
+   console.log('you clicked thi button');
     var dynamicData = {};
     var variant = stockVariantId.val();
     var cost_price = costPriceId.val();
@@ -521,7 +536,7 @@ $(function(){
     var refreshStockUrl = $(this).data('refreshstockurl');
     // validation
     if(!invoice_number){
-      //alertUser('Invoice number required','bg-danger','Field Required!');
+
       stockInvoiceId.focus();
       stockInvoiceId.prop('autofocus');
       stockInvoiceId.nextAll('.help-block:first').addClass('text-danger').html('Field required');
@@ -530,10 +545,9 @@ $(function(){
       stockInvoiceId.nextAll('.help-block:first').addClass('text-danger').html('');
     }
     if(!variant){
-      //alertUser('Please select a variant','bg-danger','Field Required!');
       stockVariantId.focus();
       stockVariantId.prop('autofocus');
-      stockVariantId.nextAll('.help-block:first').addClass('text-danger').html('Field required');
+      $('#variant-help').addClass('text-danger').html('Field required');
       stockVariantId.css("border-color","transparent transparent #D84315;");
 
       return false;
@@ -542,7 +556,7 @@ $(function(){
 
     }
     if(!cost_price){
-      //alertUser('Enter cost price','bg-danger','Field Required!');
+
       costPriceId.focus();
       costPriceId.prop('autofocus');
       costPriceId.nextAll('.help-block:first').addClass('text-danger').html('Field required');
@@ -552,7 +566,6 @@ $(function(){
       costPriceId.nextAll('.help-block:first').addClass('text-danger').html('');
     }
     if(!quantity){
-      //alertUser('Stock Quantity required','bg-danger','Field Required!');
       stockQuantityId.focus();
       stockQuantityId.prop('autofocus');
       stockQuantityId.nextAll('.help-block:first').addClass('text-danger').html('Field required');
@@ -565,8 +578,18 @@ $(function(){
     if(reorder_level){
       dynamicData['low_stock_threshold'] = reorder_level;
     }
+    if(stockAmountPaid.val()){
+      dynamicData['amount_paid'] = stockAmountPaid.val();
+    }
+    if(stockPaymentOption.val()){
+      dynamicData['payment_options'] = stockPaymentOption.val();
+    }
+    if(stockTotalCost.val()){
+      dynamicData['total_cost'] = stockTotalCost.val();
+    }
 
     // ./validation
+    dynamicData['status']  = stockStatus.val();
     dynamicData['variant'] = variant;
     dynamicData['quantity'] = quantity;
     dynamicData['cost_price'] = cost_price;
@@ -589,7 +612,7 @@ $(function(){
       }
 
       /* toggle form */
-      $('#toggleStock').slideUp();
+      $('#toggleStock').toggle();
       refreshStockDiv(refreshStockUrl)
       .done(function(data){
         refreshDiv.html(data);

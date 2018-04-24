@@ -4,6 +4,8 @@ from django.contrib.auth.models import Permission
 from ..sale.models import PaymentOption, Terminal
 from ..product.models import StockLocation
 from saleor.salepoints.models import SalePoint
+from saleor.supplier.models import Supplier
+from saleor.payment.models import PaymentOption as Payment
 
 
 def add_stock_location(sender,**kwargs):
@@ -15,6 +17,15 @@ def add_stock_location(sender,**kwargs):
         print(e)
 
 
+def add_default_supplier(sender,**kwargs):
+    try:
+        store = Supplier.objects.filter(name='Unknown')
+        if not store.exists():
+            Supplier.objects.create(name="Unknown", mobile='Unknown')
+    except Exception as e:
+        print e
+
+
 def add_sale_point(sender, **kwargs):
     try:
         instance = SalePoint.objects.all()
@@ -24,6 +35,7 @@ def add_sale_point(sender, **kwargs):
     except Exception as e:
         print e
 
+
 def add_terminal(sender,**kwargs):
     try:
         terminal = Terminal.objects.all()
@@ -31,6 +43,28 @@ def add_terminal(sender,**kwargs):
             Terminal.objects.create(terminal_name="Till-001",terminal_number=1)
     except Exception as e:
         print e
+
+
+def add_stock_payment_options(sender, **kwargs):
+    try:
+        cash = Payment.objects.filter(name='Cash')
+        if not cash.exists():
+            Payment.objects.create(name="Cash")
+
+        cash = Payment.objects.filter(name='Cheque')
+        if not cash.exists():
+            Payment.objects.create(name="Cheque")
+
+        visa = PaymentOption.objects.filter(name='Visa')
+        if not visa.exists():
+            Payment.objects.create(name="Visa")
+
+        mpesa = Payment.objects.filter(name='Mpesa')
+        if not mpesa.exists():
+            Payment.objects.create(name="Mpesa")
+    except:
+        print('Error creating payment options')
+
 
 def add_payment_options(sender, **kwargs):
     try:
@@ -48,6 +82,7 @@ def add_payment_options(sender, **kwargs):
             PaymentOption.objects.create(name="Loyalty Points")
     except:
         print('Error creating payment options')
+
 
 def add_view_permissions(sender, **kwargs):
     """
@@ -99,10 +134,11 @@ def add_view_permissions(sender, **kwargs):
     change_usertrail.delete()
 
 
-
 # check for all our view permissions after a syncdb
 post_migrate.connect(add_view_permissions)
 post_migrate.connect(add_payment_options)
+post_migrate.connect(add_stock_payment_options)
 post_migrate.connect(add_terminal)
 post_migrate.connect(add_stock_location)
 post_migrate.connect(add_sale_point)
+post_migrate.connect(add_default_supplier)

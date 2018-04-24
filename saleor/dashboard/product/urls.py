@@ -94,7 +94,7 @@ urlpatterns = [
 
     url(r'^(?P<product_pk>[0-9]+)/variants/(?P<variant_pk>[0-9]+)/$', permission_required('product.change_productvariant', login_url='not_found')
         (views.variant_edit), name='variant-update'),
-    url(r'^have-variants/$',views.have_variants, name='have-variants'),
+    url(r'^have-variants/$', views.have_variants, name='have-variants'),
     url(r'^(?P<product_pk>[0-9]+)/variants/add/$', permission_required('product.add_productvariant', login_url='not_found')
         (views.variant_edit), name='variant-add'),
     url(r'^(?P<product_pk>[0-9]+)/variants/(?P<variant_pk>[0-9]+)/delete/$', permission_required('product.delete_productvariant', login_url='not_found')
@@ -157,7 +157,7 @@ urlpatterns = [
         (views.view_attr), name='product-attributes'),
     url(r'attributes/paginate/$', permission_required('product.view_productattribute', login_url='not_found')
         (views.paginate_attr), name='attr_paginate'),
-    url(r'new-attribute/$',views.new_attribute,name='new-attribute'),
+    url(r'new-attribute/$', views.new_attribute,name='new-attribute'),
     url(r'attributes/search$',
         views.search_attribute, name='search-attribute'),
     url(r'attributes/add/new/$',
@@ -176,7 +176,7 @@ urlpatterns = [
     url(r'attr_list/$',views.attr_list,name="attr_list"),
     url(r'attr_list/form32b/$',views.attr_list_f32b,name="attr_list_f32b"),
     url(r'attr_list/form32d/$',views.attr_list_f32d,name="attr_list_f32d"),
-    url(r'add-attributes/ajax/$',views.add_attributes,name="add-attributes"),
+    url(r'add-attributes/ajax/$', views.add_attributes,name="add-attributes"),
 
     url(r'attributes/ajax_add/$',
         views.attribute_add, name='product-attr-add'),
@@ -194,4 +194,6 @@ urlpatterns = [
     (views.stock_location_edit), name='product-stock-location-edit'),
     url(r'stocklocations/(?P<location_pk>[0-9]+)/delete/$', permission_required('product.delete_stocklocation', login_url='not_found')
         (views.stock_location_delete), name='product-stock-location-delete'),
+    url(r'update/stock/data/$', permission_required('product.view_stock', login_url='not_found')
+        (views.purchase_data), name='update-stock-purchase-data'),
 ]
