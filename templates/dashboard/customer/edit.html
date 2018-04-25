@@ -6,12 +6,12 @@
 {% load get_countries %}
 
 {% block title %}
-  Tenant Update
+  Customer Update
 {% endblock %}
 
 {% block menu_addCustomer_class %}active{% endblock %}
  {% block breadcrumbs %}
-     <li class="active"><a href="{% url 'dashboard:customers' %}">Tenant</a></li>
+     <li class="active"><a href="{% url 'dashboard:customers' %}">Customer</a></li>
     <li><a href="{% url 'dashboard:customer-detail' pk=user.pk %}">{{user.name|title}}</a></li>
  {% endblock %}
  {% block custom_css %}
@@ -32,7 +32,7 @@
       <div class="panel-body">
         <div class="tabbable">
           <ul class="nav nav-tabs nav-tabs-highlight">
-            <li class="active" id="profile-tab"><a href="#profile" data-toggle="tab" class="legitRipple" aria-expanded="false">Edit Tenant profile</a></li>
+            <li class="active" id="profile-tab"><a href="#profile" data-toggle="tab" class="legitRipple" aria-expanded="false">Edit Customer profile</a></li>
             <li class="" id="contacts-tab"><a href="#contacts" data-toggle="tab" class="legitRipple" aria-expanded="false">Next of Kin</a></li>    
 
           </ul>

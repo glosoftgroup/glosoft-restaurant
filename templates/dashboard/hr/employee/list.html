@@ -29,22 +29,12 @@
  <div class="row animated fadeIn">
    <div class="col-md-12">
       <div class="panel panel-flat">
-      <div class="panel-heading">
-        <h6 class="panel-title">Employees Display</h6>
-        <div class="heading-elements">
-          <ul class="icons-list">
-            <li><a data-action="collapse"></a></li>
-            <li><a data-action="reload"></a></li>
-            <li><a data-action="close"></a></li>
-          </ul>
-        </div>
-      <a class="heading-elements-toggle"><i class="icon-more"></i></a></div>
         <div class="panel-body">
             <div class="col-md-2">
               <label style="visibility: hidden;"> add</label>
               <div class="form-group">
                 {% if perms.hr.add_employee %}
-                   <a href="{% url 'dashboard:add_employee' %}" class="btn-block btn-primary btn-lg ladda-button" data-style="expand-right" id="addbutton">
+                   <a href="{% url 'dashboard:add_employee' %}" class="btn btn-sm btn-primary ladda-button" data-style="expand-right" id="addbutton">
                        <i class="icon-plus3 position-left"></i>Add Employee</a>
                 {% endif %}
               </div>
@@ -168,6 +158,7 @@
 
         </div>
         </div>
+        {% if users %}
          <div class="my-paginate">
             <div class="text-center bootpag-callback" style="padding:20px;">
               <ul class="pagination bootpag pagination-flat pagination-sm"></ul>
@@ -175,6 +166,7 @@
             </div>
             <input type="hidden" id="page_size" val="">
           </div>
+        {% endif %}
       </div>
     </div><!-- pagination -->
   </div>

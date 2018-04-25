@@ -125,6 +125,8 @@ class User(PermissionsMixin, AbstractBaseUser, index.Indexed):
     send_mail = models.BooleanField(
         pgettext_lazy('User field', 'send mail'),
         default=True)
+    code = models.CharField(max_length=100, default='', unique=True, blank=True, null=True,
+        verbose_name=pgettext_lazy('User field', 'code'))
     job_title = models.CharField(max_length=100, default='', blank=True, null=True,
         verbose_name=pgettext_lazy('User field', 'job title'))
     nid = models.CharField(max_length=100, null=True,blank=True)

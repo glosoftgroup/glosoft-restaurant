@@ -29,17 +29,15 @@
  <div class="row animated fadeIn">
    <div class="col-md-12">
       <div class="panel panel-flat">
-      <div class="panel-heading">
-        <h6 class="panel-title">Attendance Display</h6>
-        <div class="heading-elements">
-          <ul class="icons-list">
-            <li><a data-action="collapse"></a></li>
-            <li><a data-action="reload"></a></li>
-            <li><a data-action="close"></a></li>
-          </ul>
-        </div>
-      <a class="heading-elements-toggle"><i class="icon-more"></i></a></div>
         <div class="panel-body">
+            <div class="col-md-2">
+              <label style="visibility: hidden;"> fill</label>
+              <div class="form-group">
+                {% if perms.userprofile.add_user %}
+                   <a href="{% url 'dashboard:add_attendance' %}" class="btn btn-sm btn-primary"><i class="icon-plus3 position-left"></i>FILL ATTENDANCE</a>
+                {% endif %}
+              </div>
+            </div>
             <div class="col-md-4">
              <label>Search Employees</label>
               <div class="form-group form-group-material has-feedback">
@@ -86,18 +84,11 @@
                   </select>
               </div>
             </div>
-            <div class="col-md-2">
-              <label style="visibility: hidden;"> fill</label>
-              <div class="form-group">
-                {% if perms.userprofile.add_user %}
-                   <a href="{% url 'dashboard:add_attendance' %}" class="btn-block btn-primary btn-lg">Fill Attendance</a>
-                {% endif %}
-              </div>
-            </div>
         </div>
       </div>
    </div>
-  {% if users %}
+
+
   <div class="col-md-12">
    <div id="pagination-div">
       <!-- Header and footer fixed -->
@@ -120,6 +111,7 @@
                   </tr>
                 </thead>
                 <tbody id="tb">
+                  {% if users %}
                   {% for user in users %}
                   <tr class='clickable-row' id="{{user.pk }}">
                     <td class="td" data-href="{% url 'dashboard:user-detail' pk=user.pk %}">#{{ forloop.counter }}</td>
@@ -158,11 +150,15 @@
                     {% endif %}
                   </tr>
                   {% endfor %}
+                  {% else %}
+                <tr><td colspan="7" class="text-center"><h5 class="text-center">No Employees Availbale</h5></td></tr>
+                {% endif %}
                   </tbody>
            </table>
 
         </div>
         </div>
+        {% if users %}
          <div class="my-paginate">
             <div class="text-center bootpag-callback" style="padding:20px;">
               <ul class="pagination bootpag pagination-flat pagination-sm"></ul>
@@ -170,20 +166,10 @@
             </div>
             <input type="hidden" id="page_size" val="">
           </div>
+          {% endif %}
       </div>
     </div><!-- pagination -->
   </div>
-     {% else %}
-  <div class="col-md-12 animated fadeIn ">
-   <div class="panel bg-danger-600">
-     <div class="panel-body">
-       <div style="text-align: center;font-size:16px;">
-        No Employees to display
-       </div>
-      </div>
-    </div>
-  </div>
-{% endif %}
 </div>
 
 <!-- Blue modal -->

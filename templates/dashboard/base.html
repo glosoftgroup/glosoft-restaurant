@@ -193,12 +193,12 @@
                   <ul>
                     {% if perms.userprofile.view_user %}
                     <li class="{% block menu_hremployees_class %}{% endblock %}">
-                      <a href="{% url 'dashboard:employees' %}"><i class='icon-users2'></i>Manage Employees</a>
+                      <a href="{% url 'dashboard:employees' %}"><i class='icon-users2'></i>Employees</a>
                     </li>
                     {% endif %}
                     {% if perms.auth.view_group %}
                     <li class="{% block menu_hrattendance_class %}{% endblock %}">
-                      <a href="{% url 'dashboard:attendance' %}"><i class='icon-users4'></i>Manage Attendance</a>
+                      <a href="{% url 'dashboard:attendance' %}"><i class='icon-users4'></i>Attendance</a>
                     </li>
                     {% endif %}
                     {% if perms.userprofile.view_usertrail %}
@@ -279,12 +279,12 @@
                    {% if perms.customer.view_customer %}
                 <li class="">
                   <a href="{% url 'dashboard:customers' %}"><i class="icon-theater"></i> <span>
-                    Tenant Management
+                    Customer Management
                   </span></a>
                   <ul>
                     <li class="{% block menu_addCustomer_class %}{% endblock %}">
                     <a href="{% url 'dashboard:customers' %}">
-                    <i class="icon-users2"></i> Tenants
+                    <i class="icon-users2"></i> Customer
                     </a>
                     </li>
                     <li class="{% block menu_reportCustomer_class %}{% endblock %}">

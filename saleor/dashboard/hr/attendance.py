@@ -41,7 +41,7 @@ from ...sale.models import Sales, SoldItem, Terminal
 from ...product.models import Product, ProductVariant, Category
 from ...decorators import permission_decorator, user_trail
 from ...utils import render_to_pdf, convert_html_to_pdf
-from ...site.models import UserRole, Department, BankBranch, Bank
+from ...hr.models import UserRole, Department, BankBranch, Bank
 
 debug_logger = logging.getLogger('debug_logger')
 info_logger = logging.getLogger('info_logger')

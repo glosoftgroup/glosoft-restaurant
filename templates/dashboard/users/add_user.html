@@ -104,6 +104,11 @@
                             <input type="text" class="form-control" name="nid" id="nid" placeholder="Id No">
                            </div>
 
+                          <div class="form-group">
+                            <label for="name">Code</label>
+                            <input type="text" class="form-control" autocomplete='off' placeholder="User Code" name="code" id="code">
+                          </div>
+
                         </div>
                         <div class="col-md-6">
                            <div class="form-group">
@@ -734,6 +739,9 @@ $( ".check" ).on( "click", function(){
         fullname: {
           required:true
         },
+        code: {
+          required:true
+        },
         email:{
           required: true,
           email:true
@@ -798,6 +806,7 @@ $( ".check" ).on( "click", function(){
                     success:function(data){
                        console.log(data);
                        $("#fullname").val('');
+                       $("#code").val('');
                        $("#name").val('');
                        $("#email").val('');
                        $("#password").val('');
