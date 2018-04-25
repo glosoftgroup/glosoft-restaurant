@@ -26,6 +26,7 @@ from ..discount.models import calculate_discounted_price
 from ..supplier.models import Supplier
 from ..search import index
 from saleor.payment.models import PaymentOption
+from saleor.section.models import Section
 from .utils import get_attributes_display_map
 from . import Status
 
@@ -43,7 +44,9 @@ class Category(MPTTModel):
         verbose_name=pgettext_lazy('Category field', 'parent'))
     hidden = models.BooleanField(
         pgettext_lazy('Category field', 'hidden'), default=False)
-
+    section = models.ForeignKey(
+        Section, null=True, blank=True, related_name='cat_sale_point',
+        verbose_name=pgettext_lazy('Category field', 'Business type(section)'))
     objects = models.Manager()
     tree = TreeManager()
 
@@ -427,7 +430,6 @@ class ProductVariant(models.Model, Item):
             return price
         except Exception as e:
             return price
-
 
     def is_in_stock(self):
         return any(

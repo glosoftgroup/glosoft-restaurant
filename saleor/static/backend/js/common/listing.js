@@ -93,26 +93,31 @@ var parent = new Vue({
                 // update
                 axios.put(self.updateUrl, data)
                 .then(function (response) {
-                    alertUser('Data deleted successfully');
+                    alertUser('Data Updated successfully');
                     self.showForm = false;
+                    self.wing_name = '';
+                    self.description = '';
                     self.updateUrl = '';
                     self.inputChangeEvent();
 
                 })
                 .catch(function (error) {
                     console.log(error);
+                    alertUser('Try a different name', 'bg-danger', 'Field error');
                 });
             }else{
                 // create
                 axios.post($('.pageUrls').data('createurl'), data)
                 .then(function (response) {
-                    alertUser('Data deleted successfully');
+                    alertUser('Data created successfully');
                     self.showForm = false;
                     self.inputChangeEvent();
-
+                    self.wing_name = '';
+                    self.description = '';
                 })
                 .catch(function (error) {
                     console.log(error);
+                    alertUser('Try a different name', 'bg-danger', 'Field error');
                 });
             }
 
@@ -232,6 +237,7 @@ var parent = new Vue({
         }
     },
     mounted:function(){
+    $('#crud-form').removeClass('hidden');
     /* on page load populate items with api list response */
         this.$http.get($('.pageUrls').data('listurl'))
             .then(function(data){

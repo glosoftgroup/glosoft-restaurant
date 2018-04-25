@@ -30,6 +30,7 @@ from ...product.models import (Product, ProductAttribute, Category,
                                StockLocation, ProductTax, StockHistoryEntry)
 from ..views import staff_member_required
 from saleor.payment.models import PaymentOption
+from saleor.section.models import Section
 from ...decorators import permission_decorator, user_trail
 import logging
 import json
@@ -576,10 +577,11 @@ def product_data(request):
 @permission_decorator('product.add_product')
 def product_create(request):
     product_classes = ProductClass.objects.all().order_by('pk')
+    sections = Section.objects.all().order_by('-id')
     form_classes = forms.ProductClassSelectorForm(
         request.POST or None, product_classes=product_classes)
     if form_classes.is_valid():
-        class_pk=form_classes.cleaned_data['product_cls']
+        class_pk = form_classes.cleaned_data['product_cls']
     else:
         # check if classes are set else set a default
         if product_classes.exists():
@@ -618,7 +620,8 @@ def product_create(request):
             'sub_category': sub_category,
             'supplier': sup,
             'suppliers': suppliers,
-            'tax': tx
+            'tax': tx,
+            'sections': sections
         }
         return TemplateResponse(request, 'dashboard/product/subcategory/sub_refresh.html',
                                 data)
@@ -650,9 +653,17 @@ def product_create(request):
                                       instance=product_cl)
 
         categories = Category.objects.all()
-        ctx = {'product_form': product_form, 'variant_form': variant_form,
-           'product': product,'form_classes':form_classes, 'errors':errors,
-               'form':form, 'product_class':product_cl,'categories':categories}
+        ctx = {
+            'product_form': product_form,
+            'variant_form': variant_form,
+            'product': product,
+            'form_classes': form_classes,
+            'errors': errors,
+            'form':form,
+            'product_class': product_cl,
+            'categories': categories,
+            'sections': sections
+        }
     return TemplateResponse(
         request, 'dashboard/product/product_form.html', ctx)
 

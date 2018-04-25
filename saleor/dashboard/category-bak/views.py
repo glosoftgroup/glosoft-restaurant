@@ -11,7 +11,7 @@ from ...product.models import (
                                 Product, 
                                 ProductClass
                                )
-from saleor.section.models import Section as SalePoint
+from ...salepoints.models import SalePoint
 from ..views import staff_member_required
 from .forms import CategoryForm, ProductForm
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger, InvalidPage
@@ -170,8 +170,6 @@ def category_create32(request):
             category.name = request.POST.get('name')
         else:
             return HttpResponse('name required')
-        if request.POST.get('section'):
-            category.section = SalePoint.objects.get(pk=request.POST.get('section'))
         if request.POST.get('description'):
             category.description = request.POST.get('description')
         category.save()
