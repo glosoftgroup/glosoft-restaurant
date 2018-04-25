@@ -106,7 +106,7 @@ def add(request):
         package_json = []
         for package in packages:
             package_json.append({'name': str(package.name)})
-        ctx = {'n': range(SiteSettings.objects.get(pk=1).floors), 'table_name': table_name, 'packages': packages, 'package_json': package_json}
+        ctx = {'table_name': table_name, 'packages': packages, 'package_json': package_json}
         return TemplateResponse(request, 'dashboard/room/form.html', ctx)
 
 

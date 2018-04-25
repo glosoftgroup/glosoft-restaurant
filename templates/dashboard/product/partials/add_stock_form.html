@@ -1,179 +1,322 @@
-{% load i18n %}
 {% load materializecss %}
-{% load staticfiles %}
+{% load prices_i18n %}
+{% load static %}
+{% load site_settings %}
+{% load model_settings %}
+<div class="mt-15">
+    <button class="btn btn-primary" id="btntoggles">
+      Add Stock
+    </button>
+</div>
+ <style type="text/css">
+        #toggleStock{display:none;}
+</style>
 
- <div class="panel panel-flat">         
-     
-    <div class="modal-body">
-     {% if errors %}
-       
-       <div class="col-md-12">
-         <div class="alert alert-danger alert-styled-left">
-          <button type="button" class="close" data-dismiss="alert"><span>&times;</span><span class="sr-only">Close</span></button>         
-            <span class="text-semib">{{ errors.as_text }}</span>
-         
-            
-          </div>
+    <div class="row mt-15" id="vue-app">
+<div id="toggleStock"  class="card-3 mb-10">
+    <form id="add-product-stock-form">
+    </form>
+     <!--product variant-->
+        <div class="col-md-4" style="border-right: 1px solid #373737;">
+            <!--search filter-->
+
+            <div style="z-index: 1;" class="navbar navbar-default navbar-xs navbar-component">
+                <div class="row">
+                     <!--select-->
+                <div class="col-md-6">
+                    <div class="filter-item">
+                        <div style="margin-top:3px;" class="has-feedback has-feedback-left">
+                            <select v-model="supplier" @change="clearCart" data-width="100%" data-live-search="true" title="Select Supplier" name="variant_supplier" class="bootstrap-select" id="variant_supplier">
+
+                                {% if suppliers %}
+                                {% if supplier.name == 'Unknown' %}
+                                <option value="{{supplier.pk}}">{{supplier}}</option>
+                                {% endif %}
+                                {% for supplier in suppliers %}
+                                    <option value="{{supplier.id}}">{{supplier}}</option>
+                                {% endfor %}
+                                {% endif %}
+                            </select>
+
+                        </div>
+                    </div>
+                </div>
+                    <div class="col-md-6">
+                        <div class="filter-item">
+                            <div style="margin-top:3px;" class="has-feedback has-feedback-left">
+                                <input class="form-control" @keyup="inputChangeEvent" v-model="search" placeholder="Search .." name="search" type="text">
+                                <div class="form-control-feedback">
+                                    <i class="icon-search4 text-size-base text-muted"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                   
+                </div>
+            </div>
+            <!--./filter-->
+            <div class="panel panel-default">
+                <div class="panelbody">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr class="bg-primary">
+                                <th>Supplier</th>
+                                <th>Name</th>
+                                <th>Purchase</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tb">
+                <!--loader-->
+                <tr v-if="loader" class="text-center">
+                    <td colspan="8">
+                        <div class="pace-demo">
+                            <div class="theme_xbox"><div class="pace_progress" data-progress-text="60%" data-progress="60"></div><div class="pace_activity"></div></div>
+                        </div>
+                    </td>
+                </tr>
+                <!--no data template-->
+                <template  v-else>
+                <tr v-if="items.length == 0" class="text-center">
+                    <td colspan="8" class="text-bold animated zoomIn">
+                        No Data Found ! <span class="text-warning">Please select supplier</span>
+                    </td>
+                </tr>
+                </template>
+                <!--listing template-->
+                <template v-for="item in items">
+                    <tr class="td animated fadeIn">
+                        <td>${item.supplier_name}</td>
+                        <td>${item.product_name}<br>${item.sku}</td>
+                        <td class="text-center">
+                            <span class="label label-primary cursor-pointer" @click="addToCart(item)">
+                                Add
+                            </span>
+                        </td>
+                    </tr>
+                </template>
+
+
+                </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
-     
-       {% endif %}
-    <form method="post" id="new-stock-settings" enctype="multipart/form-data">
-      <div class="card-content">
+        <!--./variant-->
+        <!--cart-->
+        <div class="col-md-8">
+            <div class="panel panel-default">
+                <div class="panelbody table-responsive">
+                    <table class="table">
+                        <tr class="active">
+                                <td class="text-center text-bold" colspan="12">
+                                    Purchase Cart (<span >{{'DEFAULT_CURRENCY'|site_settings}}  ${Total | formatCurrency}</span>)
+                                    <!--alert-->
+                                    <div class="col-md-12">
+                                        <div class="alert alert-danger no-border text-center animated shake hidden">
+                                            <button type="button" class="close" data-dismiss="alert"><span>×</span><span class="sr-only">Close</span></button>
+                                            <span class="text-semibold">Oh snap!</span> <span class="error-alert"></span>
+                                        </div>
+                                    </div>
+                                    <!--./alert-->
+                                </td>
+                            </tr>
+                    </table>
+                    <table class="table table-hover">
+                        <thead>
+                            <tr class="bg-grey-800">
+                                <th>Name</th>
+                                <th>Quantity</th>
+                                <th>Reorder Threshold</th>
+                                <th>Cost Price</th>
+                                <th>Retail Price</th>
+                                <th>{{'wholesale_name'|model_settings}} Price</th>
+                                <th>Minimum Price</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        <template >
+                        <tr v-if="cartItems.length == 0" class="text-center">
+                            <td colspan="8" class="text-bold animated zoomIn">
+                                Cart is empty !
+                            </td>
+                        </tr>
+                        </template>
+                        <!--listing template-->
+                        <template v-for="item in cartItems">
+                            <tr class="td animated fadeIn">
+                                <td>${item.product_name}</td>
+                                <td>
+                                    <input v-model="item.qty" style="width: 65px;" type="number" placeholder="amount" class="form-control">
+                                </td>
+                                <td>
+                                    <input v-model="item.low_stock_threshold" style="width: 65px;" type="number" placeholder="Reorder Thresholder" class="form-control">
+                                </td>
+                                <!--cost price-->
+                                <td>
+                                    <input v-model="item.cost_price" style="width: 65px;" type="number" placeholder="cost" class="form-control">
+                                </td>
+                                <!--retail price-->
+                                <td>
+                                    <input v-model="item.price_override" style="width: 65px;" type="number" placeholder="price_override" class="form-control price_override">
+                                </td>
+                                <!--wholesale price-->
+                                <td>
+                                    <input v-model="item.wholesale_override" style="width: 65px;" type="number" placeholder="{{'wholesale_name'|model_settings}} price" class="form-control">
+                                </td>
+                                <!--minimum price-->
+                                <td>
+                                    <input v-model="item.minimum_price" style="width: 65px;" type="number" placeholder="minimum_price" class="form-control">
+                                </td>
+                                <!--options-->
+                                <td>
+                                    <span class="label label-white text-grey-800" @click="removeItem(item)">
+                                        <i class="icon-trash animated shake"></i>
+                                    </span>
+                                </td>
+                            </tr>
+                        </template>
+                        </tbody>
+                        <tfooter>
+                            <tr class="active text-right text-bold">
+                                <template>
+                                    <td>
+                                        <button type="button" @click="openModal" class="btn bg-grey-800 btn-float btn-float-sm legitRipple">
+                                            <i class="icon-wallet"></i>
+                                            <span>Payment</span>
+                                        </button>
+                                    </td>
+                                    <td colspan="9">
+                                        <span style="font-size:24px;">{{'DEFAULT_CURRENCY'|site_settings}}  ${Total | formatCurrency}</span>
+                                    </td>
+                                </template>
+                            </tr>
+                        </tfooter>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <!--./cart-->
+
+    <!--PAYMENT MODAL-->
+    <form id="pay-form">
         {% csrf_token %}
-        <input type="hidden" name="success_url" value="{% url 'dashboard:product-update' pk=product.pk %}?tab=stock">
-      <div class="row">
-         <div class="col-md-6">
-            <div class="form-group">
-              {{ form.variant|materializecss }}
+    <div id="payment-modal" class="modal fade">
+        <div class="modal-dialog modal-lg">
+
+            <div class="modal-content">
+                <div class="modal-header bg-primary">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h6 class="modal-title text-center">Purchase Payment</h6>
+                </div>
+
+                <div class="modal-body">
+                    <div class="row">
+                        <!--alert-->
+                        <div class="col-md-12">
+                            <div class="alert alert-danger no-border text-center animated shake hidden">
+                                <button type="button" class="close" data-dismiss="alert"><span>×</span><span class="sr-only">Close</span></button>
+                                <span class="text-semibold">Oh snap!</span> <span class="error-alert"></span>
+                            </div>
+                        </div>
+                        <!--./alert-->
+                        <!--purchase detail-->
+                        <div class="col-md-4" style="border-right: 1px solid #373737;">
+                            <div class="form-group">
+                                <h5 class="text-semibold text-center text-grey-800">Select Payment Method</h5>
+                                 <template >
+                                <span v-if="paymentOptions.length == 0" class="text-center">
+                                    <span colspan="8" class="text-bold animated zoomIn">
+                                        No payment options !
+                                    </span>
+                                </span>
+                                </template>
+                                <template v-for="item in paymentOptions">
+                                    <button @click="addPayment(item)" onclick="return false;" class="btn btn-default btn-block btn-lg" >${item.name}</button>
+                                </template>
+
+                            </div>
+                        </div>
+
+                        <!--payment detail-->
+                        <div class="col-md-8">
+                             <!--total-->
+                            <h4 class="text-center text-bold" style="font-size:34px;">
+                                Total:{{'DEFAULT_CURRENCY'|site_settings}}  ${Total | formatCurrency}
+                            </h4>
+                            <!--payment table-->
+                            <div class="table-responsive">
+                             <table class="table table-hover">
+                                <thead>
+                                    <tr class="bg-grey-800">
+                                        <th>Method</th>
+                                        <th>Number</th>
+                                        <th>Tendered</th>
+
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                <template >
+                                <tr v-if="paymentItems.length == 0" class="text-center">
+                                    <td colspan="8" class="text-bold animated zoomIn">
+                                        Select Payment
+                                    </td>
+                                </tr>
+                                </template>
+                                <!--listing template-->
+                                <template v-for="item in paymentItems">
+                                    <tr class="td animated fadeIn">
+                                        <td>${item.payment_name}</td>
+                                        <td>
+                                            <input v-model="item.transaction_number" style="width: 65px;" type="text" placeholder="transaction" class="form-control">
+                                        </td>
+                                        <td>
+                                            <input v-model="item.tendered" style="width: 65px;" type="number" placeholder="amount" class="form-control">
+                                        </td>
+
+                                        <td>
+                                            <span class="label label-white text-grey-800" @click="removePayment(item)">
+                                                <i class="icon-trash animated shake"></i>
+                                            </span>
+                                        </td>
+                                    </tr>
+                                </template>
+                                </tbody>
+                                 <tfooter>
+                                    <tr class="active text-right text-bold">
+                                        <template>
+                                            <td>
+                                                <span class="text-warning" v-show="show_balance">Balance:</span>
+                                                <span class="text-success" v-show="show_change">Change:</span>
+                                                <span> {{'DEFAULT_CURRENCY'|site_settings}} ${getDue(Total,Tendered)| formatCurrency}</span>
+                                            </td>
+                                            <td colspan="4">
+                                                <span style="font-size:14px;">Tendered: {{'DEFAULT_CURRENCY'|site_settings}}  ${Tendered | formatCurrency}</span>
+                                            </td>
+                                        </template>
+                                    </tr>
+                                </tfooter>
+                             </table>
+                            </div>
+                        </div>
+                    </div>
+
+					<input type="hidden" name="pk" id="pk" value="{{credit.pk}}">
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-link" data-dismiss="modal">Close</button>
+                    <button v-show="show_change" type="button" @click="completePurchase" class="btn btn-primary hvr-glow btn-raised legitRipple">Complete</button>
+                    <button v-show="show_balance" type="button" @click="completePurchase" class="btn btn-primary hvr-glow btn-raised legitRipple">Credit</button>
+                </div>
             </div>
-            <div class="form-group">
-              {{ form.location|materializecss }}
-            </div>
-            <div class="form-group">
-              {{ form.invoice_number|materializecss }}
-            </div>
-         </div>
-         <div class="col-md-6">
-            <div class="form-group">
-                {{ form.quantity|materializecss }}
-            </div>
-            <div class="form-group">
-                {{ form.cost_price|materializecss }}
-            </div>
-            <div class="form-group">
-              <div class="col-md-6">
-                <label class="text-bold">Total Cost</label>
-                <input type="number"  name="total_cost" id='total_cost' class="form-control" />
-              </div>
-            </div>
-         </div>
         </div>
-        </div>
-         <!-- action buttons -->
-         <div class="modal-footer">
-           {% if stock.pk %}
-              <a href="{% url 'dashboard:product-update' pk=product.pk %}?tab=stock" class="btn btn-flat">
-                {% trans "Cancel" context "Dashboard cancel action" %}
-              </a>
-              <button type="submit" class="btn waves-effect waves-light">
-                {% trans "Update" context "Dashboard update action" %}
-              </button>
-            {% else %}
-              <a href="" data-dismiss="modal" class="btn btn-link">
-                {% trans "Cancel" context "Dashboard cancel action" %}
-              </a>
-              <button type="submit" class="btn btn-primary waves-effect waves-light">
-                {% trans "Create" context "Dashboard create action" %}
-              </button>
-            {% endif %}
-         </div>        
-      </div> 
-      </form>      
     </div>
-  </div>
-  <script type="text/javascript">
-    $( document ).ready(function() {
-    // validate
-    $('#new-stock-settings').validate({
-    rules:{
-        cost_price: {
-          required:true,
-          minlength:1
-        },   
-        
-    },
-    submitHandler: function() { 
-      
-      if(1 != ''){
-          var f = document.getElementById('new-stock-settings');
-          var formData = new FormData(f);
-          
-          for (var pair of formData.entries()) {
-              console.log(pair[0]+ ', ' + pair[1]); 
-          }
-          if (formData) {
-                $.ajax({
-                    url: "{% url 'dashboard:product-stock-add' product_pk=product.pk %}",
-                    type: "POST",
-                    data: formData,
-                    processData: false,
-                    contentType: false,
-                    success:function(data){
-                       console.log(data);
-                       $("#name").val('');               
-                       $("#nid").val('');               
 
-                       // if(data['message'] == 1){
-                       // 	alertUser('successfully');
-                       // }else{
-                       // 	alertUser('error');
-                       // }
-                       $.jGrowl('Stock added successfully,', {
-                          header: 'Well done!',
-                          theme: 'bg-success'
-                       });
-                       
-                      localStorage.setItem('user_id', data);
-                      $('.user_id').val(localStorage.getItem("user_id"));
-                      {% if product.pk %}
-                      //window.location = "{% url 'dashboard:product-update' pk=product.pk %}?tab=stock";      
-                      {% endif %}
-                    },
-                    error:function(error){
-                      console.log(error);
-                      $.jGrowl('Variant already exist. Try adding another variant, then submitting again', {
-                          header: 'Oh snap!',
-                          theme: 'bg-danger'
-                      });
-                    }
-                });
-            } 
-      }else{
-        $.jGrowl('Image is empty fill and try submitting again', {
-            header: 'Oh snap!',
-            theme: 'bg-danger'
-        });
-      }
-    }
-  });
-    // end validate
-  });
-   
-  </script>
-  <script type="text/javascript" src="{% static 'backend/js/plugins/forms/selects/bootstrap_select.min.js' %}"></script>
-<script type="text/javascript">
-  // Basic select
-  $('.select').selectpicker();
+	</form>
+    <!--./MODAL-->
+</div>
 
-  
-  $("#total_cost").on("change keyup paste keydown", function(event) { 
-    var total_cost = $('#total_cost').val();
-    var unit_cost = $('#id_cost_price').val();
-    var quantity = $('#id_quantity').val();
-    
-    unit_cost = parseInt(total_cost)/parseInt(quantity);
-    $('#id_cost_price').val(unit_cost);    
-
-  });
-  $("#id_cost_price").on("change keyup paste keydown", function(event) { 
-    var total_cost = $('#total_cost').val();
-    var unit_cost = $('#id_cost_price').val();
-    var quantity = $('#id_quantity').val();
-    
-    total_cost = parseInt(unit_cost)*parseInt(quantity);
-    $('#total_cost').val(total_cost);    
-
-  });
-  $("#id_quantity").on("change keyup paste keydown", function(event) { 
-    var total_cost = $('#total_cost').val();
-    var unit_cost = $('#id_cost_price').val();
-    var quantity = $('#id_quantity').val();
-    
-    total_cost = parseInt(unit_cost)*parseInt(quantity);
-    $('#total_cost').val(total_cost);
-    unit_cost = parseInt(total_cost)/parseInt(quantity);
-    $('#id_cost_price').val(unit_cost);
-
-
-  });
-</script>
+</div>

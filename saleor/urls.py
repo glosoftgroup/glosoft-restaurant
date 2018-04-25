@@ -21,6 +21,9 @@ from .api.order_number.urls import urlpatterns as api_order_number_urls
 from .api.payment.urls import urlpatterns as api_payment_urls
 from .api.product.urls import urlpatterns as api_urls
 from .api.property.urls import urlpatterns as api_property_urls
+from .api.purchase.urls import urlpatterns as api_purchase_urls
+from .api.purchase_variant.urls import urlpatterns as api_purchase_variant_urls
+
 from .api.room.urls import urlpatterns as api_maintenance_urls
 from .api.sale.urls import urlpatterns as api_sale_urls
 from .api.salepoint.urls import urlpatterns as api_salepoint_urls
@@ -66,6 +69,9 @@ urlpatterns = [
     url(r'^api/products/', include(api_urls, namespace='product-api')),
     url(r'^api/property/', include(api_property_urls, namespace='property-api')),
     url(r'^api/payment/', include(api_payment_urls, namespace='payment-api')),
+    url(r'^api/purchase/', include(api_purchase_urls, namespace='purchase-api')),
+    url(r'^api/purchase/variant', include(api_purchase_variant_urls, namespace='purchase-variant-api')),
+
     url(r'^api/maintenance/', include(api_maintenance_urls, namespace='maintenance-api')),
     url(r'^api/sale/', include(api_sale_urls, namespace='sale-api')),
     url(r'^api/setting/', include(api_settings_urls, namespace='setting-api')),

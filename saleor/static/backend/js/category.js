@@ -31,8 +31,8 @@ $(function() {
           return false;
         }
         if(sale_point == 0){
-          notify('Sale point required');
-          return false;
+//          notify('Sale point required');
+//          return false;
         }
 
         // after validating category cat_name        

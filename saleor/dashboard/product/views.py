@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 import emailit.api
+from decimal import Decimal
 from django.conf import settings
 from django.contrib import messages
 from django.core.urlresolvers import reverse
@@ -9,8 +10,13 @@ from django.template.response import TemplateResponse
 from django.utils.http import is_safe_url
 from django.utils.translation import pgettext_lazy
 from django.views.decorators.http import require_http_methods
-import json
+from django.http import HttpResponse
+from django.http import JsonResponse
+from django.db.models import Q
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+
 from . import forms
+from .forms import ProductTaxForm
 from ...core.utils import get_paginator_items
 from ...purchase.models import (
                                 PurchaseOrder,
@@ -23,14 +29,10 @@ from ...product.models import (Product, ProductAttribute, Category,
                                ProductImage, ProductVariant, Stock,
                                StockLocation, ProductTax, StockHistoryEntry)
 from ..views import staff_member_required
-from ...salepoints.models import SalePoint
-
-from django.http import HttpResponse
-from django.http import JsonResponse
-from django.db.models import Q
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from saleor.payment.models import PaymentOption
 from ...decorators import permission_decorator, user_trail
 import logging
+import json
 
 debug_logger = logging.getLogger('debug_logger')
 info_logger = logging.getLogger('info_logger')
@@ -70,6 +72,7 @@ def re_order(request):
         return TemplateResponse(request, 'dashboard/re_order/re_order.html', data)
 
 
+@staff_member_required
 def reorder_pagination(request):
     page = int(request.GET.get('page', 1))
     list_sz = request.GET.get('size')
@@ -87,7 +90,8 @@ def reorder_pagination(request):
     if p2_sz:
         paginator = Paginator(low_stock, int(p2_sz))
         low_stock = paginator.page(page)
-        return TemplateResponse(request, 'dashboard/re_order/pagination/paginate.html', {"low_stock": low_stock,'pn': paginator.num_pages})
+        return TemplateResponse(request, 'dashboard/re_order/pagination/paginate.html', {"low_stock":low_stock,'pn': paginator.num_pages})
+
     try:
         low_stock = paginator.page(page)
     except PageNotAnInteger:
@@ -146,7 +150,7 @@ def add_reorder_stock(request,pk=None):
             supplier = get_object_or_404(Supplier,name=str(request.POST.get('supplier')))       
             product = get_object_or_404(Product,pk=(request.POST.get('pid')))       
 
-            ref_no   = request.POST.get('ref_no')
+            ref_no = request.POST.get('ref_no')
             if supplier:
                 purchase_order = PurchaseOrder.objects.create(
                                                         product=product,                    
@@ -155,7 +159,6 @@ def add_reorder_stock(request,pk=None):
                                                         user=request.user,)
 
                 items = json.loads(variants)
-                print purchase_order
                 for li in items:
                     var = ProductVariant.objects.get(pk=int(li['id']))
                     sku = var.sku
@@ -169,6 +172,7 @@ def add_reorder_stock(request,pk=None):
                       
             return HttpResponse('success!')
         variant_id = request.POST.get('variant_id')
+        #return HttpResponse(variant_id)
         variant = ProductVariant.objects.get(pk=int(variant_id))
         ctx = {"variant":variant}
         user_trail(request.user.name, 'added reorder level', 'add')
@@ -186,9 +190,11 @@ def request_order(request):
         send_email = emailit.api.send_mail(
             supplier.email, context, 'order/emails/confirm_email',
             from_email=settings.ORDER_FROM_EMAIL)
+        # if send_email:
+        #   if purchase_order:
+        #            purchase_order.change_status('sent')
         return HttpResponse(send_email)
     return HttpResponse('Bad request')
-
 
 @staff_member_required
 def re_order_form(request, pk):
@@ -205,10 +211,9 @@ def re_order_form(request, pk):
         for q in qset:
             qset = q
             items = PurchaseItems.objects.filter(purchase_order=q)
-            print items
         ctx = {'items':items,'order':qset,"product":product,'suppliers':suppliers,'variants':variants,'attributes':attributes}
     else:
-        ctx = {"product": product,'suppliers':suppliers,'variants':variants,'attributes':attributes}
+        ctx = {"product":product,'suppliers':suppliers,'variants':variants,'attributes':attributes}
     return TemplateResponse(request, 'dashboard/re_order/re_order_form.html', ctx)    
 
 # @staff_member_required
@@ -226,7 +231,6 @@ def re_order_form(request, pk):
 #       for pc in classes.object_list]
 #   ctx = {'form': form, 'product_classes': classes}
 #   return TemplateResponse(request, 'dashboard/product/class_list.html', ctx)
-
 
 @staff_member_required
 @permission_decorator('product.view_productclass')
@@ -517,12 +521,17 @@ def fetch_variants32(request):
 def product_data(request):
     if request.method == 'POST':
         pk = request.POST.get('pk')
-        # try:
-        product = Product.objects.get(pk=pk)
+        try:
+            product = Product.objects.get(pk=pk)
+        except Exception as e:
+            return HttpResponse(e)
         if request.POST.get('tax'):
             try:
-                tax = ProductTax.objects.get(pk=int(request.POST.get('tax')))
-                product.product_tax = tax
+                if int(request.POST.get('tax')) == 0:
+                    product.product_tax = None
+                else:
+                    tax = ProductTax.objects.get(pk=int(request.POST.get('tax')))
+                    product.product_tax = tax
             except:
                 print('Error getting tax')
         if request.POST.get('supplier'):
@@ -532,15 +541,26 @@ def product_data(request):
             except:
                 print('Error add supplier')
         if request.POST.get('sku'):
-            variant = ProductVariant.objects.get(product=product)
-            variant.name = request.POST.get('sku')
-            if request.POST.get('threshold'):
-                  variant.low_stock_threshold = request.POST.get('threshold')
-            variant.save()
+            try:
+                variant = ProductVariant.objects.get(sku=request.POST.get('sku'))
+                variant.name = request.POST.get('sku')
+                if request.POST.get('threshold'):
+                    variant.low_stock_threshold = request.POST.get('threshold')
+                if request.POST.get('variant_supplier'):
+                    supplier = Supplier.objects.get(pk=int(request.POST.get('variant_supplier')))
+                    variant.variant_supplier = supplier
+                variant.save()
+            except Exception as e:
+                print(e)
+        if request.POST.get('name'):
+            product.name = request.POST.get('name')
         if request.POST.get('wholesale_price'):
             product.wholesale_price = request.POST.get('wholesale_price')
+        if request.POST.get('minimum_price'):
+            product.minimum_price = request.POST.get('minimum_price')
         if request.POST.get('price'):
             product.price = request.POST.get('price')
+
         if request.POST.get('threshold'):
             product.low_stock_threshold = int(request.POST.get('threshold'))
         product.save()
@@ -549,7 +569,6 @@ def product_data(request):
             product.categories.clear()
             product.categories.add(category)
         return HttpResponse({'message': str(product)+' Added'})
-
     return HttpResponse('Invalid Method!')
 
 
@@ -557,12 +576,10 @@ def product_data(request):
 @permission_decorator('product.add_product')
 def product_create(request):
     product_classes = ProductClass.objects.all().order_by('pk')
-    sale_points = SalePoint.objects.all().order_by('-id')
     form_classes = forms.ProductClassSelectorForm(
         request.POST or None, product_classes=product_classes)
     if form_classes.is_valid():
         class_pk=form_classes.cleaned_data['product_cls']
-        print class_pk
     else:
         # check if classes are set else set a default
         if product_classes.exists():
@@ -589,13 +606,19 @@ def product_create(request):
     ajax_sub = request.GET.get('ajax_subcategory')
     sub_category = request.GET.get('sub_category')
     sup= request.GET.get('supplier')
+    suppliers = None
+    if request.GET.get('supplier'):
+        suppliers = Supplier.objects.latest('id')
+        ctx = json.dumps({'supplier_id':suppliers.id,'supplier_name':suppliers.name})
+        return HttpResponse(ctx)
     tx = request.GET.get('tax')
     if ajax_sub:
         data = {
             'product_form': product_form,
-            'sub_category':sub_category,
-            'supplier':sup,
-            'tax':tx
+            'sub_category': sub_category,
+            'supplier': sup,
+            'suppliers': suppliers,
+            'tax': tx
         }
         return TemplateResponse(request, 'dashboard/product/subcategory/sub_refresh.html',
                                 data)
@@ -627,16 +650,9 @@ def product_create(request):
                                       instance=product_cl)
 
         categories = Category.objects.all()
-        ctx = {'product_form': product_form,
-               'variant_form': variant_form,
-               'product': product,
-               'form_classes': form_classes,
-               'errors': errors,
-               'form': form,
-               'product_class': product_cl,
-               'categories': categories,
-               'sale_points': sale_points
-               }
+        ctx = {'product_form': product_form, 'variant_form': variant_form,
+           'product': product,'form_classes':form_classes, 'errors':errors,
+               'form':form, 'product_class':product_cl,'categories':categories}
     return TemplateResponse(
         request, 'dashboard/product/product_form.html', ctx)
 
@@ -644,11 +660,12 @@ def product_create(request):
 @staff_member_required
 @permission_decorator('product.change_product')
 def product_edit(request, pk,name=None):
-    sale_points = SalePoint.objects.all().order_by('-id')
     product = get_object_or_404(
         Product.objects.prefetch_related(
             'images', 'variants'), pk=pk)
     product = Product.objects.get(pk=product.pk)
+    payment_options = PaymentOption.objects.all()
+    suppliers = Supplier.objects.all()
     stock = Stock()
     stock_form = forms.StockForm(request.POST or None, instance=stock,
                            product=product)
@@ -656,9 +673,9 @@ def product_edit(request, pk,name=None):
     attributes = product.product_class.variant_attributes.prefetch_related(
         'values')
     images = product.images.all()
-    variants = product.variants.all()
+    variants = product.variants.all().order_by('-id')
     stock_items = Stock.objects.filter(
-        variant__in=variants).select_related('variant', 'location')
+        variant__in=variants).select_related('variant', 'location').order_by('-id')
 
     form = forms.ProductForm(request.POST or None, instance=product)
     variants_delete_form = forms.VariantBulkDeleteForm()
@@ -679,18 +696,14 @@ def product_edit(request, pk,name=None):
             'Dashboard message', 'Updated product %s') % product
         messages.success(request, msg)
         return redirect('dashboard:product-update', pk=product.pk,go='pricing')
-    ctx = {'stock_form': stock_form,
-           'pc': pc,
-           'attributes': attributes,
-           'images': images,
-           'product_form': form,
-           'sale_points': sale_points,
-           'product': product,
-           'stock_delete_form': stock_delete_form,
-           'stock_items': stock_items,
-           'variants': variants,
+    ctx = {'stock_form': stock_form, 'pc':pc,'attributes': attributes, 'images': images, 'product_form': form,
+           'product': product, 'stock_delete_form': stock_delete_form,
+           'stock_items': stock_items, 'variants': variants,
            'variants_delete_form': variants_delete_form,
+           'payment_options': payment_options,
+           'suppliers': suppliers,
            'variant_form': variant_form}
+
     if name:
         ctx['go'] = 'True'
     if request.is_ajax():
@@ -756,6 +769,11 @@ def add_stock_ajax(request):
                             quantity=diff,
                             supplier=supplier,
                             )
+        else:
+            purchase = PurchaseProduct.objects.filter(stock=stock).latest('id')
+            purchase.quantity += diff
+            if purchase.quantity:
+                purchase.save()
         try:
             stock_list = request.session['stock_list']
             if stock_pk in stock_list:
@@ -778,6 +796,7 @@ def add_stock_ajax(request):
         info_logger.error(message)
         return HttpResponse(message)
 
+
 @staff_member_required
 @permission_decorator('product.change_stock')
 def stock_form(request,product_pk):
@@ -799,13 +818,64 @@ def stock_fresh(request, product_pk):
             form = forms.StockForm(request.POST or None, instance=stock,
                            product=product)
             ctx = {'product':product,'stock_form':form}
-            return TemplateResponse(request, 'dashboard/product/partials/'+template+'.html', ctx)
+            latest = ProductVariant.objects.latest('id')
+            print(latest)
+            return HttpResponse(json.dumps({'id': latest.id, 'value': latest.sku}), content_type='application/json')
+            #return TemplateResponse(request, 'dashboard/product/partials/'+template+'.html', ctx)
     variants = product.variants.all()
     stock_items = Stock.objects.filter(
         variant__in=variants).select_related('variant', 'location')
-    ctx = {'product':product,'stock_items':stock_items}
+    ctx = {'product': product, 'stock_items': stock_items}
     return TemplateResponse(request, 'dashboard/product/partials/stock_refresh.html', ctx)
 
+
+@staff_member_required
+@permission_decorator('product.change_stock')
+def purchase_data(request):
+    if request.POST.get('pk'):
+        obj = Stock.objects.get(pk=request.POST.get('pk'))
+        if request.POST.get('value'):
+            # if Decimal(request.POST.get('name')) < obj.amount_paid.gross:
+            #     obj.amount_paid = Decimal(request.POST.get('name')) + Decimal(request.POST.get('value'))
+            #     # delete last inserted data
+            #     PurchaseProduct.objects.latest('id').delete()
+            # else:
+            obj.amount_paid = obj.amount_paid.gross + Decimal(request.POST.get('value'))
+            amount_paid = request.POST.get('value')
+        else:
+            return HttpResponse('Amount Paid Required')
+        if obj.amount_paid >= obj.total_cost:
+            obj.status = 'fully-paid'
+        else:
+            obj.status = 'payment-pending'
+        obj.save()
+
+        purchase = PurchaseProduct()
+        purchase.variant = obj.variant
+        purchase.stock = obj
+        purchase.user = request.user
+        purchase.invoice_number = obj.invoice_number
+        purchase.cost_price = obj.cost_price
+        purchase.quantity = obj.quantity
+        purchase.amount_paid = amount_paid
+        purchase.total_cost = obj.total_cost
+        try:
+            purchase.balance = obj.total_cost.gross - obj.amount_paid.gross
+        except:
+            pass
+        purchase.supplier = obj.variant.product.product_supplier
+        if request.POST.get('payment_number'):
+            purchase.payment_number = request.POST.get('payment_number')
+        purchase.save()
+
+        # add payment options
+        if request.POST.get('payment_option'):
+            options = PaymentOption.objects.get(pk=int(request.POST.get('payment_option')))
+            purchase.payment_options.add(options)
+
+        return HttpResponse(json.dumps({'message': obj.pk, 'status':obj.status}), content_type='application/json')
+    else:
+        return HttpResponse(json.dumps({'error': 'Stock pk required'}),content_type='application/json')
 
 
 @staff_member_required
@@ -813,28 +883,24 @@ def stock_fresh(request, product_pk):
 def stock_edit(request, product_pk, stock_pk=None):
     product = get_object_or_404(Product, pk=product_pk)
     if stock_pk:
-        stock = get_object_or_404(Stock, pk=stock_pk)
+        stock = Stock.objects.get(pk=stock_pk)
+        stock_quantity = stock.quantity
     else:
         stock = Stock()
     form = forms.StockForm(request.POST or None, instance=stock,
                            product=product)
     if form.is_valid():
-        form.save()
-        
-        quantity = request.POST.get('quantity')     
-        cost_price = request.POST.get('cost_price')     
-        invoice_number = request.POST.get('invoice_number')
-        #try:
-        p = PurchaseProduct.objects.create(
-                            variant=stock.variant,
-                            stock=stock,
-                            invoice_number=invoice_number,
-                            cost_price=cost_price,
-                            quantity=quantity,
-                            supplier=product.product_supplier,
-                            )
-        print p
-        print '*'*21
+        obj = form.save(commit=False)  # get just the object but don't commit it yet.
+        obj.user = request.user
+        if obj.amount_paid >= obj.total_cost:
+            obj.status = 'fully-paid'
+        obj.save()  # finally save it.
+        form.save_m2m()
+
+        if request.POST.get('settle_payment'):
+            amount_paid = request.POST.get('settle_payment')
+        else:
+            amount_paid = request.POST.get('amount_paid')
         messages.success(
             request, pgettext_lazy('Dashboard message', 'Saved stock'))
         product_url = reverse(
@@ -848,8 +914,7 @@ def stock_edit(request, product_pk, stock_pk=None):
         if form.errors:
             response = JsonResponse({'status':'false','message':form.errors.items()})
             response.status_code = 500
-            return response            
-            #return HttpResponse(json.dumps({'errors': form.errors.items()}),content_type='application/json')
+            return response
         else:
             return TemplateResponse(request, 'dashboard/product/partials/edit_stock.html', ctx)
         # except Exception as e:
@@ -963,10 +1028,16 @@ def add_attributes(request):
             action = 'add'       
         if request.POST.get('sku'):
             product_variant.sku = request.POST.get('sku')
-        if request.POST.get('price'):
-            product_variant.price_override = request.POST.get('price')
-        if request.POST.get('wholesale'):
-            product_variant.wholesale_override = request.POST.get('wholesale')
+        if request.POST.get('variant_supplier'):
+            try:
+                supplier = Supplier.objects.get(pk=int(request.POST.get('variant_supplier')))
+                product_variant.variant_supplier = supplier
+            except:
+                try:
+                    supplier = Supplier.objects.get(name='Unknown')
+                    product_variant.variant_supplier = supplier
+                except:
+                    pass
         if request.POST.get('low_stock_threshold'):
             product_variant.low_stock_threshold = int(request.POST.get('low_stock_threshold'))
         if request.POST.get('attributes'):
@@ -974,7 +1045,6 @@ def add_attributes(request):
             attrs = {}
             for att in attr_list:
                 attrs[att['id']] =att['value']
-            print attrs
             product_variant.attributes = attrs
         if not request.POST.get('pk'): 
             product_variant.save()
@@ -982,13 +1052,12 @@ def add_attributes(request):
             product = Product.objects.get(pk=int(request.POST.get('pk')))
             product_variant.product = product
             attributes = product.product_class.variant_attributes.prefetch_related('values')    
-            variants = product.variants.all()
+            variants = product.variants.all().order_by('-id')
             product_variant.save()
-            ctx = {'product':product,
-                   'attributes':attributes,
-                   'variants':variants}
-            return TemplateResponse(request,
-                'dashboard/product/partials/variant_table.html', ctx)
+            ctx = {'product': product,
+                   'attributes': attributes,
+                   'variants': variants}
+            return TemplateResponse(request,'dashboard/product/partials/variant_table.html', ctx)
     return HttpResponse('Error!');
 
 
@@ -1024,8 +1093,10 @@ def variant_edit(request, product_pk, variant_pk=None):
             return redirect(success_url)
     errors = attribute_form.errors
     form_errors = form.errors
-    ctx = {'attribute_form': attribute_form, 'form': form, 'product': product,
-           'variant': variant,'errors':errors,'form_errors':form_errors}
+    suppliers = Supplier.objects.all()
+    ctx = {'attribute_form': attribute_form, 'suppliers': suppliers,
+           'form': form, 'product': product,
+           'variant': variant, 'errors': errors, 'form_errors': form_errors}
     if request.is_ajax():
         return TemplateResponse(
         request, 'dashboard/product/partials/'+str(request.GET['template'])+'.html', ctx)
@@ -1152,6 +1223,15 @@ def paginate_attr(request):
         return  HttpResponse()
 
 
+# @staff_member_required
+# @permission_decorator('product.view_productattribute')
+# def attribute_list(request):
+#   attributes = [
+#       (attribute.pk, attribute.name, attribute.values.all())
+#       for attribute in ProductAttribute.objects.prefetch_related('values').order_by('-id')]
+#   ctx = {'attributes': attributes}
+#   return TemplateResponse(request, 'dashboard/product/attributes/list.html',
+#                           ctx)
 
 @staff_member_required
 @permission_decorator('product.add_productattribute')
@@ -1186,7 +1266,6 @@ def attribute_add(request,pk=None):
             attribute = get_object_or_404(ProductAttribute, pk=pk)
             name = request.POST.get("value")
             if name != '':
-                print name
                 AttributeChoiceValue.objects.create(attribute=attribute,slug=name,name=name);        
                 last_id = ProductAttribute.objects.latest('id')
                 choices = AttributeChoiceValue.objects.filter(attribute=attribute)
@@ -1371,7 +1450,7 @@ def stock_location_delete(request, location_pk):
     return TemplateResponse(
         request, 'dashboard/product/stock_locations/modal_confirm_delete.html',
         ctx)
-from .forms import ProductTaxForm
+
 
 @staff_member_required
 @permission_decorator('product.view_producttax')
@@ -1531,6 +1610,7 @@ def stock_pages(request):
         queryset = paginator.page(paginator.num_pages)
     return HttpResponse(paginator.num_pages)
 
+
 @staff_member_required
 def stocks(request):
     try:
@@ -1554,6 +1634,7 @@ def stocks(request):
         error_logger.error(e)
         return HttpResponse('error accessing users')
 
+
 @staff_member_required
 def stock_paginate(request):
     page = int(request.GET.get('page', 1))
@@ -1576,8 +1657,6 @@ def stock_paginate(request):
         if list_sz:
             paginator = Paginator(product_results, int(list_sz))
             product_results = paginator.page(page)
-            print product_results
-            print 'sdflsdjflsdjf'
             return TemplateResponse(request,'dashboard/purchase/p2.html',{'product_results':product_results, 'pn':paginator.num_pages,'sz':list_sz, 'gid':0})
         else:
             paginator = Paginator(product_results, 10)
@@ -1868,7 +1947,7 @@ def attr_list_f32d(request):
         variants = json.loads(request.POST.get('variants'))        
         if request.POST.get('name'):
             pk = request.POST.get('name')
-            product_class = get_object_or_404(ProductClass,pk=int(pk))
+            product_class = get_object_or_404(ProductClass, pk=int(pk))
         if request.POST.get('newclass'):            
             product_class = ProductClass.objects.create(name=request.POST.get('newclass'))
         if product_class:
@@ -1895,8 +1974,8 @@ def have_variants(request):
             else:
                 data = {'has_variants':0,'name':has_variants.name}
             return HttpResponse(json.dumps(data),content_type='application/json')
-        except:
-            HttpResponse('Invalid class ID')
+        except Exception as e:
+            return HttpResponse(e)
 
 @staff_member_required
 def add_new_attribute(request,pk=None):
@@ -1909,16 +1988,12 @@ def add_new_attribute(request,pk=None):
         else:
             return HttpResponse(json.dumps({'error':'Name or pk expected'}))
         if request.POST.get('attributes'):
-            try:
-                del(choices)
-                del(choice)
-            except:
-                pass
             choices = json.loads(request.POST.get('attributes'))
             for choice in choices:
                 slug = choice.replace(' ','_')
-                AttributeChoiceValue.objects.create(attribute=attribute,slug=slug,name=choice);        
-        return HttpResponse(attribute)
+                AttributeChoiceValue.objects.create(attribute=attribute,slug=slug,name=choice);
+        return HttpResponse(json.dumps({"value":attribute.id,"text":attribute.name}),content_type='application/json')
+
 
 @permission_decorator('product.delete_productvariant')
 @staff_member_required

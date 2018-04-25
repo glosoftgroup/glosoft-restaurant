@@ -14,24 +14,21 @@ import datetime as t
 class SiteSettings(models.Model):
     domain = models.CharField(
         pgettext_lazy('Site field', 'domain'), max_length=100,
-        validators=[_simple_domain_name_validator],blank=True, null=True,default='')
-    name = models.CharField(pgettext_lazy('Site field', 'name'),
-        max_length=50,blank=True, null=True)
-    email = models.EmailField(pgettext_lazy('Site field', 'email'),
-        max_length=50,blank=True, null=True)
+        validators=[_simple_domain_name_validator], blank=True, null=True,default='')
+    name = models.CharField(pgettext_lazy('Site field', 'name'), max_length=50,blank=True, null=True)
+    email = models.EmailField(pgettext_lazy('Site field', 'email'), max_length=50,blank=True, null=True)
     header_text = models.CharField(
         pgettext_lazy('Site field', 'header text'), max_length=200, blank=True)
+    wholesale_name = models.CharField(
+        pgettext_lazy('Site field', 'wholesale field name'), max_length=200, default='Wholesale', blank=True)
     description = models.CharField(
         pgettext_lazy('Site field', 'site description'), max_length=500,
         blank=True)
-    loyalty_point_equiv = models.IntegerField( pgettext_lazy('Site field', 'loyalty points equivalency'),
-        validators=[MinValueValidator(0)], default=Decimal(0))
-    floors = models.IntegerField(pgettext_lazy('Site field', 'floors'),
-                                              validators=[MinValueValidator(0)], default=Decimal(6))
-
-    max_credit_date = models.IntegerField( pgettext_lazy('Site field', 'Maximum credit sale expiration in days'),
-        validators=[MinValueValidator(0)], unique=True, default=Decimal(0)) 
-    
+    show_transfer = models.BooleanField(default=True, blank=False)
+    loyalty_point_equiv = models.DecimalField(
+        pgettext_lazy('Site field', 'loyalty points'), default=Decimal(0), max_digits=100, decimal_places=2)
+    max_credit_date = models.IntegerField(pgettext_lazy('Site field', 'Maximum credit sale expiration in days'),
+        validators=[MinValueValidator(0)], unique=True, default=Decimal(0))
     opening_time = models.TimeField(pgettext_lazy('Site field', 'opening time'),
         default=t.time(6, 00))
     closing_time = models.TimeField(pgettext_lazy('Site field', 'closing time'),
@@ -76,6 +73,7 @@ class Bank(models.Model):
     def __str__(self):
         return str(self.name)
 
+
 class BankBranch(models.Model):
     name = models.CharField(max_length=100, null=True, blank=True)
     bank =  models.ForeignKey(Bank, related_name='branch', max_length=100, null=True, blank=True)
@@ -83,17 +81,20 @@ class BankBranch(models.Model):
     def __str__(self):
         return str(self.name)
 
+
 class Department(models.Model):
     name = models.CharField(max_length=100, null=True, blank=True)
 
     def __str__(self):
         return str(self.name)
 
+
 class UserRole(models.Model):
     name = models.CharField(max_length=100, null=True, blank=True)
 
     def __str__(self):
         return str(self.name)
+
 
 class Files(models.Model):
     file = models.TextField(null=True, blank=True)

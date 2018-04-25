@@ -10,17 +10,21 @@
 * ---------------------------------------------------------------------------- */
 
 $(function(){
-  var editStockRefreshDiv = $('#div-edit-stock');  
+  var editStockRefreshDiv = $('#div-edit-stock');
+  var editStockForm = $('#edit-product-stock');
   var editStockBtn = $('#editStockBtn');
   var url = '#';
   var invoice_number = $("#id_invoice_number");
   var variant = $('#id_variant');
   var cost_price = $('#id_cost_price');
+  var wholesale_override = editStockForm.find('#id_wholesale_override');
+  var minimum_price = editStockForm.find('#id_minimum_price');
+  var price_override = editStockForm.find('#id_price_override');
   var location = $('#id_location');
   var quantity = $('#id_quantity');
   var low_stock_threshold = $('#reorder-threshold');  
 
-  editStockBtn.on('click',function(){   
+  editStockBtn.on('click',function(e){
     var url = $(this).data('contenturl');
     var refreshUrl = $(this).data('refreshstockurl')+"?tab=stock";
     
@@ -44,16 +48,32 @@ $(function(){
     if(low_stock_threshold.val()){
       dynamicData['low_stock_threshold'] = low_stock_threshold.val();
     }   
-    if(!invoice_number.val()){
-      alertUser('Invoice number field required','bg-warning','Invoice Number!');
-      return false;
+    if(!wholesale_override.val()){
+//      alertUser('Invoice number field required','bg-warning','Invoice Number!');
+//      return false;
     }else{
-      dynamicData['invoice_number'] = invoice_number.val();
-    }    
-    
-    dynamicData['template'] = 'edit_stock';    
+      dynamicData['wholesale_override'] = wholesale_override.val();
+    }
 
-    addProductDetails(dynamicData,url,'post')
+    if(!minimum_price.val()){
+//      alertUser('Invoice number field required','bg-warning','Invoice Number!');
+//      return false;
+    }else{
+      dynamicData['minimum_price'] = minimum_price.val();
+    }
+
+    if(!price_override.val()){
+//      alertUser('Invoice number field required','bg-warning','Invoice Number!');
+//      return false;
+    }else{
+      dynamicData['price_override'] = price_override.val();
+    }
+
+
+    dynamicData['status'] = 'fully-paid';
+    dynamicData['template'] = 'edit_stock';
+
+    addProductDetails(dynamicData, url, 'post')
     .done(function(data){
       alertUser('Product Stock updated successfully');
       $('#div-edit-variant').slideUp();      

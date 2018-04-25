@@ -78,25 +78,16 @@
         <thead>
             <tr class="bg-primary">            
             <th>Name</th>
-            <th>Sale Point</th>
             <th>Description</th>
             <th></th>
             </tr>
         </thead>
         <tbody>
           <tr>        
-
-          <td>
-            <input type="text" placeholder="Category Name" id="id_name" class="form-control" name="name">
-            </td>
               <td>
-                  <select name="sale_point" class="form-control" id="id_sale_point">
-                      <option value="0">---</option>
-                      {% for sale_point in sale_points %}
-                      <option value="{{sale_point.pk}}">{{sale_point}}</option>
-                      {% endfor %}
-                  </select>
-              </td>
+                <input type="text" placeholder="Category Name" id="id_name" class="form-control" name="name">
+            </td>
+
 
             <td>
               <input type="text" placeholder="Description" id="id_description" class="form-control" name="description">
@@ -126,7 +117,6 @@
                   <tr class="bg-primary">
 
                     <th>Name</th>
-                      <th>Sale Point</th>
                     <th>Description</th>
                     <th>Products</th>
                       {% if perms.product.change_category or perms.product.delete_category %}
@@ -144,7 +134,6 @@
                     <td class="td" data-href="{% url 'dashboard:cat-subcategories' pk=node.pk %}"
                     >{{ node.name }}</td>
                        <!--salepoint-->
-                    <td>{{node.sale_point}}</td>
                     <!-- description\ -->
                     <td class="td" data-href="{% url 'dashboard:cat-subcategories' pk=node.pk %}"
                     >{{ node.description|slice:":60" }}...</td>
@@ -403,7 +392,7 @@ $('#user-details').validate({
                        $("#name").val('');    
                        $("#nid").val('');               
                        toggleDiv.slideUp('slow');
-                       $.jGrowl('Terminal added successfully,', {
+                       $.jGrowl('Category added successfully,', {
                           header: 'Well done!',
                           theme: 'bg-success'
                        });

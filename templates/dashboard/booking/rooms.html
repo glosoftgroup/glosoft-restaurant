@@ -118,7 +118,7 @@
    <div id="pagination-div">
       <div class="panel panel-flat" id="printme">
         <div class="col-md-12">
-                <h5 class="text-center text-bold">Properties</h5>
+                <h5 class="text-center text-bold">Rooms</h5>
         </div>
         <span v-show="list_grid">
             <!--list view-->
@@ -251,7 +251,7 @@
                                                 <div class="content-group-sm media">
                                                     <div class="media-body text-center">
                                                         <h6 class="text-semibold no-margin">
-                                                            <a href="#" class="text-default">No properties in this wing</a>
+                                                            <a href="#" class="text-default">No Rooms in this wing</a>
                                                         </h6>
 
                                                     </div>
@@ -279,7 +279,7 @@
                                                         </h6>
                                                         <span class="label bg-success">
                                                             <a class="text-white" :href="'/dashboard/room/update/'+room.id">
-                                                                Edit Property
+                                                                Edit Room
                                                             </a>
                                                         </span>
                                                     </div>
@@ -287,7 +287,7 @@
                                                         ${roomStatus(room.is_booked)}
                                                         <span class="label bg-warning" v-if="room.is_booked">
                                                             <a class="text-white" :href="'/dashboard/room/view/'+room.id">
-                                                                View Property
+                                                                View room
                                                             </a>
                                                         </span>
                                                         <span class="label bg-success" v-else="room.is_booked">

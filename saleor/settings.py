@@ -93,6 +93,8 @@ MEDIA_ROOT = os.path.join(PROJECT_ROOT, 'media')
 MEDIA_URL = '/media/'
 
 STATIC_ROOT = os.path.join(PROJECT_ROOT, 'static')
+COMPRESS_ROOT = STATIC_ROOT
+COMPRESS_ENABLED = True
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     ('assets', os.path.join(PROJECT_ROOT, 'saleor', 'static', 'assets')),
@@ -103,6 +105,13 @@ STATICFILES_DIRS = [
 STATICFILES_FINDERS = [
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder'
+]
+
+STATICFILES_FINDERS = [
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    # other finders..
+    'compressor.finders.CompressorFinder',
 ]
 
 context_processors = [
@@ -227,6 +236,7 @@ INSTALLED_APPS = [
     'django_countries',
     'rest_framework.authtoken',
     'notifications',
+    'compressor',
     # 'chartjs',
 ]
 
