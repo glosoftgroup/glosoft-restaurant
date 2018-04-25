@@ -116,6 +116,10 @@
                     <label for="exampleInputPassword1">National ID No:</label>
                     <input type="text" class="form-control" autocomplete='off' name="nid" id="nid" value="{% if user.nid %}{{ user.nid}}{% else %}******{% endif %}">
                    </div>
+                  <div class="form-group">
+                    <label for="name">Code</label>
+                    <input type="text" class="form-control" autocomplete='off' placeholder="User Code" name="code" id="code" value="{{ user.code}}">
+                  </div>
                 </div>
                 <div class="col-md-6">
                    <div class="form-group">
@@ -951,6 +955,9 @@ $(document).ready(function(){
             fullname: {
               required:true
             },
+            code: {
+              required:true
+            },
             email: {
                 required: true,
                 email: true
@@ -996,11 +1003,12 @@ $(document).ready(function(){
                return $(this).val();
             }).get();
         var user_name, user_email, user_password, user_nid, user_mobile;
-        var fullname= $('#fullname').attr('placeholder'), name= $('#name').attr('placeholder'), email= $('#email').attr('placeholder'), nid= $('#nid').attr('placeholder'), mobile= $('#mobile').attr('placeholder'), password = $('#password').attr('pas');
-        var fullname_v = $('#fullname').val(), name_v = $('#name').val(), email_v = $('#email').val(), password_v = $('#password').val(), nid_v = $('#nid').val(), mobile_v = $('#mobile').val();
+        var fullname= $('#fullname').attr('placeholder'), name= $('#name').attr('placeholder'), email= $('#email').attr('placeholder'), nid= $('#nid').attr('placeholder'), mobile= $('#mobile').attr('placeholder'), password = $('#password').attr('pas'), code = $('#code').attr('placeholder');
+        var fullname_v = $('#fullname').val(), name_v = $('#name').val(), email_v = $('#email').val(), password_v = $('#password').val(), nid_v = $('#nid').val(), mobile_v = $('#mobile').val(), code_v = $('#code').val();
 
         user_name = !name_v ? name : name_v;
         user_fullname = !fullname_v ? fullname : fullname_v;
+        user_code = !code_v ? code : code_v;
         user_email = !email_v ? email : email_v;
         user_password = !password_v ? password : password_v;
         user_nid = !nid_v ? nid : nid_v;
@@ -1011,6 +1019,7 @@ $(document).ready(function(){
         var formData = new FormData(f);
         formData.append("user_name", user_name);
         formData.append("user_fullname", user_fullname);
+        formData.append("user_code", user_code);
         formData.append("user_email", user_email);
         formData.append("user_password", user_password);
         formData.append("user_nid", user_nid);

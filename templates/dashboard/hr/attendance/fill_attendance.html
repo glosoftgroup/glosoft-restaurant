@@ -11,7 +11,7 @@
      <li><a href="{% url 'dashboard:attendance' %}">Attendance</a></li>
      <li class="active"><a href="{% url 'dashboard:add_attendance' %}">Fill Attendance</a></li>
  {% endblock %}
-{% block menu_hremployees_class %}active{% endblock %}
+{% block menu_hrattendance_class %}active{% endblock %}
  {% block custom_css %}
  <link href="{% static 'backend/js/plugins/ui/timepicki/css/timepicki.css' %}" rel="stylesheet" type="text/css">
 
@@ -52,17 +52,14 @@
                       <div class="col-md-4">
                       <div class="form-group">
                         <label for="gender">Time In</label>
-                        <input class="form-control time_element" name="time_in" placeholder="Enter: time_in"/>
+                        <input class="form-control time_element" name="time_in" placeholder="Enter: time in"/>
                       </div>
                     </div>
 
                       <div class="col-md-4">
                       <div class="form-group">
                         <label for="gender">Time Out</label>
-                        <select class="bootstrap-select gender" name="gender" data-width="100%" tabindex="-98" style="display: none;">
-                            <option value="male">Male</option>
-                            <option value="female">Female</option>
-                        </select>
+                        <input class="form-control time_element" name="time_out" placeholder="Enter: time out"/>
                       </div>
                     </div>
 
@@ -76,26 +73,37 @@
                            </div>
                       </div>
 
+                      
                       <div class="col-md-4">
-                          <div class="form-group">
-                                <label>Department</label>
-                                <div class="input-group">
-                                    <div class="btn-group bootstrap-select input-group-btn" id="departments"style="width: 100%;">
-                                        <select class="bootstrap-select sel department" name="department" data-width="100%" tabindex="-98" style="display: none;">
-                                              {% if departments %}
-                                              {% for department in departments %}
-                                                <option value="{{department.name}}">{{department}}</option>
-                                              {% endfor %}
-                                              {% else %}
-                                              <option value="none">No departments</option>
-                                              {% endif %}
-                                             <option value="add" data-icon="fa-plus-circle" data-ta="#edit_modal_instance" data-title="Add New Department" data-select="#departments"
-                                                    data-href="{% url 'dashboard:add_department' %}" data-cat="department" data-label="Department:"> add new department</option>
-                                        </select>
+                              <div class="form-group">
+                                    <label>Department</label>
+                                    <div class="input-group">
+                                        <div class="btn-group bootstrap-select input-group-btn" id="departments"style="width: 100%;">
+                                            <select class="bootstrap-select sel department" name="department" data-width="100%" tabindex="-98" style="display: none;">
+                                                  {% if departments %}
+                                                  {% for department in departments %}
+                                                    <option value="{{department.name}}">{{department}}</option>
+                                                  {% endfor %}
+                                                  {% else %}
+                                                  <option value="none">No departments</option>
+                                                  {% endif %}
+                                                 <option value="add" data-icon="fa-plus-circle" data-ta="#edit_modal_instance" data-title="Add New Department" data-select="#departments"
+                                                        data-href="{% url 'dashboard:add_department' %}" data-cat="department" data-label="Department:"> add new department</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="input-group-btn">
+                                            <button type="button" class="btn bg-indigo btn-icon legitRipple edit_modal-trigger"
+                                                    data-popup="tooltip" data-original-title="Add New Department" data-placement="top"
+                                                    data-ta="#edit_modal_instance" data-title="Add New Department" data-select="#departments"
+                                                    data-href="{% url 'dashboard:add_department' %}" data-cat="department"
+                                                    data-label="Department:">
+                                                <i class="icon-plus-circle2"></i>
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                      </div>
+                          </div>
                   </div>
 
                 </div>
@@ -202,7 +210,7 @@ $(document).ready(function(){
     $('.daterange-single').daterangepicker({
         singleDatePicker: true,
         locale:{format: 'YYYY-MM-DD'},
-        showDropdowns:true
+        showDropdowns:false
     });
     //** dob
     $('.dob').on('change',function(){

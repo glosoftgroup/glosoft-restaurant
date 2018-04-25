@@ -4,10 +4,10 @@
 {% load prices_i18n %}
 
 {% block title %}
-  Tenant
+  Customer
 {% endblock %}
 {% block breadcrumbs %}
-<li class="active"><a href="{% url 'dashboard:customers' %}">Tenant</a></li>
+<li class="active"><a href="{% url 'dashboard:customers' %}">Customer</a></li>
 <li class="active"><a href="javascript:;">Detail</a></li>
 {% endblock %}
 {% block menu_addCustomer_class %}active{% endblock %}
@@ -72,7 +72,7 @@
 {% block content %}
 <div class="row">
   <div class="col-md-12" style="margin-bottom:10px;">
-        <a class="btn btn-primary pull-left legitRipple" href="{% url 'dashboard:customers' %}"><i class="icon-arrow-left13 position-left"></i> Back to Tenants list</a>
+        <a class="btn btn-primary pull-left legitRipple" href="{% url 'dashboard:customers' %}"><i class="icon-arrow-left13 position-left"></i> Back to Customers list</a>
         <a class="btn btn-primary pull-right legitRipple" data-url="" href="{% url 'dashboard:customer-edit' pk=user.pk %}"><i class="icon-pencil position-left"></i> EDIT</a>
   </div>
   <div class="col-md-3">

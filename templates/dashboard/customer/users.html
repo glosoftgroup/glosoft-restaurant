@@ -4,11 +4,11 @@
 {% load prices_i18n %}
 
 {% block title %}
-  {% if table_name == 'Customers'%}Tenant{% else %} {{table_name}} {% endif %} - {{ block.super }}
+  {% if table_name == 'Customers'%}Customer{% else %} {{table_name}} {% endif %} - {{ block.super }}
 {% endblock %}
 
  {% block breadcrumbs %}
-      <li class="active"><a href="{% url 'dashboard:customers' %}">{% if table_name == 'Customers'%}Tenant{% else %} {{table_name}} {% endif %}</a></li>
+      <li class="active"><a href="{% url 'dashboard:customers' %}">{% if table_name == 'Customers'%}Customer{% else %} {{table_name}} {% endif %}</a></li>
  {% endblock %}
 
 
@@ -57,12 +57,12 @@
               <div class="form-group">
                 {% if perms.customer.add_customer %}
                     <a href="{% url 'dashboard:customer-add' %}" class="btn btn-primary  hvr-glow btn-raised legitRipple ">
-                    <i class="icon-plus3 position-left"></i>Add Tenant</a>
+                    <i class="icon-plus3 position-left"></i>Add Customer</a>
                 {% endif %}
               </div>
             </div>
             <div class="col-md-4">
-             <label>Search {% if table_name == 'Customers'%}Tenants{% else %} {{table_name}} {% endif %}</label>
+             <label>Search {% if table_name == 'Customers'%}Customers{% else %} {{table_name}} {% endif %}</label>
               <div class="form-group form-group-material has-feedback">
                 <input class="form-control" v-model="search" @keyup="inputChangeEvent" placeholder="Search ..." type="text">
                 <div class="form-control-feedback">
@@ -104,7 +104,7 @@
 
         <div class="panel-body">
             <div class="col-md-12">
-                <h5 class="text-center text-bold">{% if table_name == 'Customers'%}Tenant{% else %} {{table_name}} {% endif %} List</h5>
+                <h5 class="text-center text-bold">{% if table_name == 'Customers'%}Customer{% else %} {{table_name|title}} {% endif %} List</h5>
             </div>
         <div class="">
           <table class="table room-striped room-hover dataroom-header-footer" style="border-bottom:1px solid #ddd;">
