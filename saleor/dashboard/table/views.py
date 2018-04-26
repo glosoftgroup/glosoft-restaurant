@@ -18,7 +18,6 @@ error_logger = logging.getLogger('error_logger')
 
 @staff_member_required
 def list(request):
-    sale_points = SalePoint.objects.all().order_by('-id')
     try:
         options = Table.objects.all().order_by('-id')
         page = request.GET.get('page', 1)
@@ -33,8 +32,7 @@ def list(request):
             options = paginator.page(paginator.num_pages)
         data = {
             "options": options,            
-            "pn": paginator.num_pages,
-            "sale_points":sale_points
+            "pn": paginator.num_pages
         }
         user_trail(request.user.name, 'accessed payment option', 'views')
         info_logger.info('User: ' + str(request.user.name) + 'accessed payment option page')
@@ -53,8 +51,6 @@ def add(request):
         number = request.POST.get('number')
         if request.POST.get('name'):
             option = Table()
-            if request.POST.get('sale_point') and int(request.POST.get('sale_point')) != 0:
-                option.sale_point = SalePoint.objects.get(pk=int(request.POST.get('sale_point')))
             option.name = request.POST.get('name')
             option.number = number
             option.save()
@@ -90,8 +86,6 @@ def edit(request, pk=None):
                     option.name = request.POST.get('name')
                 if request.POST.get('number'):
                     option.number = request.POST.get('number')
-                if request.POST.get('sale_point') and int(request.POST.get('sale_point')) != 0:
-                    option.sale_point = SalePoint.objects.get(pk=int(request.POST.get('sale_point')))
                 option.save()
                 user_trail(request.user.name, 'updated payment option : '+ str(option.name),'delete')
                 info_logger.info('updated payment option: '+ str(option.name))
@@ -107,10 +101,8 @@ def edit(request, pk=None):
 def detail(request, pk=None):
     if request.method == 'GET':
         try:
-            sale_points = SalePoint.objects.all().order_by('-id')
             option = get_object_or_404(Table, pk=pk)
-            ctx = {'option': option,
-                   'sale_points': sale_points}
+            ctx = {'option': option}
             user_trail(request.user.name, 'access tabble details of: '+ str(option.name)+' ','view')
             info_logger.info('access payment option details of: '+ str(option.name)+'  ')
             return TemplateResponse(request, 'dashboard/table/detail.html', ctx)
