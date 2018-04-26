@@ -1,29 +1,41 @@
 # site settings rest api serializers
 
 from rest_framework import serializers
-from saleor.countertransfer.models import CounterTransfer as Table
+from saleor.product.models import Stock as Table
 
 global fields, module
 module = 'countertransfer'
 fields = ('id',
-          'name',
-          'counter',
-          'stock',
-          'description')
+          'variant',
+          'quantity',
+          'cost_price',
+          'price_override')
 
 
 class TableListSerializer(serializers.ModelSerializer):
-    update_url = serializers.HyperlinkedIdentityField(view_name='countertransfer:api-update')
-    delete_url = serializers.HyperlinkedIdentityField(view_name='countertransfer:api-delete')
     text = serializers.SerializerMethodField()
+    cost_price = serializers.SerializerMethodField()
+    price_override = serializers.SerializerMethodField()
 
     class Meta:
         model = Table
-        fields = fields + ('text', 'update_url', 'delete_url',)
+        fields = fields + ('text',)
+
+    def get_cost_price(self, obj):
+        try:
+            return obj.cost_price.gross
+        except:
+            return 0
+
+    def get_price_override(self, obj):
+        try:
+            return obj.price_override.gross
+        except:
+            return 0
 
     def get_text(self, obj):
         try:
-            return obj.name
+            return obj.variant.sku
         except:
             return ''
 

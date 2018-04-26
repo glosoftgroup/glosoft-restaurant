@@ -1,25 +1,23 @@
 # site settings rest api serializers
 
 from rest_framework import serializers
-from saleor.countertransfer.models import CounterTransfer as Table
-
-global fields, module
-module = 'countertransfer'
-fields = ('id',
-          'name',
-          'counter',
-          'stock',
-          'description')
+from saleor.counter.models import Counter as Table
 
 
 class TableListSerializer(serializers.ModelSerializer):
-    update_url = serializers.HyperlinkedIdentityField(view_name='countertransfer:api-update')
-    delete_url = serializers.HyperlinkedIdentityField(view_name='countertransfer:api-delete')
+    update_url = serializers.HyperlinkedIdentityField(view_name='counter:api-update')
+    delete_url = serializers.HyperlinkedIdentityField(view_name='counter:api-delete')
     text = serializers.SerializerMethodField()
 
     class Meta:
         model = Table
-        fields = fields + ('text', 'update_url', 'delete_url',)
+        fields = ('id',
+                  'name',
+                  'text',
+                  'description',
+                  'update_url',
+                  'delete_url'
+                 )
 
     def get_text(self, obj):
         try:
@@ -31,7 +29,10 @@ class TableListSerializer(serializers.ModelSerializer):
 class CreateListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Table
-        fields = fields
+        fields = ('id',
+                  'name',
+                  'description',
+                 )
 
     def create(self, validated_data):
         instance = Table()
@@ -46,7 +47,10 @@ class CreateListSerializer(serializers.ModelSerializer):
 class UpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Table
-        fields = fields
+        fields = ('id',
+                  'name',
+                  'description',
+                 )
 
     def update(self, instance, validated_data):
         instance.name = validated_data.get('name', instance.name)

@@ -23,7 +23,7 @@ from .api.product.urls import urlpatterns as api_urls
 from .api.property.urls import urlpatterns as api_property_urls
 from .api.purchase.urls import urlpatterns as api_purchase_urls
 from .api.purchase_variant.urls import urlpatterns as api_purchase_variant_urls
-
+from .api.stock.urls import urlpatterns as api_stock_urls
 from .api.room.urls import urlpatterns as api_maintenance_urls
 from .api.sale.urls import urlpatterns as api_sale_urls
 from .api.salepoint.urls import urlpatterns as api_salepoint_urls
@@ -49,6 +49,7 @@ from .wing.urls import urlpatterns as wing_urls
 from .propertytype.urls import urlpatterns as propertytype_urls
 from .section.urls import urlpatterns as section_urls
 from .kitchen.urls import urlpatterns as kitchen_urls
+from .counter.urls import urlpatterns as counter_urls
 from .countertransfer.urls import urlpatterns as countertransfer_urls
 import notifications.urls
 from .api.login import ObtainJSONWebToken
@@ -74,6 +75,7 @@ urlpatterns = [
     url(r'^api/payment/', include(api_payment_urls, namespace='payment-api')),
     url(r'^api/purchase/', include(api_purchase_urls, namespace='purchase-api')),
     url(r'^api/purchase/variant', include(api_purchase_variant_urls, namespace='purchase-variant-api')),
+    url(r'^api/stock/', include(api_stock_urls, namespace='api-stock')),
     url(r'^api/maintenance/', include(api_maintenance_urls, namespace='maintenance-api')),
     url(r'^api/sale/', include(api_sale_urls, namespace='sale-api')),
     url(r'^api/setting/', include(api_settings_urls, namespace='setting-api')),
@@ -98,6 +100,7 @@ urlpatterns = [
     url(r'^wing/', include(wing_urls, namespace='wing')),
     url(r'^section/', include(section_urls, namespace='section')),
     url(r'^kitchen/', include(kitchen_urls, namespace='kitchen')),
+    url(r'^counter/', include(counter_urls, namespace='counter')),
     url(r'^counter/transfer/', include(countertransfer_urls, namespace='countertransfer')),
     url(r'^sitemap\.xml$', sitemap, {'sitemaps': sitemaps},
         name='django.contrib.sitemaps.views.sitemap'),

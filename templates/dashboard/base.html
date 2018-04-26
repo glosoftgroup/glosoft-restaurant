@@ -185,36 +185,36 @@
                 </li>
                   {% endif %}
                   {% if perms.hr.view_employee %}
-                <li>
-                  <a href="javascript:;">
-                    <i class="icon-height"></i>
-                    <span>Human Resource</span>
-                  </a>
-                  <ul>
-                    {% if perms.userprofile.view_user %}
-                    <li class="{% block menu_hremployees_class %}{% endblock %}">
-                      <a href="{% url 'dashboard:employees' %}"><i class='icon-users2'></i>Employees</a>
+                    <li class="hidden">
+                      <a href="javascript:;">
+                        <i class="icon-height"></i>
+                        <span>Human Resource</span>
+                      </a>
+                      <ul>
+                        {% if perms.userprofile.view_user %}
+                        <li class="{% block menu_hremployees_class %}{% endblock %}">
+                          <a href="{% url 'dashboard:employees' %}"><i class='icon-users2'></i>Employees</a>
+                        </li>
+                        {% endif %}
+                        {% if perms.auth.view_group %}
+                        <li class="{% block menu_hrattendance_class %}{% endblock %}">
+                          <a href="{% url 'dashboard:attendance' %}"><i class='icon-users4'></i>Attendance</a>
+                        </li>
+                        {% endif %}
+                        {% if perms.userprofile.view_usertrail %}
+                          <!--<li class="{% block menu_hrleaves_class %}{% endblock %}">-->
+                          <!--<a href="{% url 'dashboard:user_trail' %}"><i class='icon-history'></i>Manage Leaves</a>-->
+                        <!--</li>-->
+                        {% endif  %}
+                        <li class="{% block menu_hr_default_class %}{% endblock %}">
+                        <a href="{% url 'dashboard:hr-defaults' %}">
+                            <i class=" icon-earth"></i>
+                             settings
+                        </a>
+                        </li>
+                      </ul>
                     </li>
-                    {% endif %}
-                    {% if perms.auth.view_group %}
-                    <li class="{% block menu_hrattendance_class %}{% endblock %}">
-                      <a href="{% url 'dashboard:attendance' %}"><i class='icon-users4'></i>Attendance</a>
-                    </li>
-                    {% endif %}
-                    {% if perms.userprofile.view_usertrail %}
-                      <!--<li class="{% block menu_hrleaves_class %}{% endblock %}">-->
-                      <!--<a href="{% url 'dashboard:user_trail' %}"><i class='icon-history'></i>Manage Leaves</a>-->
-                    <!--</li>-->
-                    {% endif  %}
-                    <li class="{% block menu_hr_default_class %}{% endblock %}">
-                    <a href="{% url 'dashboard:hr-defaults' %}">
-                        <i class=" icon-earth"></i>
-                         settings
-                    </a>
-                    </li>
-                  </ul>
-                </li>
-                {% endif %}
+                  {% endif %}
                 {% if perms.product.view_product or perms.product.view_stock or perms.product.view_category or perms.product.view_productclass or perms.product.view_productattribute or perms.product.view_stocklocation %}
                 <li id="first">
                   <a href="{% url 'dashboard:product-list' %}"><i class="icon-stack"></i> <span>
@@ -276,35 +276,34 @@
                   </ul>
                 </li>
                   {% endif %}
-                  <!--stock release-->
-                   {% if perms.product.view_product or perms.product.view_stock or perms.product.view_category or perms.product.view_productclass or perms.product.view_productattribute or perms.product.view_stocklocation %}
-                    <li id="first1">
+
+                  <!--bar-->
+                  {% if perms.product.view_product or perms.product.view_stock or perms.product.view_category or perms.product.view_productclass or perms.product.view_productattribute or perms.product.view_stocklocation %}
+                    <li id="first3">
                       <a href="{% url 'dashboard:product-list' %}">
-                          <i class="icon-transmission"></i>
-                          <span> Stock Release</span>
+                          <i class="icon-chart"></i>
+                          <span> Bar Management</span>
                       </a>
                       <ul>
                        {% if perms.product.view_product %}
-                        <li class="{% block menu_release_counter_class %}{% endblock %}">
-                        <a href="{% url 'kitchen:index' %}">
-                            <i class='icon-move-up2'></i>
-                            Counter Release
-                        </a>
+                        <li class="{% block menu_bar_class %}{% endblock %}">
+                            <a href="{% url 'counter:index' %}">
+                                <i class='icon-stairs'></i>
+                                Counter
+                            </a>
                         </li>
-                        {% endif %}
-                          {% if perms.product.view_product %}
-                        <li class="{% block menu_release_kitchen_class %}{% endblock %}">
-                        <a href="{% url 'kitchen:index' %}">
-                            <i class='icon-move-down2'></i>
-                            Kitchen Release
-                        </a>
+                        <li class="{% block menu_release_counter_class %}{% endblock %}">
+                            <a href="{% url 'countertransfer:index' %}">
+                                <i class='icon-move-up2'></i>
+                                Counter Stock
+                            </a>
                         </li>
                         {% endif %}
                       </ul>
                     </li>
                   {% endif %}
-                  <!--./stock release-->
-                  <!--restaurant-->
+                  <!--./bar-->
+                  <!--restaurant management-->
                   {% if perms.product.view_product or perms.product.view_stock or perms.product.view_category or perms.product.view_productclass or perms.product.view_productattribute or perms.product.view_stocklocation %}
                     <li id="first2">
                       <a href="{% url 'dashboard:product-list' %}">
@@ -319,11 +318,17 @@
                             Kitchen
                         </a>
                         </li>
+                           <li class="{% block menu_release_kitchen_class %}{% endblock %}">
+                            <a href="{% url 'countertransfer:index' %}">
+                                <i class='icon-move-up2'></i>
+                                Kitchen Stock
+                            </a>
+                        </li>
                         {% endif %}
                       </ul>
                     </li>
                   {% endif %}
-                  <!--./restaurant-->
+                  <!--./retaurant management-->
                    {% if perms.customer.view_customer %}
                 <li class="">
                   <a href="{% url 'dashboard:customers' %}"><i class="icon-theater"></i> <span>
