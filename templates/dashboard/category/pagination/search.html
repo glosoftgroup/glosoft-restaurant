@@ -19,6 +19,7 @@
                       <tr class="bg-primary">
 
                          <th>Name</th>
+                         <th>Business Type</th>
                          <th>Description</th>
                          <th>Products</th>
                          <th class="text-center">Actions</th>
@@ -35,6 +36,7 @@
                             class="td" data-href="{% url 'dashboard:cat-subcategories' pk=node.pk %}"
                             >{{ node.name }}</td>
                                <!--salepoint-->
+                            <td>{{node.section}}</td>
                             <!-- description\ -->
                             <td
                             class="td" data-href="{% url 'dashboard:cat-subcategories' pk=node.pk %}"

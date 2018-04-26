@@ -31,15 +31,15 @@ $(function() {
           return false;
         }
         if(sale_point == 0){
-//          notify('Sale point required');
-//          return false;
+          notify('Sale point required');
+          return false;
         }
 
         // after validating category cat_name        
         var modal = $("#add-new-category").attr('href');
         var posting = $.post( url, {
                               name:cat_name,
-                              sale_point:sale_point,
+                              section:sale_point,
                               description:cat_description,
                               csrfmiddlewaretoken:csrf_token,
                             });

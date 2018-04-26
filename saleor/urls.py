@@ -47,6 +47,9 @@ from .userprofile.urls import urlpatterns as userprofile_urls
 from .salepoints.urls import urlpatterns as salepoints_urls
 from .wing.urls import urlpatterns as wing_urls
 from .propertytype.urls import urlpatterns as propertytype_urls
+from .section.urls import urlpatterns as section_urls
+from .kitchen.urls import urlpatterns as kitchen_urls
+from .countertransfer.urls import urlpatterns as countertransfer_urls
 import notifications.urls
 from .api.login import ObtainJSONWebToken
 from . import decorators
@@ -71,7 +74,6 @@ urlpatterns = [
     url(r'^api/payment/', include(api_payment_urls, namespace='payment-api')),
     url(r'^api/purchase/', include(api_purchase_urls, namespace='purchase-api')),
     url(r'^api/purchase/variant', include(api_purchase_variant_urls, namespace='purchase-variant-api')),
-
     url(r'^api/maintenance/', include(api_maintenance_urls, namespace='maintenance-api')),
     url(r'^api/sale/', include(api_sale_urls, namespace='sale-api')),
     url(r'^api/setting/', include(api_settings_urls, namespace='setting-api')),
@@ -94,6 +96,9 @@ urlpatterns = [
     url(r'^feeds/', include(feed_urls, namespace='data_feeds')),
     url(r'^propertytype/', include(propertytype_urls, namespace="propertytype")),
     url(r'^wing/', include(wing_urls, namespace='wing')),
+    url(r'^section/', include(section_urls, namespace='section')),
+    url(r'^kitchen/', include(kitchen_urls, namespace='kitchen')),
+    url(r'^counter/transfer/', include(countertransfer_urls, namespace='countertransfer')),
     url(r'^sitemap\.xml$', sitemap, {'sitemaps': sitemaps},
         name='django.contrib.sitemaps.views.sitemap'),
     url(r'^sale/points/', include(salepoints_urls, namespace='salepoints')),
