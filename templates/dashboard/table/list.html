@@ -60,7 +60,6 @@
         <thead>
             <tr class="bg-primary">            
             <th>Name</th>
-                <th>Sale Point</th>
             <th>Number</th>
             <th></th>
             </tr>
@@ -68,19 +67,11 @@
         <tbody>
           <tr>        
 
-          <td>
-            <input placeholder="name" class="form-control" id="name" required="" name="name" type="text" >           
+            <td>
+              <input placeholder="name" class="form-control" id="name" required="" name="name" type="text" >
             </td>
-              <td>
-                  <select name="sale_point" class="form-control" id="id_sale_point">
-                      <option value="0">---</option>
-                      {% for sale_point in sale_points %}
-                      <option value="{{sale_point.pk}}">{{sale_point}}</option>
-                      {% endfor %}
-                  </select>
-              </td>
             <td> 
-            <input placeholder="Number" class="form-control" id="loyalty_points" name="number" value="0" type="number" >
+              <input placeholder="Number" class="form-control" id="loyalty_points" name="number" value="0" type="number" >
            </td>
 
             <td>
@@ -106,7 +97,6 @@
                 <thead>
                   <tr class="bg-primary">                  
                     <th>Name</th>
-                      <th>Sale Point</th>
                     <th>Number</th>
                     {% if perms.sale.delete_table %}
                     <th class="text-center">Options</th>
@@ -119,7 +109,6 @@
                   <tr class='clickable-row' id="{{option.pk }}">
                     <!-- name -->
                     <td class="td" data-href="{% url 'dashboard:table-detail' pk=option.pk %}" data-mtitle="{{option.name}}" data-m="#pdetail">{{option.name}}</td>
-                      <td class="td" data-href="{% url 'dashboard:table-detail' pk=option.pk %}" data-mtitle="{{option.name}}" data-m="#pdetail">{{option.sale_point}}</td>
                     <!-- number -->
                     <td class="td" data-href="{% url 'dashboard:table-detail' pk=option.pk %}" data-mtitle="{{option.name}}" data-m="#pdetail">{{option.number}}</td>
 
@@ -304,8 +293,6 @@
     $('#addExpenseBtn').on('click', function(){
         $('#addExpenseTable').slideToggle( "slow");
     });
-    $('#id_sale_point').selectpicker();
-    $('.spoint').selectpicker();
 
     $('.expense_type').selectpicker({
         iconBase: 'fa',
@@ -523,7 +510,6 @@
                             header: 'Well done!',
                             theme: 'bg-success'
                          });
-                         $('#id_sale_point').selectpicker("refresh");
 
                     },
                     error:function(error){

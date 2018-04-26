@@ -8,15 +8,6 @@
             
               <input type="text" value="{{option.name}}" {{disabled}} name="optname" id="optname" class="form-control">
             </div>
-          <div class="form-group">
-              <label>Sale Point: </label>
-              <select name="sale_point" class="spoint form-control" id="id_sale_point">
-                      <option value="{{option.sale_point.id}}">{{option.sale_point}}</option>
-                      {% for sale_point in sale_points %}
-                      <option value="{{sale_point.pk}}">{{sale_point}}</option>
-                      {% endfor %}
-                  </select>
-          </div>
           <div class="form-group">            
               <label class="text-left" style="font-weight:500">Number:</label>
               <input type="number" value="{{option.number}}" name="number" id="number" class="form-control">
@@ -57,7 +48,6 @@
        }
 
        dynamicData['name'] = name;
-       dynamicData['sale_point'] = $('.spoint').val();
        dynamicData['track'] = 'updating table';
 
 

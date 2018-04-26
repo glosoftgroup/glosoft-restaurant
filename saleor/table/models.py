@@ -16,9 +16,6 @@ class Table(models.Model):
         pgettext_lazy('Table field', 'created'),
         default=now, editable=False)
     orders = models.IntegerField(default=Decimal(0))
-    sale_point = models.ForeignKey(
-        SalePoint, null=True, blank=True, related_name='table_sale_point',
-        verbose_name=pgettext_lazy('Table field', 'sale point'))
 
     class Meta:
         verbose_name = pgettext_lazy('Table model', 'Table')
