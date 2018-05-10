@@ -1,5 +1,6 @@
 {% extends "dashboard/base.html" %}
 {% load staticfiles %}
+{% load render_bundle from webpack_loader %}
 {% load i18n %}
 
 {% block title %}
@@ -13,6 +14,7 @@
 
  {% block menu_release_counter_class %}active{% endblock %}
  {% block custom_css %}
+ {% render_bundle 'transfer' 'css' %}
 <style>
           .theme_xbox .pace_activity, .theme_xbox .pace_activity::after, .theme_xbox .pace_activity::before, .theme_xbox_sm .pace_activity, .theme_xbox_sm .pace_activity::after, .theme_xbox_sm .pace_activity::before, .theme_xbox_xs .pace_activity, .theme_xbox_xs .pace_activity::after, .theme_xbox_xs .pace_activity::before {
         border-radius: 50%;
@@ -46,6 +48,7 @@
  {% endblock %}
 
 {% block content %}
+<div id="root"></div>
  <div class="row animated " id="vue-app">
 
    <div class="col-md-12">
@@ -56,7 +59,7 @@
               <label style="visibility: hidden;"> add</label>
               <div class="form-group">
                     <a @click="toggleForm" id="toggle-add-form" href="javascript:;" class="btn btn-primary hvr-glow btn-raised legitRipple waves-effect waves-light">
-                        <i class="icon-plus2 position-left"></i>Add
+                        <i class="icon-plus2 position-left"></i>Transfer
                     </a>
               </div>
             </div>
@@ -289,4 +292,6 @@
         $('.bootstrap-select').selectpicker();
       });
     </script>
+{% render_bundle 'vendor' 'js' %}
+{% render_bundle 'transfer' 'js' %}
 {% endblock %}
