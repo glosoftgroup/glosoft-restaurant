@@ -22,7 +22,3 @@ class Counter(models.Model):
 
     def __str__(self):
         return self.name
-
-
-
-

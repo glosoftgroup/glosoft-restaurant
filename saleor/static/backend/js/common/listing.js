@@ -69,6 +69,7 @@ var parent = new Vue({
             })
         },
         toggleForm(){
+            console.log('opening form')
             this.showForm = !this.showForm;
         },
         validate(){
