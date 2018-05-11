@@ -48,7 +48,7 @@
  {% endblock %}
 
 {% block content %}
-<div id="root"></div>
+
  <div class="row animated " id="vue-app">
 
    <div class="col-md-12">
@@ -57,11 +57,7 @@
         <div class="panel-body  search-panel" style="padding:5px;">
             <div class="col-md-2">
               <label style="visibility: hidden;"> add</label>
-              <div class="form-group">
-                    <a @click="toggleForm" id="toggle-add-form" href="javascript:;" class="btn btn-primary hvr-glow btn-raised legitRipple waves-effect waves-light">
-                        <i class="icon-plus2 position-left"></i>Transfer
-                    </a>
-              </div>
+              <div id="root"></div>
             </div>
             <div class="col-md-4">
              <label>Search </label>
