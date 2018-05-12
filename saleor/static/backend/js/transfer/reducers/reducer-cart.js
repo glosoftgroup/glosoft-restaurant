@@ -5,9 +5,21 @@ const initialState = [];
 export default (state = initialState, action) => {
   switch (action.type) {
     case ADD_ITEM:
-      return [...state, action.payload];
+      var add = true;
+      state.map(item => {
+        if (item.id === action.payload.id) {
+          add = false;
+          return;
+        }
+      });
+      if (add) {
+        action.payload.qty = 1;
+        return [...state, action.payload];
+      } else {
+        return state;
+      }
     case DELETE_ITEM:
-      return state.filter(item => item._id !== action.itemId);
+      return state.filter(item => item.id !== action.itemId);
     case UPDATE_ITEM:
       return state.map(item => {
         if (item.id === action.payload.id) return action.payload;

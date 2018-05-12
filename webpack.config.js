@@ -125,7 +125,10 @@ var config = {
       'jquery': resolve('node_modules/jquery/dist/jquery.js'),
       'react': resolve('node_modules/react/dist/react.min.js'),
       'react-dom': resolve('node_modules/react-dom/dist/react-dom.min.js')
-    }
+    },
+    modulesDirectories: [
+          'node_modules'
+    ]
   },
   sassLoader: {
     sourceMap: true

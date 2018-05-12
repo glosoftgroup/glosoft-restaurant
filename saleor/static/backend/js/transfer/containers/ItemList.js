@@ -6,8 +6,9 @@ import { addItem } from '../actions/action-cart';
 
 class ItemList extends Component {
   addCart = (obj) => {
-    console.log(obj);
-    this.props.addItem(obj);
+    var payload = { ...obj };
+    console.log('adding to cart');
+    this.props.addItem(payload);
   }
   render() {
     return (
