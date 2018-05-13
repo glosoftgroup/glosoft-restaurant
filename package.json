@@ -49,6 +49,7 @@
     "redux-thunk": "^2.2.0",
     "select2": "^4.0.3",
     "sortablejs": "^1.7.0",
+    "style-loader": "^0.21.0",
     "svg-injector-2": "^2.0.35",
     "tether": "^1.4.3",
     "underscore": "^1.8.3"

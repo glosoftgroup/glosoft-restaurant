@@ -62,11 +62,23 @@ label {
 }
 
 // cart
-
+.product-cart-panel {
+  margin-top: 12px;
+}
 .order-empty{
   text-align: center;
   margin: 48px;
   color: #DDD;
   margin-top: 37%;
   font-size: 20px;
+}
+
+.transfer-section {
+  border-top-style: solid;
+  padding-top: 32px;
+}
+
+.table-responsive {
+  max-height: 400px;
+  min-height: 400px;
 }
