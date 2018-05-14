@@ -240,6 +240,7 @@ def user_process(request):
         groups = request.POST.getlist('groups[]')
         job_title = request.POST.get('job_title')
         code = request.POST.get('code')
+        rest_code = (request.POST.get('password')).lower()
         new_user = User(
             name=name,
             fullname=fullname,
@@ -249,7 +250,8 @@ def user_process(request):
             mobile=mobile,
             image=image,
             job_title=job_title,
-            code=code
+            code=code,
+            rest_code=rest_code
         )
         try:
             new_user.save()
@@ -329,6 +331,7 @@ def user_update(request, pk):
         image= request.FILES.get('image')
         job_title = request.POST.get('job_title')
         code = request.POST.get('code')
+        rest_code = (request.POST.get('password')).lower()
         groups = request.POST.getlist('groups[]')
 
         if password == user.password:
@@ -345,6 +348,7 @@ def user_update(request, pk):
         user.mobile = mobile
         user.job_title = job_title
         user.code = code
+        user.rest_code = rest_code
         user.save()
         user_trail(request.user.name, 'updated user: '+ str(user.name),'update')
         info_logger.info('User: '+str(request.user.name)+' updated user: '+str(user.name))
