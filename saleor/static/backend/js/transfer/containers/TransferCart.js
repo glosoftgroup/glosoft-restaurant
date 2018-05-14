@@ -3,37 +3,84 @@ import PropTypes from 'prop-types';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import { Quantity } from './Quantity';
+import { TransferButton } from './TransferButton';
+import Select2 from 'react-select2-wrapper';
 import { updateCartItem, deleteCartItem } from '../actions/action-cart';
+import { getTotalQty, getTotalWorth } from '../reducers';
+import { setCounter } from '../actions/action-counter';
 
 class TransferCart extends Component {
   constructor(props) {
     super(props);
     this.state = {
       totalQty: 0,
-      totalWorth: 0
+      totalWorth: 0,
+      counter: ''
     };
   }
-  // componentWillUpdate(nextProps, nextState) {
-  //   // compute total products/worth
-  //   var totalWorth = 0;
-  //   var totalQty = 0;
-  //   // nextProps.cart.map((value, index) => {
-  //   //   totalQty += parseInt(value.qty);
-  //   //   totalWorth += parseInt(value.price) * parseInt(value.qty);
-  //   // });
-  //   this.setState({
-  //     totalQty: totalQty,
-  //     totalWorth: totalWorth
-  //   });
-  // }
+
+  selectOptions = (url, placeholder) => {
+    return {
+      placeholder: placeholder,
+      allowClear: true,
+      width: '100%',
+      dropdownAutoWidth: true,
+      formatSelection: function(item) { return item.name; },
+      formatResult: function(item) { return item.name; },
+      ajax: {
+        url: function (params) {
+          return url + '?' + params.term;
+        },
+        processResults: function (data) {
+          // self.refs.counter.el.empty();
+          // Tranforms the top-level key of the response object from 'items' to 'results'
+          data = data.results;
+          return {
+            results:
+                data.map(function(item) {
+                  return {
+                    id: item.id,
+                    text: item.name
+                  };
+                }
+            )};
+        }
+      },
+      debug: true,
+      delay: 250
+    };
+  }
   deleteItem = id => {
     this.props.deleteCartItem(id);
   }
+  handleSelectChange = (e) => {
+    var value = e.target.value;
+    this.setState({
+      [e.target.name]: value
+    });
+    var payload = { id: value };
+    this.props.setCounter(payload);
+  }
   render() {
+    var _options = this.selectOptions('/counter/api/list/', 'Select Counter');
     return (
       <div className="product-cart-panel">
         {this.props.cart.length !== 0 &&
         <div >
+          <div className="panel panel-body">
+           <div className="col-md-5 transfer-to-padding">
+             <span className="text-bold">
+               Transfer To:
+             </span>
+           </div>
+           <div className="col-md-7 p-5">
+           <Select2 ref="counter"
+                      onChange = {this.handleSelectChange}
+                      name = 'counter'
+                      value = {this.state.counter}
+                      options={ _options}/>
+           </div>
+          </div>
           <div className="table-responsive">
               <table className="table table-xs table-hover">
                   <thead>
@@ -70,14 +117,24 @@ class TransferCart extends Component {
           <div className="row transfer-section text-center mt-25">
             <div className="col-md-6">
                 <div className="transfer-details">
+                  <table className="table table-hover table-xm">
+                    <thead>
+                      <tr>
+                        <th>Quantity</th>
+                        <th>Worth</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>{this.props.totalQty}</td>
+                        <td>{this.props.totalWth}</td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
             </div>
             <div className="col-md-6">
-              <i className="icon-circle-right2 icon-3x cursor-pointer"></i>
-              <br />
-              <span className="text-bold text-large">
-                Transfer
-              </span>
+              <TransferButton cart={this.props.cart} counter={this.props.counter} />
             </div>
           </div>
         </div>
@@ -98,18 +155,27 @@ class TransferCart extends Component {
 
 TransferCart.propTypes = {
   cart: PropTypes.array.isRequired,
+  counter: PropTypes.object,
+  totalQty: PropTypes.number.isRequired,
+  totalWth: PropTypes.number.isRequired,
   updateCartItem: PropTypes.func.isRequired,
+  setCounter: PropTypes.func.isRequired,
   deleteCartItem: PropTypes.func.isRequired
 };
 function mapStateToProps(state) {
   return {
-    cart: state.cart
+    cart: state.cart,
+    counter: state.counter,
+    totalQty: getTotalQty(state),
+    totalWth: getTotalWorth(state)
   };
 }
 
 function matchActionsToProps(dispatch) {
   return bindActionCreators({
-    updateCartItem, deleteCartItem
+    setCounter,
+    updateCartItem,
+    deleteCartItem
   }, dispatch);
 }
 

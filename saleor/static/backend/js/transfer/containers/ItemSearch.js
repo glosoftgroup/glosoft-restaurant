@@ -20,6 +20,7 @@ class ItemSearch extends Component {
       edit: false,
       deleteUrl: 'url',
       item: {},
+      category: '',
       pageSizes: [
         {'text': '5', 'id': '5'},
         {'text': '10', 'id': '10'},
@@ -39,10 +40,19 @@ class ItemSearch extends Component {
     this.filterContent(e.target.value);
   }
 
+  handleSelectChange = (e) => {
+    this.setState({
+      [e.target.name]: e.target.value
+    });
+    console.log(e.target.value);
+    this.filterContent(this.state.search, null, e.target.value);
+  }
+
   handlePageChange = (pageNumber) => {
         // console.log(`active page is ${pageNumber}`);
     this.setState({activePage: pageNumber});
-    this.filterContent(pageNumber);
+    var search = this.state.search;
+    this.filterContent(search, pageNumber);
   }
 
   onSelectChange = (e) => {
@@ -52,17 +62,55 @@ class ItemSearch extends Component {
     this.filterContent();
   }
 
-  filterContent= (search) => {
+  filterContent= (search, page, category) => {
+    if (!page) {
+      page = this.state.activePage;
+    }
     var params = Object.assign({
       page_size: this.state.itemsCountPerPage,
-      page: this.state.activePage
+      page: page
     });
     if (this.state.search) {
       params = Object.assign(params, {'q': search});
     }
+    if (category) {
+      params = { ...params, 'category': category };
+    }
     this.props.fetchItems(params);
   }
+
+  selectOptions = (url, placeholder) => {
+    return {
+      placeholder: placeholder,
+      allowClear: false,
+      width: '100%',
+      dropdownAutoWidth: true,
+      formatSelection: function(item) { return item.name; },
+      formatResult: function(item) { return item.name; },
+      ajax: {
+        url: function (params) {
+          return url + '?' + params.term;
+        },
+        processResults: function (data) {
+          // Tranforms the top-level key of the response object from 'items' to 'results'
+          data = data.results;
+          return {
+            results:
+                data.map(function(item) {
+                  return {
+                    id: item.id,
+                    text: item.name
+                  };
+                }
+            )};
+        }
+      },
+      debug: true,
+      delay: 250
+    };
+  }
   render() {
+    var _options = this.selectOptions('/api/category/', 'Select Category');
     return (
       <div>
         <div className="breadcrumb-line breadcrumb-line-component content-group-lg">
@@ -73,16 +121,30 @@ class ItemSearch extends Component {
                 </ul>
 
                 <ul className="breadcrumb-elements">
-                    <li>
-                    <div className="form-group search-form-group">
-                        <div className="has-feedback has-feedback-left">
+                  <li>
+                    <a href="javascript:;" className="legitRipple text-bold"> Category:</a>
+                  </li>
+                  <li >
+                    <Select2 ref="category"
+                      onChange = {this.handleSelectChange}
+                      name = 'category'
+                      value = {this.state.category}
+                      options={ _options}/>
+                  </li>
+                  <li>&nbsp;&nbsp;&nbsp;</li>
+                  <li>
+                    <a href="javascript:;" className="legitRipple text-bold"> Search:</a>
+                  </li>
+                  <li>
+                    <div className="form-group search-form-group mr-15">
+                        <div className="has-feedback has-feedback-right">
                             <input value={this.state.search} name="search" onChange={this.handleChange} className="form-control" placeholder="Product name or SKU" type="search" />
                             <div className="form-control-feedback">
                                 <i className="icon-search4 text-size-large text-muted"></i>
                             </div>
                         </div>
                     </div>
-                    </li>
+                  </li>
                 </ul>
             <a className="breadcrumb-elements-toggle"><i className="icon-menu-open"></i></a>
         </div>

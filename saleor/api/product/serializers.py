@@ -89,7 +89,8 @@ class SalesListSerializer(serializers.ModelSerializer):
     cashier = SerializerMethodField()
     class Meta:
         model = Sales
-        fields = ('id',
+        fields = (
+                 'id',
                  'user',
                  'invoice_number',
                  'total_net',
@@ -118,7 +119,8 @@ class SalesUpdateSerializer(serializers.ModelSerializer):
     #solditems = ItemsSerializer(required=False,many=True)    
     class Meta:
         model = Sales
-        fields = ('id',                 
+        fields = (
+                 'id',
                  'invoice_number',
                  'total_net',
                  'sub_total',                
@@ -183,7 +185,6 @@ class SalesUpdateSerializer(serializers.ModelSerializer):
             raise ValidationError('Terminal specified does not exist')
         # except:
         #     raise ValidationError('Terminal specified does not exist')
-        
 
     def update(self, instance, validated_data):
         terminal = Terminal.objects.get(pk=self.terminal_id)    
@@ -198,7 +199,6 @@ class SalesUpdateSerializer(serializers.ModelSerializer):
             instance.status = validated_data.get('status', instance.status)
         instance.mobile = validated_data.get('mobile', instance.mobile)
         
-        
         instance.customer_name = validated_data.get('customer_name', instance.customer_name)
         instance.save()        
         return instance
@@ -210,7 +210,8 @@ class SalesSerializer(serializers.ModelSerializer):
     payment_data = JSONField()
     class Meta:
         model = Sales
-        fields = ('id',
+        fields = (
+                 'id',
                  'user',
                  'invoice_number',
                  'total_net',
@@ -260,6 +261,7 @@ class SalesSerializer(serializers.ModelSerializer):
         data = self.get_initial()
         dictionary_value = dict(data.get('payment_data'))
         return value
+
     def validate_status(self,value):
         data = self.get_initial()
         status = str(data.get('status'))        
@@ -268,8 +270,7 @@ class SalesSerializer(serializers.ModelSerializer):
         else:
             raise ValidationError('Enter correct Status. Expecting either fully-paid/payment-pending')
         
-        
-    def validate_terminal(self,value):
+    def validate_terminal(self, value):
         data = self.get_initial()
         terminal_id = int(data.get('terminal'))        
         try:
@@ -278,7 +279,7 @@ class SalesSerializer(serializers.ModelSerializer):
             raise ValidationError('Terminal specified does not exist')
         return value    
 
-    def create(self,validated_data):
+    def create(self, validated_data):
         # add sold amount to drawer 
         try:
            total_net = Decimal(validated_data.get('total_net'))
@@ -367,7 +368,8 @@ class OrderedItemSerializer(serializers.Serializer):
 
 class ProductListSerializer(serializers.ModelSerializer):    
     vat_tax = SerializerMethodField()
-    item_price = SerializerMethodField()    
+    item_price = SerializerMethodField()
+
     class Meta:
         model = Product
         fields = (
@@ -377,15 +379,20 @@ class ProductListSerializer(serializers.ModelSerializer):
             'item_price',
             'description',
            )
+
     def get_vat_tax(self, obj):
         if obj.product_tax:
             tax = obj.product_tax.tax
         else:
             tax = 0
         return tax
+
     def get_item_price(self,obj):
-        item_price = obj.price.gross
-        return item_price
+        try:
+            item_price = obj.price.gross
+            return item_price
+        except:
+            return 0
 
 
 class ProductStockListSerializer(serializers.ModelSerializer):    
@@ -395,7 +402,8 @@ class ProductStockListSerializer(serializers.ModelSerializer):
     tax = SerializerMethodField()
     discount = SerializerMethodField()
     product_category = SerializerMethodField()
-    #description = SerializerMethodField()
+    qty = SerializerMethodField()
+
     class Meta:        
         model = ProductVariant
         fields = (
@@ -406,14 +414,15 @@ class ProductStockListSerializer(serializers.ModelSerializer):
             'tax',
             'discount',
             'quantity',
+            'qty',
             'product_category',            
             )
 
-    def get_discount(self,obj):
+    def get_discount(self, obj):
         today = date.today()
         price = obj.get_price_per_item().gross      
         discounts = Sale.objects.filter(start_date__lte=today).filter(end_date__gte=today)
-        discount  = 0
+        discount = 0
         discount_list = get_variant_discounts(obj, discounts)
         for discount in discount_list:
             try:
@@ -424,25 +433,32 @@ class ProductStockListSerializer(serializers.ModelSerializer):
 
         return discount
 
-    def get_quantity(self,obj):
+    def get_quantity(self, obj):
         quantity = obj.get_stock_quantity()
         return quantity
-    def get_productName(self,obj):
+
+    def get_qty(self, obj):
+        return 1
+
+    def get_productName(self, obj):
         productName = obj.display_product()
         return productName
-    # def get_description(self,obj):
-    #     return self.products.description
-    def get_price(self,obj):
-        price = obj.get_price_per_item().gross
-        return price
-    def get_tax(self,obj):
+
+    def get_price(self, obj):
+        try:
+            price = obj.get_price_per_item().gross
+            return price
+        except:
+            return 0
+
+    def get_tax(self, obj):
         if obj.product.product_tax:
             tax = obj.product.product_tax.tax
         else:
             tax = 0        
         return tax
 
-    def get_product_category(self,obj):
+    def get_product_category(self, obj):
         product_category = obj.product_category()
         return product_category
 
@@ -455,9 +471,11 @@ class ProductVariantSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     # used during jwt authentication
     permissions = SerializerMethodField()
+
     class Meta:
         model = User
         fields = ['id', 'email', 'name', 'code', 'permissions']
+
     def get_permissions(self,obj):
         info_logger.info('User: '+str(obj.name)+' '+str(obj.email)+' logged in via api')
         user_trail(obj.name, 'logged in via api','view')

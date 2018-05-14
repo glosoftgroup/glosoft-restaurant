@@ -19,6 +19,9 @@ class CreateAPIView(generics.CreateAPIView):
     queryset = Table.objects.all()
     serializer_class = CreateListSerializer
 
+    def perform_update(self, serializer):
+        serializer.save(user=self.request.user)
+
 
 class DestroyView(generics.DestroyAPIView):
     queryset = Table.objects.all()

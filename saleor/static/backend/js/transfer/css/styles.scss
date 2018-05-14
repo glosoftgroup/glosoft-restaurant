@@ -65,6 +65,11 @@ label {
 .product-cart-panel {
   margin-top: 12px;
 }
+
+.transfer-to-padding {
+  margin-top: 16px;
+}
+
 .order-empty{
   text-align: center;
   margin: 48px;
@@ -79,6 +84,6 @@ label {
 }
 
 .table-responsive {
-  max-height: 400px;
-  min-height: 400px;
+  max-height: 350px;
+  min-height: 350px;
 }
