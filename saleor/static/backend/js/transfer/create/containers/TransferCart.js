@@ -67,13 +67,13 @@ class TransferCart extends Component {
       <div className="product-cart-panel">
         {this.props.cart.length !== 0 &&
         <div >
-          <div className="panel panel-body">
+          <div className="panel panel-body counter-panel">
            <div className="col-md-5 transfer-to-padding">
              <span className="text-bold">
                Transfer To:
              </span>
            </div>
-           <div className="col-md-7 p-5">
+           <div className="col-md-7">
            <Select2 ref="counter"
                       onChange = {this.handleSelectChange}
                       name = 'counter'

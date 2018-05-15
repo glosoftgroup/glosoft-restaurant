@@ -36,12 +36,12 @@ export class TransferButton extends Component {
     // submit
     var formData = new FormData();
 
-    formData.append('counter', this.props.counter);
+    formData.append('counter', this.props.counter.id);
     formData.append('counter_transfer_items', JSON.stringify(this.props.cart));
 
     api.create('/counter/transfer/api/create/', formData)
     .then((data) => {
-      console.log(data);
+      window.location.href = '/counter/transfer/';
     })
     .catch((error) => {
       console.log(error);

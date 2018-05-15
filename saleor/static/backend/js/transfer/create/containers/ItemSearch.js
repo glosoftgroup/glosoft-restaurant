@@ -136,7 +136,7 @@ class ItemSearch extends Component {
                     <a href="javascript:;" className="legitRipple text-bold"> Search:</a>
                   </li>
                   <li>
-                    <div className="form-group search-form-group mr-15">
+                    <div className="form-grou search-form-group mr-15">
                         <div className="has-feedback has-feedback-right">
                             <input value={this.state.search} name="search" onChange={this.handleChange} className="form-control" placeholder="Product name or SKU" type="search" />
                             <div className="form-control-feedback">

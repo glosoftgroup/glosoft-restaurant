@@ -14,7 +14,7 @@
 
  {% block menu_release_counter_class %}active{% endblock %}
  {% block custom_css %}
- {% render_bundle 'transfer' 'css' %}
+ {% render_bundle 'transfer_list' 'css' %}
 <style>
           .theme_xbox .pace_activity, .theme_xbox .pace_activity::after, .theme_xbox .pace_activity::before, .theme_xbox_sm .pace_activity, .theme_xbox_sm .pace_activity::after, .theme_xbox_sm .pace_activity::before, .theme_xbox_xs .pace_activity, .theme_xbox_xs .pace_activity::after, .theme_xbox_xs .pace_activity::before {
         border-radius: 50%;
@@ -57,7 +57,10 @@
         <div class="panel-body  search-panel" style="padding:5px;">
             <div class="col-md-2">
               <label style="visibility: hidden;"> add</label>
-              <div id="root"></div>
+              <div class="form-group">
+                  <a id="toggle-add-form" href="/counter/transfer/add/" class="btn btn-primary hvr-glow btn-raised legitRipple waves-effect waves-light"><i class="icon-plus2 position-left"></i>Transfer
+                  </a>
+              </div>
             </div>
             <div class="col-md-4">
              <label>Search </label>
@@ -289,5 +292,5 @@
       });
     </script>
 {% render_bundle 'vendor' 'js' %}
-{% render_bundle 'transfer' 'js' %}
+{% render_bundle 'transfer_list' 'js' %}
 {% endblock %}

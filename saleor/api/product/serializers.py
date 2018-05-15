@@ -403,6 +403,7 @@ class ProductStockListSerializer(serializers.ModelSerializer):
     discount = SerializerMethodField()
     product_category = SerializerMethodField()
     qty = SerializerMethodField()
+    stock = SerializerMethodField()
 
     class Meta:        
         model = ProductVariant
@@ -414,6 +415,7 @@ class ProductStockListSerializer(serializers.ModelSerializer):
             'tax',
             'discount',
             'quantity',
+            'stock',
             'qty',
             'product_category',            
             )
@@ -432,6 +434,12 @@ class ProductStockListSerializer(serializers.ModelSerializer):
                 discount = discount.amount.gross      
 
         return discount
+
+    def get_stock(self, obj):
+        try:
+            return obj.stock.all().first().id
+        except:
+            return 0
 
     def get_quantity(self, obj):
         quantity = obj.get_stock_quantity()

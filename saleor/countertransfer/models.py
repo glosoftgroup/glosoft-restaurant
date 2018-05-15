@@ -11,6 +11,8 @@ from saleor.product.models import Stock
 
 
 class CounterTransfer(models.Model):
+    counter = models.ForeignKey(Counter, on_delete=models.CASCADE, blank=True, null=True,
+                                verbose_name=pgettext_lazy("CounterTransfer field", 'counter'))
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, blank=True, null=True, related_name='counter_transfer_users',
         verbose_name=pgettext_lazy('Sales field', 'user'))
@@ -43,6 +45,20 @@ class CounterTransferItems(models.Model):
     quantity = models.IntegerField(
         pgettext_lazy('Stock item field', 'quantity'),
         validators=[MinValueValidator(0)], default=Decimal(1))
+    sku = models.CharField(max_length=60, blank=True, null=True,
+                           verbose_name=pgettext_lazy('CounterTransfer field', 'sku'))
+    product_category = models.CharField(max_length=60, blank=True, null=True,
+                                        verbose_name=pgettext_lazy('CounterTransfer field', 'category'))
+    price = models.DecimalField(max_digits=9, decimal_places=2, default=Decimal(0),
+                                verbose_name=pgettext_lazy('CounterTransfer field', 'price'))
+    tax = models.DecimalField(max_digits=9, decimal_places=2, default=Decimal(0),
+                              verbose_name=pgettext_lazy('CounterTransfer field', 'tax'))
+    discount = models.DecimalField(max_digits=9, decimal_places=2, default=Decimal(0),
+                                   verbose_name=pgettext_lazy('CounterTransfer field', 'discount'))
+    qty = models.PositiveIntegerField(default=1,
+                                      verbose_name=pgettext_lazy('CounterTransfer field', 'quantity'))
+    productName = models.CharField(max_length=100, blank=True, null=True,
+                                   verbose_name=pgettext_lazy('CounterTransfer field', 'product name'))
     description = models.TextField(
         verbose_name=pgettext_lazy('CounterTransfer field', 'description'), blank=True, null=True)
     updated_at = models.DateTimeField(
