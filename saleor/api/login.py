@@ -19,6 +19,7 @@ jwt_get_username_from_payload = api_settings.JWT_PAYLOAD_GET_USERNAME_HANDLER
 
 class CustomJWTSerializer(JSONWebTokenSerializer):
     def validate(self, attrs):
+        # email comes as the code
         username = attrs.get('email')
         password = attrs.get('password')
 
@@ -27,14 +28,14 @@ class CustomJWTSerializer(JSONWebTokenSerializer):
             if '@' in username:
                 kwargs = {'email': username}
             else:
-                kwargs = {'name': username}
+                kwargs = {'code': username}
             try:
                 us = get_user_model().objects.get(**kwargs)
             except ObjectDoesNotExist:
                 msg = _('no such user with such credentials.')
                 raise serializers.ValidationError(msg)
-
-            user = authenticate(username=us.email, password=attrs.get('password'))
+                
+            user = authenticate(username=us.email, password=us.rest_code)
 
             if user:				
 				if not user.is_active:
