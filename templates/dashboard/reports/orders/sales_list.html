@@ -110,7 +110,6 @@
                           <th>Transaction Date</th>
                           <th>Order No</th>
                           <th>Order Status</th>
-                          <th>Sale Point</th>
                           <th>Table/Room</th>
                           <th>Quantity</th>
                           <th>Total Amount (KShs)</th>
@@ -123,7 +122,6 @@
                             <td class="td" data-href="{% url 'dashboard:order-detail' pk=order.pk point=0 %}">{{order.created|date:"d-m-Y H:i a"}}</td>
                             <td class="td" data-href="{% url 'dashboard:order-detail' pk=order.pk point=0 %}">{{order.invoice_number }}</td>
                             <td class="td" data-href="{% url 'dashboard:order-detail' pk=order.pk point=0 %}">{{order.get_status|title }}</td>
-                            <td class="td" data-href="{% url 'dashboard:order-detail' pk=order.pk point=0 %}">{{ order.sale_point.name }}</td>
                             <td class="td" data-href="{% url 'dashboard:order-detail' pk=order.pk point=0 %}">{% if order.table.name %}
                                           {{ order.table.name }}
                                        {% elif order.room.name %}  

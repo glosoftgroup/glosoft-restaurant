@@ -7,7 +7,6 @@
         <td class="td" data-href="{% url 'dashboard:order-detail' pk=order.pk point=point_pk %}">{{order.created|date:"d-m-Y H:i a"}}</td>
         <td class="td" data-href="{% url 'dashboard:order-detail' pk=order.pk point=point_pk %}">{{order.invoice_number }}</td>
         <td class="td" data-href="{% url 'dashboard:order-detail' pk=order.pk point=point_pk %}">{{order.get_status|title }}</td>
-        <td class="td" data-href="{% url 'dashboard:order-detail' pk=order.pk point=point_pk %}">{% if order.point %}{{ order.point }}{% else %}{{order.sale_point.name}}{% endif %}</td>
         <td class="td" data-href="{% url 'dashboard:order-detail' pk=order.pk point=point_pk %}">
           {% if order.table.name %}
             {{ order.table.name }}

@@ -28,7 +28,8 @@ class ItemSerializer(serializers.ModelSerializer):
         model = OrderedItem
         fields = (
                 'id',
-                'sale_point',
+                'counter',
+                'kitchen',
                 'sku',
                 'quantity',
                 'unit_cost',
@@ -51,7 +52,6 @@ class ListOrderSerializer(serializers.ModelSerializer):
                   'created',
                   'invoice_number',
                   'table',
-                  'sale_point',
                   'total_net',
                   'sub_total',
                   'balance',
@@ -159,7 +159,7 @@ class OrderSerializer(serializers.ModelSerializer):
         try:
             total_net = Decimal(data.get('total_net'))
             total_tax = Decimal(data.get('total_tax'))
-            if total_tax >= total_net:
+            if total_tax > total_net:
                 raise ValidationError('Total tax cannot be more than total net')
         except Exception as e:
             raise ValidationError('Total Net should be a decimal/integer')
@@ -225,7 +225,6 @@ class OrderSerializer(serializers.ModelSerializer):
         else:
             order.carry = 'Take away'
         order.room = validated_data.get('room')
-        order.sale_point = validated_data.get('sale_point')
         order.amount_paid = validated_data.get('amount_paid')
         order.status = status
         order.payment_data = validated_data.get('payment_data')
