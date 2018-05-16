@@ -1,5 +1,9 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
+import FilterBlock from '../containers/FilterBlock';
+import ItemList from '../containers/ItemList';
+import PaginationBlock from '../containers/PaginateBlock';
+import '../css/style.scss';
 
 export default class App extends Component {
   static propTypes = {
@@ -8,8 +12,14 @@ export default class App extends Component {
 
   render() {
     return (
-      <div>
-        App
+      <div className="row">
+        <div className="col-md-12">
+          <FilterBlock />
+          <div className="panel panel-body">
+            <ItemList />
+            <PaginationBlock />
+          </div>
+        </div>
       </div>
     );
   }

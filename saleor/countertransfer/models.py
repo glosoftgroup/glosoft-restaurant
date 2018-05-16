@@ -6,8 +6,15 @@ from django.conf import settings
 from django.utils.translation import pgettext_lazy
 from django.utils.timezone import now
 from django.core.validators import MinValueValidator, RegexValidator
+from django.contrib.auth.models import (AbstractBaseUser, BaseUserManager, PermissionsMixin)
 from saleor.counter.models import Counter
 from saleor.product.models import Stock
+
+
+class TransferManager(BaseUserManager):
+    def instance_quantities(self, instance):
+        qty = self.counter_transfer_items.filter(transfer=instance).aggregate(models.Sum('qty'))['qty__sum']
+        return qty
 
 
 class CounterTransfer(models.Model):
@@ -25,13 +32,29 @@ class CounterTransfer(models.Model):
     created = models.DateTimeField(pgettext_lazy('CounterTransfer field', 'created'),
                                    default=now, editable=False)
 
+    objects = TransferManager()
+
     class Meta:
         app_label = 'countertransfer'
         verbose_name = pgettext_lazy('CounterTransfer model', 'CounterTransfer')
         verbose_name_plural = pgettext_lazy('CounterTransfers model', 'CounterTransfers')
 
     def __str__(self):
-        return self.created
+        return self.id
+
+
+class TransferItemManager(BaseUserManager):
+    def instance_quantities(self, instance):
+        qty = self.get_queryset().filter(transfer=instance)
+        qty = qty.aggregate(models.Sum('qty'))['qty__sum']
+        return qty
+
+    def instance_worth(self, instance):
+        query = self.get_queryset().filter(transfer=instance)
+        total = 0
+        for i in query:
+            total += Decimal(i.qty) * i.price
+        return total
 
 
 class CounterTransferItems(models.Model):
@@ -65,6 +88,7 @@ class CounterTransferItems(models.Model):
         pgettext_lazy('CounterTransfer field', 'updated at'), auto_now=True, null=True)
     created = models.DateTimeField(pgettext_lazy('CounterTransfer field', 'created'),
                                    default=now, editable=False)
+    objects = TransferItemManager()
 
     class Meta:
         app_label = 'countertransfer'
@@ -72,7 +96,7 @@ class CounterTransferItems(models.Model):
         verbose_name_plural = pgettext_lazy('CounterTransfers model', 'CounterTransfers')
 
     def __str__(self):
-        return self.name
+        return str(self.sku) + ' ' + str(self.qty)
 
 
 
