@@ -21,7 +21,7 @@ export const fetchItems = (params = {}) => {
         url = url.slice(0, -1);
       }
     }
-    api.retrieve('/api/products/stock?' + url)
+    api.retrieve('/api/stock?' + url)
       .then(data => dispatch(setItems(data.data)));
   };
 };

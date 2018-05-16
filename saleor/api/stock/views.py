@@ -33,33 +33,26 @@ class ListAPIView(generics.ListAPIView):
     permission_classes = (IsAuthenticatedOrReadOnly,)
     pagination_class = PostLimitOffsetPagination
 
-    def get_serializer_context(self):
-        if self.request.GET.get('date'):
-            return {"date": self.request.GET.get('date'), 'request': self.request}
-        return {"date": None, 'request': self.request}
-
     def get_queryset(self, *args, **kwargs):
-        try:
-            if self.kwargs['pk']:
-                queryset_list = Table.objects.filter(customer__pk=self.kwargs['pk']).order_by('car').distinct('car').select_related()
-            else:
-                queryset_list = Table.objects.all.select_related()
-        except Exception as e:
-            queryset_list = Table.objects.all()
-
         page_size = 'page_size'
         if self.request.GET.get(page_size):
             pagination.PageNumberPagination.page_size = self.request.GET.get(page_size)
         else:
             pagination.PageNumberPagination.page_size = 10
-        if self.request.GET.get('date'):
-            queryset_list = queryset_list.filter(created__icontains=self.request.GET.get('date'))
+
+        queryset_list = Table.objects.filter(quantity__gte=1).select_related()
 
         query = self.request.GET.get('q')
+        category = self.request.GET.get('category')
+        if category:
+            queryset_list = queryset_list.filter(variant__product__categories__id=category)
         if query:
             queryset_list = queryset_list.filter(
-                Q(name__icontains=query))
-        return queryset_list.order_by('-id')
+                Q(variant__sku__icontains=query) |
+                Q(variant__product__name__icontains=query) |
+                Q(variant__product__description__icontains=query)
+                ).distinct()
+        return queryset_list
 
 
 class UpdateAPIView(generics.RetrieveUpdateAPIView):

@@ -7,6 +7,7 @@ from rest_framework.generics import (ListAPIView,
                                      DestroyAPIView,
                                     )
 from rest_framework import generics
+from rest_framework import pagination
 from django.contrib.auth import get_user_model
 from ...product.models import (
     Product,
@@ -179,9 +180,19 @@ class ProductStockListAPIView(generics.ListAPIView):
     serializer_class = ProductStockListSerializer
     permission_classes = (IsAuthenticatedOrReadOnly,)
 
-    def get_queryset(self, *args, **kwargs):        
+    def get_queryset(self, *args, **kwargs):
+        page_size = 'page_size'
+        if self.request.GET.get(page_size):
+            pagination.PageNumberPagination.page_size = self.request.GET.get(page_size)
+        else:
+            pagination.PageNumberPagination.page_size = 10
+
         queryset_list = ProductVariant.objects.get_in_stock().select_related()
+
         query = self.request.GET.get('q')
+        category = self.request.GET.get('category')
+        if category:
+            queryset_list = queryset_list.filter(product__categories__id=category)
         if query:
             queryset_list = queryset_list.filter(
                 Q(sku__icontains=query) |

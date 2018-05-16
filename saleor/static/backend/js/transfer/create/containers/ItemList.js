@@ -7,7 +7,6 @@ import { addItem } from '../actions/action-cart';
 class ItemList extends Component {
   addCart = (obj) => {
     var payload = { ...obj };
-    console.log('adding to cart');
     this.props.addItem(payload);
   }
   render() {
@@ -40,9 +39,9 @@ class ItemList extends Component {
               );
             })
             }
-            {this.props.items.length === 0 &&
+            {this.props.items.results.length === 0 &&
             <tr>
-                <td colSpan='3' className="text-center">
+                <td colSpan='5' className="text-center">
                     <h4>No data Found</h4>
                 </td>
             </tr>

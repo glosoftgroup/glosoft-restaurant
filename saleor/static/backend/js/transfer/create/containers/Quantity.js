@@ -9,17 +9,17 @@ export class Quantity extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      qty: '',
+      qty: 1,
       maxQty: 0
     };
   }
+
   componentDidMount = () => {
     this.setState({
-      qty: this.props.instance.quantity,
+      qty: this.props.instance.qty,
       maxQty: this.props.instance.quantity
     });
   }
-
   isNumeric = (n) => {
     return !isNaN(parseFloat(n)) && isFinite(n);
   }
@@ -32,13 +32,17 @@ export class Quantity extends Component {
       toast.error('Quantity must be a digit!');
       return;
     }
+    if (value < 1) {
+      toast.error('Quantity must more than one!');
+      return;
+    }
     if (value > this.state.maxQty) {
       toast.error('Transfer Quantity cannot be more than ' + this.state.maxQty + '!');
+      return;
     } else {
       this.setState({
         [e.target.name]: value
       });
-
       var payload = Object.assign(this.props.instance);
       payload.qty = value;
       this.props.updateCartItem(payload);
@@ -49,8 +53,8 @@ export class Quantity extends Component {
     return (
       <div>
         <ToastContainer />
-        <input value={this.props.instance.qty} onChange={ () => this.handleChange}
-        type="number" name="quantity" className="form-control"
+        <input value={this.props.instance.qty} onChange={this.handleChange}
+          type="number" name="quantity" className="form-control"
         />
       </div>
     );

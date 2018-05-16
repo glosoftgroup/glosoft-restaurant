@@ -142,10 +142,10 @@ class Product(models.Model, ItemRange, index.Indexed):
         ProductClass, related_name='products',
         verbose_name=pgettext_lazy('Product field', 'product class'))
     product_tax = models.ForeignKey(
-        ProductTax, related_name='producttax',blank=True, null=True,
+        ProductTax, related_name='producttax', blank=True, null=True,
         verbose_name=pgettext_lazy('Product field', 'product class'))
     name = models.CharField(
-        pgettext_lazy('Product field', 'name'),unique=True, max_length=128)
+        pgettext_lazy('Product field', 'name'), unique=True, max_length=128)
     description = models.TextField(
         verbose_name=pgettext_lazy('Product field', 'description'), blank=True, null=True)
     categories = models.ManyToManyField(

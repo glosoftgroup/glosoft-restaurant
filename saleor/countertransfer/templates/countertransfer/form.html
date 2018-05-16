@@ -5,23 +5,23 @@
 
 {% block title %}
     {% if not object.id %}
-        Add academic year
+        Transfer Stock
     {% else %}
         Edit {{object.name}} - Academic year
     {% endif %}
 {% endblock %}
 
  {% block breadcrumbs %}
-     <li class=""><a href="{% url 'academic_year:index' %}" >Academic year</a></li>
-     <li class="active">{{form.name.value}}</li>
+     <li class=""><a href="/counter/transfer/" >Transferred Stock</a></li>
+     <li class="active">Transfer Stock</li>
  {% endblock %}
 
 
 {% block menu_settings_year %}active{% endblock %}
 
 {% block custom_css %}
-<link rel="stylesheet" href="https://unpkg.com/react-select/dist/react-select.css">
-{% render_bundle 'academic_year' 'css' %}
+{% render_bundle 'transfer' 'css' %}
+
 <link rel="stylesheet" href="{% static 'js/plugins/react/react-datepicker.min.css">
 {% endblock %}
 {% block content %}
@@ -31,8 +31,7 @@
     <div class="panel-body">
         <div class="row">
             {% csrf_token %}
-           <div id="app-root">
-           </div>
+           <div id="root"></div>
         </div>
     </div>
 </div>
@@ -40,60 +39,6 @@
 {% endblock %}
 
 {% block custom_js %}
-<script type="text/javascript" src="{% static 'js/plugins/forms/selects/bootstrap_select.min.js' %}"></script>
-<script type="text/javascript" src="{% static 'js/plugins/pickers/daterangepicker.js' %}"></script>
-<script type="text/javascript">
-  $(document).ready(function() {
-    $('.bootstrap-select').selectpicker();
-
-    // datepicker
-    $('.datepicker').daterangepicker({
-        singleDatePicker: true,
-        locale:{format: 'YYYY-MM-DD'},
-        showDropdowns:true,
-        autoUpdateInput:false
-    },function(chosen_date) {
-        parent.date = chosen_date.format('YYYY-MM-DD');
-        $('.datepicker').val(chosen_date.format('YYYY-MM-DD'));
-
-    });
-
-    // pikcer2
-    $('.datepicker2').daterangepicker({
-        singleDatePicker: true,
-        locale:{format: 'YYYY-MM-DD'},
-        showDropdowns:true,
-        autoUpdateInput:false,
-        minDate: new Date()
-    },function(chosen_date) {
-        parent.date = chosen_date.format('YYYY-MM-DD');
-        $('.datepicker2').val(chosen_date.format('YYYY-MM-DD'));
-
-    });
-  });
-</script>
-<script>
-var options = [
-  { value: '1', label: 'One' },
-  { value: '2', label: 'Two' }
-];
-
-function logChange(val) {
-  console.log("Selected: " + val);
-}
-    var csrfmiddlewaretoken  = jQuery("[name=csrfmiddlewaretoken]").val();
-
-    {% if object.id %}
-    var pk = "{{object.id}}";
-    var updateUrl = "{% url 'academic_year:api-update' pk=object.id %}";
-    {% else %}
-    var pk= false;
-    {% endif %}
-    var createUrl = "{% url 'academic_year:api-create' %}";
-    var redirectUrl = "{% url 'academic_year:index' %}";
-    // alertUser
-    function alertUser(msg,status='bg-success',header='Well done!')
-    { $.jGrowl(msg,{header: header,theme: status}); }
-</script>
-{% render_bundle 'academic_year' 'js' %}
+{% render_bundle 'vendor' 'js' %}
+{% render_bundle 'transfer' 'js' %}
 {% endblock %}

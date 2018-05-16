@@ -66,7 +66,8 @@ var config = {
     category: './saleor/static/js/category.js',
     dashboard: './saleor/static/dashboard/js/dashboard.js',
     storefront: './saleor/static/js/storefront.js',
-    transfer: './saleor/static/backend/js/transfer/index.js',
+    transfer: './saleor/static/backend/js/transfer/create/index.js',
+    transfer_list: './saleor/static/backend/js/transfer/list/index.js',
     vendor: [
       'babel-es6-polyfill',
       'bootstrap',
