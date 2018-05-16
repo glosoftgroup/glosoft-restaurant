@@ -18,6 +18,6 @@ ReactDom.render(
     <Provider store={store} >
         <App />
     </Provider>,
-    document.getElementById('list-app')
+    document.getElementById('root')
 );
 
