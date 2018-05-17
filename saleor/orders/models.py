@@ -12,6 +12,8 @@ from django_prices.models import PriceField
 from jsonfield import JSONField
 from ..table.models import Table
 from ..salepoints.models import SalePoint
+from ..counter.models import Counter
+from ..kitchen.models import Kitchen
 from ..customer.models import Customer
 from ..room.models import Room
 from ..sale.models import Terminal, PaymentOption
@@ -72,7 +74,7 @@ class Orders(models.Model):
         Room, verbose_name=pgettext_lazy('Orders field', 'rooms'),
         related_name='order_room',  blank=True, null=True,)
     sale_point = models.ForeignKey(
-        SalePoint, related_name='sale_point', blank=True, default='',
+        SalePoint, related_name='sale_point', blank=True, default='', null=True, 
         verbose_name=pgettext_lazy('Orders field', 'Sale point'))
     invoice_number = models.CharField(
         pgettext_lazy('Orders field', 'invoice_number'), unique=True, null=True, max_length=36,)
@@ -153,9 +155,12 @@ class OrderedItem(models.Model):
     discount = models.DecimalField(
         pgettext_lazy('OrderedItem field', 'discount'), default=Decimal(0), max_digits=100, decimal_places=2)
     tax = models.IntegerField(default=Decimal(0))
-    sale_point = models.ForeignKey(
-        SalePoint, related_name='order_item_sale_point', blank=True, null=True, default='',
-        verbose_name=pgettext_lazy('OrderedItem field', 'Sale point'))
+    counter = models.ForeignKey(
+        Counter, related_name='order_item_counter', blank=True, null=True, default='',
+        verbose_name=pgettext_lazy('OrderedItem field', 'Counter'))
+    kitchen = models.ForeignKey(
+        Kitchen, related_name='order_item_kitchen', blank=True, null=True, default='',
+        verbose_name=pgettext_lazy('OrderedItem field', 'Kitchen'))
 
     class Meta:
         ordering = ['order']
