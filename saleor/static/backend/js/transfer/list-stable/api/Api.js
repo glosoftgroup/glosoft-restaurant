@@ -13,17 +13,6 @@ class Api {
     });
   }
 
-  static destroy(url) {
-    axios.defaults.xsrfHeaderName = 'X-CSRFToken';
-    axios.defaults.xsrfCookieName = 'csrftoken';
-    return axios.delete(url)
-    .then(response => {
-      return response;
-    }).catch(error => {
-      throw error;
-    });
-  }
-
   static update(url, data) {
     axios.defaults.xsrfHeaderName = 'X-CSRFToken';
     axios.defaults.xsrfCookieName = 'csrftoken';

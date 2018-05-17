@@ -3,9 +3,11 @@ from django.db.models import Q
 from django.contrib.auth import get_user_model
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework import pagination
+from rest_framework import serializers
 from .pagination import PostLimitOffsetPagination
 
 from saleor.countertransfer.models import CounterTransfer as Table
+from saleor.product.models import Stock
 from .serializers import (
     CreateListSerializer,
     TableListSerializer,
@@ -25,6 +27,13 @@ class CreateAPIView(generics.CreateAPIView):
 
 class DestroyView(generics.DestroyAPIView):
     queryset = Table.objects.all()
+
+    def perform_destroy(self, instance):
+        items = instance.counter_transfer_items.all()
+        for item in items:
+            Stock.objects.increase_stock(item.stock, item.qty)
+        # raise serializers.ValidationError('You cannot delete ')
+        instance.delete()
 
 
 class ListAPIView(generics.ListAPIView):

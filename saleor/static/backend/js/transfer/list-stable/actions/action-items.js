@@ -22,9 +22,6 @@ export const fetchItems = (params = {}) => {
       }
     }
     api.retrieve('/counter/transfer/api/list?' + url)
-      .then(data => {
-        data.loading = false;
-        dispatch(setItems(data.data));
-      });
+      .then(data => dispatch(setItems(data.data)));
   };
 };

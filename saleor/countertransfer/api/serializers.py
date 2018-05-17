@@ -17,19 +17,30 @@ fields = ('id',
 
 
 class ItemsSerializer(serializers.ModelSerializer):
+    sku = serializers.SerializerMethodField()
+
     class Meta:
         model = Item
         fields = (
                 'id',
                 'stock',
+                'sku',
                 'qty',
                 'tax',
                 'discount',
                 'price',
                 'quantity',
                 'counter',
+                'productName',
+                'product_category',
                 'created'
                 )
+
+    def get_sku(self, obj):
+        try:
+            return obj.stock.variant.sku
+        except:
+            return ''
 
 
 class TableListSerializer(serializers.ModelSerializer):
@@ -96,7 +107,23 @@ class CreateListSerializer(serializers.ModelSerializer):
             del item['cost_price']
             del item['price_override']
 
-            Item.objects.create(transfer=instance, counter=instance.counter, **item)
+            single = Item()
+            single.transfer = instance
+            single.counter = instance.counter
+            single.price = item['price']
+            single.discount = item['discount']
+            single.tax = item['tax']
+            single.product_category = item['product_category']
+            single.productName = item['productName']
+            single.stock = item['stock']
+            single.qty = item['qty']
+            single.sku = item['sku']
+            single.save()
+
+            # decrease stock
+            Stock.objects.decrease_stock(item['stock'], item['qty'])
+
+            # Item.objects.create(transfer=instance, counter=instance.counter, **item)
         return instance
 
 

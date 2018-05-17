@@ -7,12 +7,6 @@ import Select2 from 'react-select2-wrapper';
 import { fetchItems } from '../actions/action-items';
 
 export class PaginateBlock extends Component {
-  /*
-   * This component renders pagination block
-   * Props: Listed in PaginateBlock.propTypes below
-   *        All props are fetch from redux
-   *  Usage: <PaginateBlock />
-   * */
   constructor(props) {
     super(props);
     this.state = {

@@ -8,12 +8,6 @@ import { setDate } from '../actions/action-date';
 import { fetchItems } from '../actions/action-items';
 
 class FilterDate extends Component {
-  /*
-   * This component render datepicker input. Items filter based on selected date
-   * Props: Listed in FilterDate.propTypes below
-   *        All props are fetch from redux
-   *  Usage: <FilterDate />
-   * */
   constructor(props) {
     super(props);
     this.state = {
