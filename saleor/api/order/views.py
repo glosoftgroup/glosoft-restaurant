@@ -282,7 +282,6 @@ def send_to_sale(credit):
     sale.total_net = credit.total_net
     sale.sub_total = credit.sub_total
     sale.balance = credit.balance
-    sale.sale_point = credit.sale_point
     sale.terminal = credit.terminal
     sale.amount_paid = credit.amount_paid
     sale.status = credit.status
@@ -305,7 +304,6 @@ def send_to_sale(credit):
                product_name=item.product_name,
                total_cost=item.total_cost,
                unit_cost=item.unit_cost,
-               sale_point=item.sale_point,
                product_category=item.product_category
                )
         print new_item
