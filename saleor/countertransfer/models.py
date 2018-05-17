@@ -40,7 +40,7 @@ class CounterTransfer(models.Model):
         verbose_name_plural = pgettext_lazy('CounterTransfers model', 'CounterTransfers')
 
     def __str__(self):
-        return self.id
+        return str(self.id)
 
 
 class TransferItemManager(BaseUserManager):
@@ -51,6 +51,7 @@ class TransferItemManager(BaseUserManager):
 
     def instance_worth(self, instance):
         query = self.get_queryset().filter(transfer=instance)
+        # print query.annotate(num_offerings=models.Count(models.F('price') + models.F('qty')))['num_offerings']
         total = 0
         for i in query:
             total += Decimal(i.qty) * i.price

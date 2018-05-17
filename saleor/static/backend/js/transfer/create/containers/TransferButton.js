@@ -24,12 +24,16 @@ export class TransferButton extends Component {
     // console.warn(this.props.totalQty);
     // validate
     if (!this.props.counter) {
-      toast.error('Counter not selected !');
+      toast.error('Please select Counter !', {
+        position: toast.POSITION.BOTTOM_CENTER
+      });
       return;
     }
 
     if (this.props.cart.length < 1) {
-      toast.error('Transfer Cart can not be empty');
+      toast.error('Transfer Cart can not be empty', {
+        position: toast.POSITION.BOTTOM_CENTER
+      });
       return;
     }
 

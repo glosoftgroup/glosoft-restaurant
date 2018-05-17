@@ -6,12 +6,6 @@ import { setSearch } from '../actions/action-search';
 import { fetchItems } from '../actions/action-items';
 
 class FilterSearch extends Component {
-  /*
-   * This component render search input. Items filter based on searched query
-   * Props: Listed in FilterSearch.propTypes below
-   *        All props are fetch from redux
-   *  Usage: <FilterSearch />
-   * */
   constructor(props) {
     super(props);
     this.state = {

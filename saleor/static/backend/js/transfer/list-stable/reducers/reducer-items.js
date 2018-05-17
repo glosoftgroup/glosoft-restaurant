@@ -6,7 +6,6 @@ const initialState = {
     'previous': null
   },
   'count': 7,
-  'loading': true,
   'total_pages': 1,
   'results': []
 };
