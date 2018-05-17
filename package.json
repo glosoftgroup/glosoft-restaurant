@@ -23,6 +23,7 @@
     "classnames": "^2.2.5",
     "dropzone": "^4.2.0",
     "favicons-webpack-plugin": "^0.0.7",
+    "hoek": "^5.0.3",
     "jquery": "^3.3.1",
     "jquery-match-height": "^0.7.0",
     "jquery-ui": "^1.12.1",

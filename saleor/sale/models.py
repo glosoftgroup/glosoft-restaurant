@@ -12,6 +12,8 @@ from ..userprofile.models import Address
 from ..customer.models import Customer
 from ..site.models import SiteSettings
 from ..salepoints.models import SalePoint
+from ..counter.models import Counter
+from ..kitchen.models import Kitchen
 from ..table.models import Table
 from ..room.models import Room
 
@@ -163,9 +165,6 @@ class Sales(models.Model):
         verbose_name=pgettext_lazy('Sales field',
                                    'sales options'))
     payment_data = JSONField(null=True, blank=True)
-    sale_point = models.ForeignKey(
-        SalePoint, related_name='sale_sale_point', blank=True, null=True, default='',
-        verbose_name=pgettext_lazy('Sale field', 'Sale point'))
     table = models.ForeignKey(
         Table, related_name='table_sales', blank=True, null=True, default='', on_delete=models.SET_NULL,
         verbose_name=pgettext_lazy('Sale field', 'table'))
@@ -203,9 +202,12 @@ class SoldItem(models.Model):
     discount = models.DecimalField(
         pgettext_lazy('SoldItem field', 'discount'), default=Decimal(0), max_digits=100, decimal_places=2)
     tax = models.IntegerField(default=Decimal(0))
-    sale_point = models.ForeignKey(
-        SalePoint, related_name='sold_item_sale_point', blank=True, null=True, default='',
-        verbose_name=pgettext_lazy('OrderedItem field', 'Sale point'))
+    counter = models.ForeignKey(
+        Counter, related_name='sold_item_counter', blank=True, null=True, default='',
+        verbose_name=pgettext_lazy('OrderedItem field', 'Counter'))
+    kitchen = models.ForeignKey(
+        Kitchen, related_name='sold_item_kitchen', blank=True, null=True, default='',
+        verbose_name=pgettext_lazy('OrderedItem field', 'Kitchen'))
 
     class Meta:
         ordering = ['order']
