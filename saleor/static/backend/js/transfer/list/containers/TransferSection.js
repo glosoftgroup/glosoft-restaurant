@@ -27,7 +27,6 @@ export class TransferSection extends Component {
   }
   componentWillMount() {
     this.setState({ controlId: '#control' + this.props.instance.id });
-    console.log(this.props.instance);
   }
   render() {
     var instance = { ...this.props.instance };
@@ -49,7 +48,7 @@ export class TransferSection extends Component {
                     </span>
                     &nbsp;&nbsp;&nbsp;
                     <span className="label border-left-indigo label-striped">
-                      <b>Date: </b> {instance.created}
+                      <b>Date: </b> {instance.date}
                     </span>
                     &nbsp;&nbsp;&nbsp;
                     </a>

@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import api from '../api/Api';
+import Quantity from './Quantity';
 
 export default class TransferList extends Component {
   /*
@@ -22,16 +23,16 @@ export default class TransferList extends Component {
       showConfirmDelete: false
     };
   }
-  componentWillReceiveProps() {
-    console.log('sdfsdfsf');
-  }
   showConfirm = () => {
     this.setState({showConfirmDelete: true, showDelete: false});
+    // reset delete confimartion
+    setTimeout(() => {
+      this.setState({showConfirmDelete: false, showDelete: true});
+    }, 3000);
   }
   deleteInstance = () => {
     api.destroy('/counter/transfer/api/delete/' + this.props.parent + '/')
     .then((response) => {
-      console.log(response);
       window.location.reload();
     })
     .catch((error) => {
@@ -46,10 +47,10 @@ export default class TransferList extends Component {
                 <tr>
                     <td colSpan={4} className="text-center active">
                         { this.state.showDelete &&
-                          <span onClick={this.showConfirm} className="label label-warning cursor-pointer">Delete All</span>
+                          <span onClick={this.showConfirm} className="animated fadeIn label label-warning cursor-pointer">Delete All</span>
                         }
                         { this.state.showConfirmDelete &&
-                          <span onClick={this.deleteInstance} className="label label-danger cursor-pointer">Confirm Delete All</span>
+                          <span onClick={this.deleteInstance} className="animated zoomIn label label-danger cursor-pointer">Confirm Delete All</span>
                         }
                     </td>
                 </tr>
@@ -66,7 +67,9 @@ export default class TransferList extends Component {
                 <tr key={obj.id}>
                     <td>{obj.productName}</td>
                     <td>{obj.sku}</td>
-                    <td>{obj.qty}</td>
+                    <td className="col-md-2">
+                    <Quantity instance={obj} />
+                    </td>
                     <td>{obj.price}</td>
                 </tr>
               );

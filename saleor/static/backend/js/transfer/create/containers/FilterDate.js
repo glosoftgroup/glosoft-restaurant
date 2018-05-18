@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
+import moment from 'moment';
 import DayPickerInput from 'react-day-picker/DayPickerInput';
 import 'react-day-picker/lib/style.css';
 import { setDate } from '../actions/action-date';
@@ -17,7 +18,10 @@ class FilterDate extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      search: ''
+      search: '',
+      modifiers: {
+        highlighted: new Date(2010, 9, 9)
+      }
     };
   }
   dayMonthFormatter = (num) => {
@@ -33,22 +37,20 @@ class FilterDate extends Component {
   }
   handleChange = (e) => {
     var value = this.dateFormatter(e);
-    var payload = {};
-    if (e) {
-      payload = { date: value };
-      this.props.setDate(payload);
-    }
-    if (this.props.search) {
-      var search = this.props.search.q;
-      payload = { ...payload, q: search };
-    }
-    this.props.fetchItems(payload);
+    var payload = { date: value };
+    this.props.setDate(payload);
   }
   render() {
     return (
         <div className="form-grou search-form-group mr-15">
             <div className="has-feedback has-feedback-left">
-                <DayPickerInput onDayChange={day => this.handleChange(day)}/>
+                <DayPickerInput
+                  dayPickerProps={{
+                    todayButton: 'Today'
+                  }}
+                  placeholder={moment().format('YYYY-MM-DD')}
+                  onDayChange={day => this.handleChange(day)}
+                />
                 <div className="form-control-feedback">
                     <i className="icon-calendar22 text-size-large text-muted"></i>
                 </div>

@@ -2,8 +2,14 @@ import api from '../api/Api';
 
 export const SET_ITEMS = 'SET_ITEMS';
 export const ADD_ITEM = 'ADD_ITEM';
+export const UPDATE_ITEM = 'UPDATE_ITEM';
 
 export const setItems = (payload) => ({
+  type: SET_ITEMS,
+  payload
+});
+
+export const updateItem = (payload) => ({
   type: SET_ITEMS,
   payload
 });
