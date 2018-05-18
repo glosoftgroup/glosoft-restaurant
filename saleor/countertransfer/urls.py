@@ -13,6 +13,7 @@ urlpatterns = [
     url(r'^api/list/$', ListAPIView.as_view(), name='api-list'),
 
     url(r'^api/update/(?P<pk>[0-9]+)/$', UpdateAPIView.as_view(), name='api-update'),
+    url(r'^api/update/item/(?P<pk>[0-9]+)/$', UpdateItemAPIView.as_view(), name='api-update-item'),
     url(r'^add/$', TemplateView.as_view(template_name="countertransfer/form.html"), name='add'),
     url(r'^update/(?P<pk>[0-9]+)/$', UpdateView.as_view(template_name="countertransfer/form.html", model=Table, fields=['id', 'name']),
         name='update'),

@@ -3,15 +3,16 @@ from django.db.models import Q
 from django.contrib.auth import get_user_model
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework import pagination
-from rest_framework import serializers
 from .pagination import PostLimitOffsetPagination
 
 from saleor.countertransfer.models import CounterTransfer as Table
 from saleor.product.models import Stock
+from saleor.countertransfer.models import CounterTransferItems as Item
 from .serializers import (
     CreateListSerializer,
     TableListSerializer,
-    UpdateSerializer
+    UpdateSerializer,
+    UpdateTransferItemSerializer
      )
 
 User = get_user_model()
@@ -65,7 +66,7 @@ class ListAPIView(generics.ListAPIView):
         else:
             pagination.PageNumberPagination.page_size = 10
         if self.request.GET.get('date'):
-            queryset_list = queryset_list.filter(created__icontains=self.request.GET.get('date'))
+            queryset_list = queryset_list.filter(date__icontains=self.request.GET.get('date'))
 
         query = self.request.GET.get('q')
         if query:
@@ -85,3 +86,16 @@ class UpdateAPIView(generics.RetrieveUpdateAPIView):
     """
     queryset = Table.objects.all()
     serializer_class = UpdateSerializer
+
+
+class UpdateItemAPIView(generics.RetrieveUpdateAPIView):
+    """
+        update instance details
+        @:param pk id
+        @:method PUT
+
+        PUT /api/house/update/
+        payload Json: /payload/update.json
+    """
+    queryset = Item.objects.all()
+    serializer_class = UpdateTransferItemSerializer

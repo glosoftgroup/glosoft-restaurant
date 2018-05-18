@@ -3,11 +3,13 @@ import { combineReducers } from 'redux';
 import ItemReducer from './reducer-items';
 import reducerCart from './reducer-cart';
 import reducerSetCounter from './reducer-counter';
+import ItemDate from './reducer-date';
 
 const allReducers = combineReducers({
   items: ItemReducer,
   cart: reducerCart,
-  counter: reducerSetCounter
+  counter: reducerSetCounter,
+  date: ItemDate
 });
 
 function formatNumber(n, c, d, t) {

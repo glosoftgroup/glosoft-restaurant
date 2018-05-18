@@ -4,6 +4,7 @@ import FilterBlock from '../containers/FilterBlock';
 import ItemList from '../containers/ItemList';
 import PaginationBlock from '../containers/PaginateBlock';
 import '../css/style.scss';
+import '../css/tooltip.scss';
 
 export default class App extends Component {
   static propTypes = {

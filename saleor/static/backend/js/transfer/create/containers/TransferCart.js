@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import { Quantity } from './Quantity';
+import FilterDate from './FilterDate';
 import { TransferButton } from './TransferButton';
 import Select2 from 'react-select2-wrapper';
 import { updateCartItem, deleteCartItem } from '../actions/action-cart';
@@ -68,12 +69,20 @@ class TransferCart extends Component {
         {this.props.cart.length !== 0 &&
         <div >
           <div className="panel panel-body counter-panel">
-           <div className="col-md-5 transfer-to-padding">
+            <div className="col-md-2 transfer-to-padding">
              <span className="text-bold">
-               Transfer To:
+               Date:
+             </span>
+            </div>
+            <div className="col-md-4">
+              <FilterDate/>
+            </div>
+           <div className="col-md-2 transfer-to-padding">
+             <span className="text-bold">
+               Counter:
              </span>
            </div>
-           <div className="col-md-7">
+           <div className="col-md-4">
            <Select2 ref="counter"
                       onChange = {this.handleSelectChange}
                       name = 'counter'
@@ -134,7 +143,7 @@ class TransferCart extends Component {
                 </div>
             </div>
             <div className="col-md-6">
-              <TransferButton cart={this.props.cart} counter={this.props.counter} />
+              <TransferButton date={this.props.date} cart={this.props.cart} counter={this.props.counter} />
             </div>
           </div>
         </div>
@@ -156,6 +165,7 @@ class TransferCart extends Component {
 TransferCart.propTypes = {
   cart: PropTypes.array.isRequired,
   counter: PropTypes.object,
+  date: PropTypes.string.isRequired,
   totalQty: PropTypes.number.isRequired,
   totalWth: PropTypes.number.isRequired,
   updateCartItem: PropTypes.func.isRequired,
@@ -166,6 +176,7 @@ function mapStateToProps(state) {
   return {
     cart: state.cart,
     counter: state.counter,
+    date: state.date,
     totalQty: getTotalQty(state),
     totalWth: getTotalWorth(state)
   };

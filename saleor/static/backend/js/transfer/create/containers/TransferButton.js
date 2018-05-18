@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
+import moment from 'moment';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import api from '../api/Api';
@@ -19,10 +20,14 @@ export class TransferButton extends Component {
   handleSubmit = (e) => {
     e.preventDefault();
     console.log('we submit data');
-    // console.warn(this.props.counter);
-    // console.warn(this.props.cart);
-    // console.warn(this.props.totalQty);
+    // submit
+    var formData = new FormData();
     // validate
+    if (!this.props.date) {
+      formData.append('date', moment().format('YYYY-MM-DD'));
+    } else {
+      formData.append('date', this.props.date.date);
+    }
     if (!this.props.counter) {
       toast.error('Please select Counter !', {
         position: toast.POSITION.BOTTOM_CENTER
@@ -36,10 +41,6 @@ export class TransferButton extends Component {
       });
       return;
     }
-
-    // submit
-    var formData = new FormData();
-
     formData.append('counter', this.props.counter.id);
     formData.append('counter_transfer_items', JSON.stringify(this.props.cart));
 
@@ -69,11 +70,14 @@ export class TransferButton extends Component {
 TransferButton.propTypes = {
   cart: PropTypes.array.isRequired,
   counter: PropTypes.object,
+  date: PropTypes.string.isRequired,
   totalQty: PropTypes.number.isRequired,
   totalWth: PropTypes.number.isRequired
 };
 function mapStateToProps(state) {
-  return {};
+  return {
+    date: state.date
+  };
 }
 
 function matchActionsToProps(dispatch) {

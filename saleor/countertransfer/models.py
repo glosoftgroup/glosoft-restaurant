@@ -29,6 +29,8 @@ class CounterTransfer(models.Model):
         verbose_name=pgettext_lazy('CounterTransfer field', 'description'), blank=True, null=True)
     updated_at = models.DateTimeField(
         pgettext_lazy('CounterTransfer field', 'updated at'), auto_now=True, null=True)
+    date = models.DateField(pgettext_lazy('CounterTransfer field', 'date'),
+                            default=now)
     created = models.DateTimeField(pgettext_lazy('CounterTransfer field', 'created'),
                                    default=now, editable=False)
 
@@ -75,6 +77,9 @@ class CounterTransferItems(models.Model):
                                         verbose_name=pgettext_lazy('CounterTransfer field', 'category'))
     price = models.DecimalField(max_digits=9, decimal_places=2, default=Decimal(0),
                                 verbose_name=pgettext_lazy('CounterTransfer field', 'price'))
+    unit_price = models.DecimalField(max_digits=9, decimal_places=2, default=Decimal(0),
+                                     verbose_name=pgettext_lazy('CounterTransfer field', 'unit price'))
+
     tax = models.DecimalField(max_digits=9, decimal_places=2, default=Decimal(0),
                               verbose_name=pgettext_lazy('CounterTransfer field', 'tax'))
     discount = models.DecimalField(max_digits=9, decimal_places=2, default=Decimal(0),

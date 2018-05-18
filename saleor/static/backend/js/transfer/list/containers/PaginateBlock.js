@@ -44,7 +44,6 @@ export class PaginateBlock extends Component {
     this.setState({
       [e.target.name]: e.target.value
     });
-    console.log(e.target.value);
     this.filterContent(this.state.search, null, e.target.value);
   }
 
