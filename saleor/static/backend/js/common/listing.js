@@ -202,7 +202,7 @@ var parent = new Vue({
         exportItems:function(){
         /* take care  of excel and pdf exports on filter panel */
             if(this.exportType == 'excel'){
-                JSONToCSVConvertor(this.items, "Booking Report", true);
+                JSONToCSVConvertor(this.items, "Report", true);
             }
             if(this.exportType == 'pdf'){
                 $("#printme").printThis({
@@ -211,7 +211,7 @@ var parent = new Vue({
                     importStyle: true, // import style tags
                     printContainer: true, // grab outer container as well as the contents of the selector
                     loadCSS: "my.css", // path to additional css file - us an array [] for multiple
-                    pageTitle: "Room Booking Report", // add title to print page
+                    pageTitle: "Report", // add title to print page
                     removeInline: false, // remove all inline styles from print elements
                     printDelay: 333, // variable print delay
                     header: null, // prefix to html

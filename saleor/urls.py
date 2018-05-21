@@ -48,6 +48,8 @@ from .salepoints.urls import urlpatterns as salepoints_urls
 from .wing.urls import urlpatterns as wing_urls
 from .propertytype.urls import urlpatterns as propertytype_urls
 from .section.urls import urlpatterns as section_urls
+from .menucategory.urls import urlpatterns as menu_categories_urls
+from .menu.urls import urlpatterns as menu_urls
 from .kitchen.urls import urlpatterns as kitchen_urls
 from .counter.urls import urlpatterns as counter_urls
 from .countertransfer.urls import urlpatterns as countertransfer_urls
@@ -99,6 +101,8 @@ urlpatterns = [
     url(r'^propertytype/', include(propertytype_urls, namespace="propertytype")),
     url(r'^wing/', include(wing_urls, namespace='wing')),
     url(r'^section/', include(section_urls, namespace='section')),
+    url(r'^menucategory/', include(menu_categories_urls, namespace='menucategory')),
+    url(r'^menu/', include(menu_urls, namespace='menu')),
     url(r'^kitchen/', include(kitchen_urls, namespace='kitchen')),
     url(r'^counter/', include(counter_urls, namespace='counter')),
     url(r'^counter/transfer/', include(countertransfer_urls, namespace='countertransfer')),

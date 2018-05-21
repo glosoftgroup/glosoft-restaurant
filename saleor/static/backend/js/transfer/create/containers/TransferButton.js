@@ -17,6 +17,16 @@ export class TransferButton extends Component {
     };
   }
 
+  cartValidate = () => {
+    var valid = true;
+    this.props.cart.map((value, index) => {
+      if (!value.qty) {
+        valid = false;
+      }
+    });
+    return valid;
+  }
+
   handleSubmit = (e) => {
     e.preventDefault();
     console.log('we submit data');
@@ -30,6 +40,13 @@ export class TransferButton extends Component {
     }
     if (!this.props.counter) {
       toast.error('Please select Counter !', {
+        position: toast.POSITION.BOTTOM_CENTER
+      });
+      return;
+    }
+
+    if (!this.cartValidate()) {
+      toast.error('All transfer cart items quantity should be a valid integer', {
         position: toast.POSITION.BOTTOM_CENTER
       });
       return;

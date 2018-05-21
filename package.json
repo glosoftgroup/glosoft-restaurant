@@ -44,6 +44,7 @@
     "react-js-pagination": "^3.0.2",
     "react-redux": "^5.0.7",
     "react-relay": "^0.10.0",
+    "react-select": "^1.2.1",
     "react-select2-wrapper": "^1.0.4-beta6",
     "react-toastify": "^4.0.1",
     "react-tooltip": "^3.6.0",

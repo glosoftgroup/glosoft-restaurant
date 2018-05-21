@@ -1,0 +1,18 @@
+[
+    {
+        "id": 4,
+        "name": "sdfsdf",
+        "description": "",
+        "section": 8,
+        "product_variants_url": "http://127.0.0.1:8000/counter/transfer/api/list/category/4/",
+        "total_products": 0
+    },
+    {
+        "id": 1,
+        "name": "Producty",
+        "description": "",
+        "section": 8,
+        "product_variants_url": "http://127.0.0.1:8000/counter/transfer/api/list/category/1/",
+        "total_products": 8
+    }
+]

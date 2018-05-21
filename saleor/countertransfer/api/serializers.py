@@ -16,20 +16,18 @@ fields = ('id',
           'date',
           'description')
 
-item_fields = (
-                'id',
-                'stock',
-                'sku',
-                'qty',
-                'tax',
-                'discount',
-                'price',
-                'unit_price',
-                'quantity',
-                'counter',
-                'productName',
-                'product_category',
-                )
+item_fields = ('id',
+               'stock',
+               'sku',
+               'qty',
+               'tax',
+               'discount',
+               'price',
+               'unit_price',
+               'quantity',
+               'counter',
+               'productName',
+               'product_category',)
 
 
 class ItemsSerializer(serializers.ModelSerializer):
@@ -49,6 +47,60 @@ class ItemsSerializer(serializers.ModelSerializer):
     def get_quantity(self, obj):
         try:
             return obj.stock.quantity
+        except:
+            return 0
+
+
+def format_fields(items_list):
+    """
+    Exclude supplied list of fields from global item list
+    :param items_list: list type of fields to exclude
+    :return:
+    """
+    # convert tuple to list
+    temp = list(item_fields)
+    # remove supplied fields
+    for item in items_list:
+        temp.remove(str(item))
+    return tuple(temp)
+
+
+class ItemsStockSerializer(serializers.ModelSerializer):
+    sku = serializers.SerializerMethodField()
+    quantity = serializers.SerializerMethodField()
+    unit_cost = serializers.SerializerMethodField()
+    total_cost = serializers.SerializerMethodField()
+    product_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Item
+        fields = format_fields(['productName', 'price', 'unit_price']) + \
+                 ('total_cost', 'product_name', 'unit_cost')
+
+    def get_sku(self, obj):
+        try:
+            return obj.stock.variant.sku
+        except:
+            return ''
+
+    def get_product_name(self, obj):
+        return obj.productName
+
+    def get_unit_cost(self, obj):
+        try:
+            return obj.stock.price_override.gross
+        except:
+            return obj.unit_price
+
+    def get_total_cost(self, obj):
+        try:
+            return obj.price
+        except:
+            return 0
+
+    def get_quantity(self, obj):
+        try:
+            return Item.objects.instance_quantities(obj.stock, filter_type='stock', counter=obj.counter)
         except:
             return 0
 
@@ -76,6 +128,7 @@ class UpdateTransferItemSerializer(serializers.ModelSerializer):
 
 class TableListSerializer(serializers.ModelSerializer):
     update_url = serializers.HyperlinkedIdentityField(view_name='countertransfer:api-update')
+    update_items_url = serializers.HyperlinkedIdentityField(view_name='countertransfer:update')
     delete_url = serializers.HyperlinkedIdentityField(view_name='countertransfer:api-delete')
     text = serializers.SerializerMethodField()
     counter = serializers.SerializerMethodField()
@@ -86,7 +139,9 @@ class TableListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Table
-        fields = fields + ('quantity', 'worth', 'counter_transfer_items', 'text', 'update_url', 'delete_url',)
+        fields = fields + (
+            'quantity', 'worth', 'counter_transfer_items',
+            'text', 'update_url', 'delete_url', 'update_items_url')
 
     def get_text(self, obj):
         try:
@@ -181,9 +236,11 @@ class CreateListSerializer(serializers.ModelSerializer):
 
 
 class UpdateSerializer(serializers.ModelSerializer):
+    counter_transfer_items = ItemsSerializer(many=True)
+
     class Meta:
         model = Table
-        fields = fields
+        fields = fields + ('counter_transfer_items', )
 
     def update(self, instance, validated_data):
         instance.name = validated_data.get('name', instance.name)
