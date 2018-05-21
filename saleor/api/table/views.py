@@ -10,8 +10,9 @@ User = get_user_model()
 
 
 class TableListAPIView(generics.ListAPIView):
+    pagination_class = None
     serializer_class = TableListSerializer
-    queryset = Table.objects.all()
+    queryset = Table.objects.all().order_by('id')
 
 
 class SalePointTableListAPIView(generics.ListAPIView):
