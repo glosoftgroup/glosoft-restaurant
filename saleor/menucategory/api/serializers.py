@@ -7,6 +7,7 @@ from saleor.menucategory.models import MenuCategory as Table
 class TableListSerializer(serializers.ModelSerializer):
     update_url = serializers.HyperlinkedIdentityField(view_name='menucategory:api-update')
     delete_url = serializers.HyperlinkedIdentityField(view_name='menucategory:api-delete')
+    product_variants_url = serializers.HyperlinkedIdentityField(view_name='menu:api-list-category')
     text = serializers.SerializerMethodField()
 
     class Meta:
@@ -15,6 +16,7 @@ class TableListSerializer(serializers.ModelSerializer):
                   'name',
                   'text',
                   'description',
+                  'product_variants_url',
                   'update_url',
                   'delete_url'
                  )

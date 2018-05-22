@@ -26,8 +26,8 @@ class DestroyView(generics.DestroyAPIView):
 
 class ListAPIView(generics.ListAPIView):
     """
-        section (business type) listing
-        GET /section/api/list/
+        menu listing
+        GET /menu/api/list/
         payload Json: /payload/listing.json
     """
     serializer_class = TableListSerializer
@@ -42,7 +42,7 @@ class ListAPIView(generics.ListAPIView):
     def get_queryset(self, *args, **kwargs):
         try:
             if self.kwargs['pk']:
-                queryset_list = Table.objects.filter(customer__pk=self.kwargs['pk']).order_by('car').distinct('car').select_related()
+                queryset_list = Table.objects.filter(category__pk=self.kwargs['pk']).select_related()
             else:
                 queryset_list = Table.objects.all.select_related()
         except Exception as e:
