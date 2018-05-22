@@ -26,8 +26,9 @@ class DestroyView(generics.DestroyAPIView):
 
 class ListAPIView(generics.ListAPIView):
     """
-        list details
-        GET /api/setting/
+        section (business type) listing
+        GET /section/api/list/
+        payload Json: /payload/listing.json
     """
     serializer_class = TableListSerializer
     permission_classes = (IsAuthenticatedOrReadOnly,)
@@ -65,10 +66,10 @@ class ListAPIView(generics.ListAPIView):
 class UpdateAPIView(generics.RetrieveUpdateAPIView):
     """
         update instance details
-        @:param pk house id
+        @:param pk instace id
         @:method PUT
 
-        PUT /api/house/update/
+        PUT /section/api/update/
         payload Json: /payload/update.json
     """
     queryset = Table.objects.all()

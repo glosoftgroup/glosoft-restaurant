@@ -11,7 +11,7 @@ User = get_user_model()
 
 
 class CategoryListSerializer(serializers.ModelSerializer):
-    product_variants_url = HyperlinkedIdentityField(view_name='variant-api:api-variant-list')
+    product_variants_url = HyperlinkedIdentityField(view_name='countertransfer:api-list-category')
     total_products = SerializerMethodField()
 
     class Meta:
@@ -19,6 +19,7 @@ class CategoryListSerializer(serializers.ModelSerializer):
         fields = ('id',
                   'name',
                   'description',
+                  'section',
                   'product_variants_url',
                   'total_products',)
 

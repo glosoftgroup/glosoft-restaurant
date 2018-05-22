@@ -68,6 +68,8 @@ var config = {
     storefront: './saleor/static/js/storefront.js',
     transfer: './saleor/static/backend/js/transfer/create/index.js',
     transfer_list: './saleor/static/backend/js/transfer/list/index.js',
+    transferred_items: './saleor/static/backend/js/transfer/items/index.js',
+    menu: './saleor/static/backend/js/menu/list/index.js',
     vendor: [
       'babel-es6-polyfill',
       'bootstrap',

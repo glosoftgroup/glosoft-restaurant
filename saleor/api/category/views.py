@@ -16,7 +16,13 @@ class CategoryListAPIView(generics.ListAPIView):
     queryset = Category.objects.all()
 
 
-class SalePointCategoryListAPIView(generics.ListAPIView):
+class BusinessTypeCategoryListAPIView(generics.ListAPIView):
+    """
+    Business type categories (Bar or Kitchen(restaurant categories)
+    :param pk integer, business type id
+
+    payload: /payload/businesstype-categories.json
+    """
     serializer_class = CategoryListSerializer
     queryset = Category.objects.all()
 
@@ -24,7 +30,7 @@ class SalePointCategoryListAPIView(generics.ListAPIView):
         serializer_context = {
             'request': Request(request),
         }
-        queryset = self.get_queryset().filter(sale_point__pk=pk)
+        queryset = self.get_queryset().filter(section__pk=pk)
         serializer = CategoryListSerializer(queryset, context=serializer_context, many=True)
         return Response(serializer.data)
 

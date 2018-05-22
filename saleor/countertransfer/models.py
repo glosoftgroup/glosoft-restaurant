@@ -46,13 +46,21 @@ class CounterTransfer(models.Model):
 
 
 class TransferItemManager(BaseUserManager):
-    def instance_quantities(self, instance):
-        qty = self.get_queryset().filter(transfer=instance)
-        qty = qty.aggregate(models.Sum('qty'))['qty__sum']
+    def instance_quantities(self, instance, filter_type='transfer', counter=None):
+        if filter_type == 'transfer':
+            query = self.get_queryset().filter(transfer=instance)
+        else:
+            query = self.get_queryset().filter(stock=instance)
+        if counter:
+            query = query.filter(counter=counter)
+        qty = query.aggregate(models.Sum('qty'))['qty__sum']
         return qty
 
-    def instance_worth(self, instance):
-        query = self.get_queryset().filter(transfer=instance)
+    def instance_worth(self, instance, filter_type='transfer'):
+        if filter_type == 'transfer':
+            query = self.get_queryset().filter(transfer=instance)
+        else:
+            query = self.get_queryset().filter(stock=instance)
         # print query.annotate(num_offerings=models.Count(models.F('price') + models.F('qty')))['num_offerings']
         total = 0
         for i in query:

@@ -7,6 +7,7 @@ from saleor.section.models import Section as Table
 class TableListSerializer(serializers.ModelSerializer):
     update_url = serializers.HyperlinkedIdentityField(view_name='section:api-update')
     delete_url = serializers.HyperlinkedIdentityField(view_name='section:api-delete')
+    categories_url = serializers.HyperlinkedIdentityField(view_name='category-api:api-business_type-categories')
     text = serializers.SerializerMethodField()
 
     class Meta:
@@ -15,6 +16,7 @@ class TableListSerializer(serializers.ModelSerializer):
                   'name',
                   'text',
                   'description',
+                  'categories_url',
                   'update_url',
                   'delete_url'
                  )

@@ -25,7 +25,9 @@ function formatNumber(n, c, d, t) {
 export const getTotalQty = state => {
   var total = 0;
   state.cart.map((value, index) => {
-    total += parseInt(value.qty);
+    if (value.qty) {
+      total += parseInt(value.qty);
+    }
   });
   return total;
 };
@@ -33,9 +35,23 @@ export const getTotalQty = state => {
 export const getTotalWorth = state => {
   var total = 0;
   state.cart.map((value, index) => {
-    total += parseInt(value.qty) * value.price;
+    if (value.qty) {
+      total += parseInt(value.qty) * value.price;
+    }
   });
   return formatNumber(total, 2, '.', ',');
+};
+
+export const cartValidation = state => {
+  /* return false if one of the cart item quantity is not set */
+  var validity = true;
+  state.cart.map((value, index) => {
+    console.log(value);
+    if (!value.qty) {
+      validity = false;
+    }
+  });
+  return validity;
 };
 
 export default allReducers;
