@@ -221,6 +221,9 @@ class ListCategoryAPIView(generics.ListAPIView):
         if self.request.GET.get('date'):
             queryset_list = queryset_list.filter(date__icontains=self.request.GET.get('date'))
 
+        if self.request.GET.get('counter'):
+            queryset_list = queryset_list.filter(counter__pk=self.request.GET.get('counter'))
+
         query = self.request.GET.get('q')
         if query:
             queryset_list = queryset_list.filter(
