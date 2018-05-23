@@ -23,13 +23,14 @@ class ItemList extends Component {
         <table className="table table-hover table-xs">
           <thead>
             <tr className="bg-primary">
+              <th>.</th>
               <th>Product</th>
-              <th>Category</th>
               <th>SKU</th>
               <th>Selling Price</th>
               <th>Quantity</th>
               <th>Sold</th>
               <th>Price</th>
+              <th>Note</th>
               <th className="text-center">Actions</th>
             </tr>
           </thead>

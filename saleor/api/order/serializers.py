@@ -18,6 +18,7 @@ from ...product.models import (
             )
 from decimal import Decimal
 from ...customer.models import Customer
+from saleor.countertransfer.models import CounterTransferItems as Item
 
 
 User = get_user_model()
@@ -31,6 +32,7 @@ class ItemSerializer(serializers.ModelSerializer):
                 'counter',
                 'kitchen',
                 'sku',
+                'transfer_id',
                 'quantity',
                 'unit_cost',
                 'total_cost',
@@ -70,7 +72,7 @@ class ListOrderSerializer(serializers.ModelSerializer):
 
 
 class RestaurantListOrderSerializer(serializers.ModelSerializer):
-    ordered_items =  serializers.SerializerMethodField()
+    ordered_items = serializers.SerializerMethodField()
     table = serializers.SerializerMethodField()
     total_net = serializers.SerializerMethodField()
     update_url = HyperlinkedIdentityField(view_name='order-api:update-order')
@@ -119,6 +121,7 @@ class RestaurantListOrderSerializer(serializers.ModelSerializer):
           return initnumber
       except Exception as e:
           return initnumber
+
 
 class OrderSerializer(serializers.ModelSerializer):
     ordered_items = ItemSerializer(many=True)
@@ -239,17 +242,18 @@ class OrderSerializer(serializers.ModelSerializer):
             old_order = Orders.objects.get(invoice_number=i)
             old_order.status = "merged to "+str(order.invoice_number)
             old_order.save()
-            print str(old_order.invoice_number)+" - "+ str(i)
+            print str(old_order.invoice_number) + " - " + str(i)
 
         for ordered_item_data in ordered_items_data:
             OrderedItem.objects.create(orders=order, **ordered_item_data)
             try:
-                stock = Stock.objects.get(variant__sku=ordered_item_data['sku'])
-                if stock:
-                    Stock.objects.decrease_stock(stock, ordered_item_data['quantity'])
+                item = Item.objects.get(pk=ordered_item_data['transfer_id'])
+                if item:
+                    Item.objects.decrease_stock(item, ordered_item_data['quantity'])
                 else:
                     print 'stock not found'
             except Exception as e:
+                print e
                 print 'Error reducing stock!'
         self.order = order
         return self.order

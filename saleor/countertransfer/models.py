@@ -46,6 +46,20 @@ class CounterTransfer(models.Model):
 
 
 class TransferItemManager(BaseUserManager):
+    def deallocate_stock(self, instance, quantity):
+        instance.quantity_allocated = models.F('quantity_allocated') - quantity
+        instance.save(update_fields=['quantity_allocated'])
+
+    def decrease_stock(self, instance, quantity):
+        instance.sold = models.F('sold') + quantity
+        instance.qty = models.F('qty') - quantity
+        instance.save(update_fields=['sold', 'qty'])
+
+    def increase_stock(self, instance, quantity):
+        instance.qty = models.F('qty') - quantity
+        instance.sold = models.F('sold') + quantity
+        instance.save(update_fields=['qty', 'sold'])
+
     def instance_quantities(self, instance, filter_type='transfer', counter=None):
         if filter_type == 'transfer':
             query = self.get_queryset().filter(transfer=instance)
@@ -61,7 +75,6 @@ class TransferItemManager(BaseUserManager):
             query = self.get_queryset().filter(transfer=instance)
         else:
             query = self.get_queryset().filter(stock=instance)
-        # print query.annotate(num_offerings=models.Count(models.F('price') + models.F('qty')))['num_offerings']
         total = 0
         for i in query:
             total += Decimal(i.qty) * i.price
@@ -94,6 +107,9 @@ class CounterTransferItems(models.Model):
                                    verbose_name=pgettext_lazy('CounterTransfer field', 'discount'))
     qty = models.PositiveIntegerField(default=1,
                                       verbose_name=pgettext_lazy('CounterTransfer field', 'quantity'))
+    sold = models.PositiveIntegerField(default=0,
+                                       verbose_name=pgettext_lazy('CounterTransfer field', 'sold'))
+
     productName = models.CharField(max_length=100, blank=True, null=True,
                                    verbose_name=pgettext_lazy('CounterTransfer field', 'product name'))
     description = models.TextField(
@@ -102,6 +118,7 @@ class CounterTransferItems(models.Model):
         pgettext_lazy('CounterTransfer field', 'updated at'), auto_now=True, null=True)
     created = models.DateTimeField(pgettext_lazy('CounterTransfer field', 'created'),
                                    default=now, editable=False)
+    closed = models.BooleanField(default=False)
     objects = TransferItemManager()
 
     class Meta:

@@ -298,6 +298,12 @@
                                 Counter Stock
                             </a>
                         </li>
+                        <li class="{% block menu_close_counter_class %}{% endblock %}">
+                            <a href="{% url 'countertransfer:close' %}">
+                                <i class='icon-lock'></i>
+                                Close Counter Stock
+                            </a>
+                        </li>
                         {% endif %}
                       </ul>
                     </li>
@@ -329,6 +335,33 @@
                     </li>
                   {% endif %}
                   <!--./retaurant management-->
+
+                  <!--menu-->
+                  {% if perms.product.view_product or perms.product.view_stock or perms.product.view_category or perms.product.view_productclass or perms.product.view_productattribute or perms.product.view_stocklocation %}
+                    <li id="first9">
+                      <a href="{% url 'dashboard:product-list' %}">
+                          <i class="icon-file-text"></i>
+                          <span> Menu Management</span>
+                      </a>
+                      <ul>
+                       {% if perms.product.view_product %}
+                        <li class="{% block menu_menu_class %}{% endblock %}">
+                        <a href="{% url 'menu:index' %}">
+                            <i class='icon-file-text'></i>
+                            Menu
+                        </a>
+                        </li>
+                           <li class="{% block menu_menu_category_class %}{% endblock %}">
+                            <a href="{% url 'menucategory:index' %}">
+                                <i class='icon-books'></i>
+                                Menu Categories
+                            </a>
+                        </li>
+                        {% endif %}
+                      </ul>
+                    </li>
+                  {% endif %}
+                  <!--./menu-->
                    {% if perms.customer.view_customer %}
                 <li class="">
                   <a href="{% url 'dashboard:customers' %}"><i class="icon-theater"></i> <span>
