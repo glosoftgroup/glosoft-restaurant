@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import FilterBlock from '../containers/FilterBlock';
 import ItemList from '../containers/ItemList';
-import InstanceForm from '../containers/InstanceForm';
 import PaginationBlock from '../containers/PaginateBlock';
 import '../css/style.scss';
 import '../css/tooltip.scss';
@@ -17,7 +16,6 @@ export default class App extends Component {
       <div className="row">
         <div className="col-md-12">
           <FilterBlock />
-          <InstanceForm />
           <div className="panel panel-body">
             <ItemList />
             <PaginationBlock />

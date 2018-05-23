@@ -13,7 +13,7 @@ export class Quantity extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      quantity: 1,
+      field: '',
       isOpen: false,
       edit: false
     };
@@ -21,7 +21,7 @@ export class Quantity extends Component {
 
   componentDidMount = () => {
     this.setState({
-      quantity: this.props.instance.quantity
+      field: this.props.instance.name
     });
   }
   isNumeric = (n) => {
@@ -32,41 +32,32 @@ export class Quantity extends Component {
     // transfer qty should not exceed store qty
     var value = e.target.value;
 
-    if (value === '') {
-      this.setState({
-        [e.target.name]: value
-      });
-    } else if (!this.isNumeric(value)) {
-      toast.error('Quantity must be a digit!');
-      return;
-    } else if (value < 1) {
-      toast.error('Quantity must more than one!');
-      return;
-    } else {
-      this.setState({
-        [e.target.name]: value
-      });
-    }
+    this.setState({
+      [e.target.name]: value
+    });
   }
 
   handleSubmit = () => {
     // validate
-    if (!this.isNumeric(this.state.quantity)) {
-      toast.error('Quantity must be a digit!');
+    if (this.state.field === '') {
+      toast.error('Menu name is required');
       return;
     }
     var formData = new FormData();
     var instance = {...this.props.instance};
-    formData.append('quantity', this.state.quantity);
+    formData.append('quantity', instance.quantity);
     formData.append('category', instance.category.id);
     formData.append('price', instance.price);
-    formData.append('name', instance.name);
+    formData.append('name', this.state.field);
     api.update('/menu/api/update/' + this.props.instance.id + '/', formData)
     .then((response) => {
       this.setState({isOpen: false});
       this.props.fetchItems();
     })
-    .catch((error) => { console.log(error); });
+    .catch((error) => {
+      console.error(error);
+      toast.error('Try a different Menu name!');
+    });
   }
 
   toggleEdit = () => {
@@ -84,8 +75,8 @@ export class Quantity extends Component {
               <div className="editableform" >
                 <div className="control-group form-group">
                   <div className="editable-input">
-                    <input value={this.state.quantity} onChange={this.handleChange}
-                    type="number" name="quantity" className="form-control"
+                    <input value={this.state.field} onChange={this.handleChange}
+                    type="text" name="field" className="form-control"
                     />
                   </div>
                   <div className="editable-buttons">
@@ -102,8 +93,8 @@ export class Quantity extends Component {
             </div>
           )}
             className="target" tagName="span" eventToggle="onClick">
-            <span data-tip="Edit quantity" className="edit-qty text-primary cursor-pointer">
-              {this.props.instance.quantity}
+            <span data-tip="Edit Name" className="edit-qty text-primary cursor-pointer">
+              {this.props.instance.name}
             </span>
         </Tooltip>
         </div>

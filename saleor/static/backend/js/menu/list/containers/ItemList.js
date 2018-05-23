@@ -17,10 +17,10 @@ class ItemList extends Component {
         <table className="table table-hover table-xs">
           <thead>
             <tr className="bg-primary">
-              <th>Date</th>
-              <th>Counter</th>
+              <th>Category</th>
+              <th>Name</th>
+              <th>Price</th>
               <th>Quantity</th>
-              <th>Worth</th>
               <th className="text-center">Actions</th>
             </tr>
           </thead>

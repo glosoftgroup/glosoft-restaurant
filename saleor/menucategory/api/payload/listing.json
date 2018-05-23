@@ -1,33 +1,14 @@
 {
-    "count": 3,
+    "count": 1,
     "total_pages": 1,
     "results": [
         {
-            "id": 10,
-            "name": "asas",
-            "text": "asas",
-            "description": null,
-            "categories_url": "http://127.0.0.1:8000/api/category/business-type/10/",
-            "update_url": "http://127.0.0.1:8000/section/api/update/10/",
-            "delete_url": "http://127.0.0.1:8000/section/api/delete/10/"
-        },
-        {
-            "id": 9,
-            "name": "Restaurant",
-            "text": "Restaurant",
-            "description": null,
-            "categories_url": "http://127.0.0.1:8000/api/category/business-type/9/",
-            "update_url": "http://127.0.0.1:8000/section/api/update/9/",
-            "delete_url": "http://127.0.0.1:8000/section/api/delete/9/"
-        },
-        {
-            "id": 8,
-            "name": "Bar",
-            "text": "Bar",
-            "description": null,
-            "categories_url": "http://127.0.0.1:8000/api/category/business-type/8/",
-            "update_url": "http://127.0.0.1:8000/section/api/update/8/",
-            "delete_url": "http://127.0.0.1:8000/section/api/delete/8/"
+            "id": 1,
+            "name": "Soups",
+            "text": "Soups",
+            "description": "dsdd",
+            "update_url": "http://127.0.0.1:8000/menucategory/api/update/1/",
+            "delete_url": "http://127.0.0.1:8000/menucategory/api/delete/1/"
         }
     ],
     "links": {

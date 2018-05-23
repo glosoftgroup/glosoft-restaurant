@@ -13,7 +13,7 @@ export class Quantity extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      quantity: 1,
+      field: 1,
       isOpen: false,
       edit: false
     };
@@ -21,7 +21,7 @@ export class Quantity extends Component {
 
   componentDidMount = () => {
     this.setState({
-      quantity: this.props.instance.quantity
+      field: this.props.instance.price
     });
   }
   isNumeric = (n) => {
@@ -51,15 +51,15 @@ export class Quantity extends Component {
 
   handleSubmit = () => {
     // validate
-    if (!this.isNumeric(this.state.quantity)) {
+    if (!this.isNumeric(this.state.field)) {
       toast.error('Quantity must be a digit!');
       return;
     }
     var formData = new FormData();
     var instance = {...this.props.instance};
-    formData.append('quantity', this.state.quantity);
+    formData.append('quantity', instance.quantity);
     formData.append('category', instance.category.id);
-    formData.append('price', instance.price);
+    formData.append('price', this.state.field);
     formData.append('name', instance.name);
     api.update('/menu/api/update/' + this.props.instance.id + '/', formData)
     .then((response) => {
@@ -84,8 +84,8 @@ export class Quantity extends Component {
               <div className="editableform" >
                 <div className="control-group form-group">
                   <div className="editable-input">
-                    <input value={this.state.quantity} onChange={this.handleChange}
-                    type="number" name="quantity" className="form-control"
+                    <input value={this.state.field} onChange={this.handleChange}
+                    type="number" name="field" className="form-control"
                     />
                   </div>
                   <div className="editable-buttons">
@@ -102,8 +102,8 @@ export class Quantity extends Component {
             </div>
           )}
             className="target" tagName="span" eventToggle="onClick">
-            <span data-tip="Edit quantity" className="edit-qty text-primary cursor-pointer">
-              {this.props.instance.quantity}
+            <span data-tip="Edit price" className="edit-qty text-primary cursor-pointer">
+              {this.props.instance.price}
             </span>
         </Tooltip>
         </div>

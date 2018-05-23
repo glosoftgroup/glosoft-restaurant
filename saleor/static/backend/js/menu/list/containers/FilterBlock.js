@@ -1,6 +1,9 @@
 import React, { Component } from 'react';
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
 import FilterSearch from './FilterSearch';
 import FilterDate from './FilterDate';
+import InstanceForm from '../containers/InstanceForm';
 
 class FilterBlock extends Component {
   /*
@@ -9,14 +12,32 @@ class FilterBlock extends Component {
    *        All props are fetch from redux
    *  Usage: <FilterBlock />
    * */
+  constructor(props) {
+    super(props);
+    this.state = {
+      open: false
+    };
+  }
+  toggleInstanceForm = () => {
+    this.setState({open: !this.state.open});
+  }
   render() {
+    const state = { ...this.state };
     return (
+      <div >
       <div className="breadcrumb-line breadcrumb-line-component content-group-lg">
         <ul className="breadcrumb">
-            <li>
+            <li onClick={this.toggleInstanceForm}>
               <a className="text-white btn btn-primary btn-sm btn-raised legitRipple" href="javascript:;">
+              {!state.open &&
+              <span className="animated fadeIn">
               <i className="icon-add position-left"></i>
               Add menu
+              </span>
+              }
+              {state.open &&
+              <i className="animated fadeIn icon-cross position-left"></i>
+              }
               </a>
             </li>
         </ul>
@@ -31,8 +52,20 @@ class FilterBlock extends Component {
             </li>
         </ul>
       </div>
+      {state.open &&
+       <InstanceForm toggleForm={this.toggleInstanceForm}/>
+      }
+      </div>
     );
   }
 }
 
-export default FilterBlock;
+FilterBlock.propTypes = {};
+
+const mapStateToProps = (state) => ({});
+
+const mapDispatchToProps = (dispatch) => {
+  return bindActionCreators({}, dispatch);
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(FilterBlock);
