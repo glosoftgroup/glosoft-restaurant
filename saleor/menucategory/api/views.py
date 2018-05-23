@@ -26,8 +26,8 @@ class DestroyView(generics.DestroyAPIView):
 
 class ListAPIView(generics.ListAPIView):
     """
-        section (business type) listing
-        GET /section/api/list/
+        Menu Categories listing
+        GET /menucategory/api/list/
         payload Json: /payload/listing.json
     """
     serializer_class = TableListSerializer

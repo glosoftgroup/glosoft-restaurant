@@ -26,3 +26,11 @@ input {
   border-bottom-color: blue;
   border-bottom-width: 1px;  
 }
+
+.Toastify__toast-container {
+    z-index: 12009900 !important;
+}
+
+.editable-input {
+    min-width: 182px;
+}

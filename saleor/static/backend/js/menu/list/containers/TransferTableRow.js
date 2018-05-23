@@ -1,6 +1,13 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
 import api from '../api/Api';
+import { fetchItems } from '../actions/action-items';
+import Quantity from './Quantity';
+import Price from './Price';
+import Name from './Name';
+import Category from './Category';
 
 export class TransferTableRow extends Component {
   /*
@@ -31,9 +38,9 @@ export class TransferTableRow extends Component {
     }, 3000);
   }
   deleteInstance = () => {
-    api.destroy('/counter/transfer/api/delete/' + this.props.instance.id + '/')
+    api.destroy('/menu/api/delete/' + this.props.instance.id + '/')
     .then((response) => {
-      window.location.reload();
+      this.props.fetchItems();
     })
     .catch((error) => {
       console.error(error);
@@ -43,10 +50,18 @@ export class TransferTableRow extends Component {
     var instance = { ...this.props.instance };
     return (
       <tr>
-        <td>{instance.date}</td>
-        <td>{instance.counter.name}</td>
-        <td>{instance.quantity}</td>
-        <td>{instance.worth}</td>
+        <td>
+          <Category instance={instance}/>
+        </td>
+        <td>
+          <Name instance={instance} />
+        </td>
+        <td>
+          <Price instance={instance} />
+        </td>
+        <td>
+          <Quantity instance={instance}/>
+        </td>
         <td className="text-center">
           <ul className="icons-list">
             <li className="dropdown">
@@ -62,11 +77,6 @@ export class TransferTableRow extends Component {
               }
               <ul className="dropdown-menu dropdown-menu-right">
                 <li>
-                  <a onClick={ () => this.goTo(instance.update_items_url)} href="javascript:;">
-                     <i className="icon-pencil"></i> EDIT
-                  </a>
-                </li>
-                <li>
                   <a onClick={this.toggleDelete} href="javascript:;">
                     <i className=" icon-trash-alt"></i> DELETE
                   </a>
@@ -81,6 +91,16 @@ export class TransferTableRow extends Component {
 }
 
 TransferTableRow.propTypes = {
-  instance: PropTypes.object.isRequired
+  instance: PropTypes.object.isRequired,
+  fetchItems: PropTypes.func.isRequired
 };
-export default TransferTableRow;
+
+const mapStateToProps = (state) => ({});
+
+const mapDispatchToProps = (dispatch) => {
+  return bindActionCreators({
+    fetchItems
+  }, dispatch);
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(TransferTableRow);
