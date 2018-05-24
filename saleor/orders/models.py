@@ -139,6 +139,7 @@ class Orders(models.Model):
 class OrderedItem(models.Model):
     orders = models.ForeignKey(Orders, related_name='ordered_items', on_delete=models.CASCADE, null=True)
     order = models.IntegerField(default=Decimal(1))
+    transfer_id = models.IntegerField(default=Decimal(0))
     sku = models.CharField(
         pgettext_lazy('OrderedItem field', 'SKU'), max_length=32)
     quantity = models.IntegerField(

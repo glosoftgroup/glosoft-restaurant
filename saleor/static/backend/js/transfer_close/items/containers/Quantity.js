@@ -66,7 +66,6 @@ export class Quantity extends Component {
       return;
     }
     var formData = new FormData();
-    formData.append('close_details', JSON.stringify([]));
     formData.append('qty', this.state.qty);
     formData.append('price', (this.props.instance.unit_price * this.state.qty));
     api.update('/counter/transfer/api/update/item/' + this.props.instance.id + '/', formData)

@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import api from '../api/Api';
-import Quantity from './Quantity';
 import { fetchItems } from '../actions/action-items';
 
 export class TransferTableRow extends Component {
@@ -21,61 +20,61 @@ export class TransferTableRow extends Component {
     this.state = {
       controlId: 'control',
       collapse: 'collapse',
+      description: '',
       showDelete: false
     };
   }
   goTo = (url) => {
     window.location.href = url;
   }
-  toggleDelete = () => {
-    this.setState({showDelete: true});
-    // reset delete confimartion
-    setTimeout(() => {
-      this.setState({showDelete: false});
-    }, 3000);
+  handleChange = (event) => {
+    this.setState({description: event.target.value});
   }
-  deleteInstance = () => {
-    api.destroy('/counter/transfer/api/delete/item/' + this.props.instance.id + '/')
+  closeItem = (flag) => {
+    // validate
+    var closeDetails = {store: flag};
+    var formData = new FormData();
+    formData.append('close_details', JSON.stringify(closeDetails));
+    formData.append('qty', this.props.instance.qty);
+    formData.append('description', this.state.description);
+    formData.append('price', this.props.instance.price);
+    api.update('/counter/transfer/api/update/item/' + this.props.instance.id + '/', formData)
     .then((response) => {
+      this.setState({isOpen: false});
       this.props.fetchItems();
     })
-    .catch((error) => {
-      console.error(error);
-    });
+    .catch((error) => { console.log(error); });
   }
   render() {
     var instance = { ...this.props.instance };
     return (
       <tr>
+        <td>.</td>
         <td>{instance.productName}</td>
-        <td>{instance.product_category}</td>
         <td>{instance.sku}</td>
         <td>{instance.unit_price}</td>
-        <td><Quantity instance={instance} /></td>
+        <td>{instance.qty}</td>
         <td>{instance.sold}</td>
         <td>{instance.price}</td>
+        <td>
+        {instance.closed &&
+         <span>{instance.description}</span>
+        }
+        {!instance.closed &&
+         <textarea className="form-control text-field" value={this.state.description} onChange={this.handleChange} />
+        }
+        </td>
         <td className="text-center">
-          <ul className="icons-list">
-            <li className="dropdown">
-              { this.state.showDelete &&
-                <button onClick={this.deleteInstance} type="button" aria-expanded="true" className="animated fadeIn btn btn-md bg-danger btn-primary dropdown-toggle legitRipple">
-                Confirm Delete
-              </button>
-              }
-              {!this.state.showDelete &&
-                <button type="button" data-toggle="dropdown" aria-expanded="true" className="animated fadeIn btn btn-md btn-primary dropdown-toggle legitRipple">
-                Actions <span className="caret"></span>
-                </button>
-              }
-              <ul className="dropdown-menu dropdown-menu-right">
-                <li>
-                  <a onClick={this.toggleDelete} href="javascript:;">
-                    <i className=" icon-trash-alt"></i> DELETE
-                  </a>
-                </li>
-              </ul>
-            </li>
-          </ul>
+          {!instance.closed &&
+          <span>
+          <a onClick={ () => this.closeItem(false)} href="javascript:;" className="label label-primary">Carry forward</a>
+          &nbsp;&nbsp;
+          <a onClick={ () => this.closeItem(true)} href="javascript:;" className="label label-success">Return to stock</a>
+          </span>
+          }
+          {instance.closed &&
+          <span className="text-success">Closed</span>
+          }
         </td>
     </tr>
     );
