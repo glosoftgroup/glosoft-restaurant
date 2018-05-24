@@ -5,68 +5,93 @@
         @:param pk sale point id
         @:param order_pk order start query
 
-        GET /api/order/sale-point/2/47?q=pending-payment
+        GET http://127.0.0.1:8000/api/order/table/3?q=payment-pending
         test Json: /test/getnewerorders.json
 */
 
 [
-    {
-        "id": 48,
-        "user": 1,
-        "invoice_number": "RET#298377796",
-        "table": 1,
-        "sale_point": 1,
-        "total_net": "223.29",
-        "sub_total": "223.29",
-        "balance": "223.29",
-        "terminal": 1,
-        "amount_paid": "300.00",
-        "update_url": "http://127.0.0.1:8000/api/order/update-order/48/",
-        "ordered_items": [
-            {
-                "id": 139,
-                "sale_point": 1,
-                "sku": "2-1340",
-                "quantity": 1,
-                "unit_cost": "35.62",
-                "total_cost": "35.62",
-                "product_name": "Davis-Wilson (Box Size: 100g)",
-                "product_category": "Groceries",
-                "tax": 0,
-                "discount": "0.00"
-            },
-            {
-                "id": 140,
-                "sale_point": 1,
-                "sku": "2-1338",
-                "quantity": 1,
-                "unit_cost": "87.79",
-                "total_cost": "87.79",
-                "product_name": "Davis-Wilson (Box Size: 500g)",
-                "product_category": "Groceries",
-                "tax": 0,
-                "discount": "0.00"
-            },
-            {
-                "id": 141,
-                "sale_point": 1,
-                "sku": "2-1337",
-                "quantity": 1,
-                "unit_cost": "99.88",
-                "total_cost": "99.88",
-                "product_name": "Davis-Wilson (Box Size: 1kg)",
-                "product_category": "Groceries",
-                "tax": 0,
-                "discount": "0.00"
-            }
-        ],
-        "customer": null,
-        "mobile": null,
-        "customer_name": null,
-        "payment_data": "[{u'payment_id': 1, u'value': u'100'}]",
-        "status": "fully-paid",
-        "total_tax": "0.00",
-        "discount_amount": "0.00"
-    }
+  {
+    "id": 184,
+    "user": 1,
+    "created": "2018-05-23T07:47:59.599000Z",
+    "invoice_number": "RET#1D8D-183",
+    "table": 3,
+    "total_net": "360.00",
+    "sub_total": "360.00",
+    "balance": "0.00",
+    "terminal": 1,
+    "amount_paid": "0.00",
+    "update_url": "http://127.0.0.1:8000/api/order/update-order/184/",
+    "ordered_items": [
+      {
+        "id": 825,
+        "counter": null,
+        "kitchen": null,
+        "sku": "shakel01",
+        "quantity": 1,
+        "unit_cost": "360.00",
+        "total_cost": "360.00",
+        "product_name": "Shakes ( Lemon)",
+        "product_category": "Shakes",
+        "tax": 0,
+        "discount": "0.00"
+      }
+    ],
+    "customer": null,
+    "mobile": null,
+    "customer_name": null,
+    "payment_data": "[]",
+    "status": "payment-pending",
+    "total_tax": "0.00",
+    "discount_amount": "0.00"
+  },
+  {
+    "id": 183,
+    "user": 1,
+    "created": "2018-05-23T05:19:57.009000Z",
+    "invoice_number": "RET#1261-182",
+    "table": 3,
+    "total_net": "720.00",
+    "sub_total": "450.00",
+    "balance": "0.00",
+    "terminal": 1,
+    "amount_paid": "0.00",
+    "update_url": "http://127.0.0.1:8000/api/order/update-order/183/",
+    "ordered_items": [
+      {
+        "id": 822,
+        "counter": null,
+        "kitchen": null,
+        "sku": "shakel02",
+        "quantity": 1,
+        "unit_cost": "270.00",
+        "total_cost": "270.00",
+        "product_name": "Shakes ( Lemon)",
+        "product_category": "Shakes",
+        "tax": 0,
+        "discount": "0.00"
+      },
+      {
+        "id": 823,
+        "counter": null,
+        "kitchen": null,
+        "sku": "BT01",
+        "quantity": 1,
+        "unit_cost": "450.00",
+        "total_cost": "450.00",
+        "product_name": "Beer ( Tusker)",
+        "product_category": "Beverages",
+        "tax": 0,
+        "discount": "0.00"
+      }
+    ],
+    "customer": null,
+    "mobile": null,
+    "customer_name": null,
+    "payment_data": "[]",
+    "status": "payment-pending",
+    "total_tax": "0.00",
+    "discount_amount": "0.00"
+  }
 ]
 

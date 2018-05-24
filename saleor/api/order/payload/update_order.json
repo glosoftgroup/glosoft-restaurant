@@ -1,52 +1,27 @@
 {
-    "id": 62,
-    "invoice_number": "RET#kampya",
-    "total_net": "223.29",
-    "sub_total": "223.29",
-    "balance": "223.29",
-    "terminal": 1,
-    "table": 2,
-    "amount_paid": "0.00",
-    "status": "payment-pending",
-    "total_tax": "0.00",
-    "discount_amount": "0.00",
-    "debt": "223.29",
-    "ordered_items": [
-        {
-            "id": 201,
-            "sale_point": 1,
-            "sku": "2-1337",
-            "quantity": 1,
-            "unit_cost": "99.88",
-            "total_cost": "99.88",
-            "product_name": "Davis-Wilson (Box Size: 1kg)",
-            "product_category": "Groceries",
-            "tax": 0,
-            "discount": "0.00"
-        },
-        {
-            "id": 200,
-            "sale_point": 1,
-            "sku": "2-1338",
-            "quantity": 1,
-            "unit_cost": "87.79",
-            "total_cost": "87.79",
-            "product_name": "Davis-Wilson (Box Size: 500g)",
-            "product_category": "Groceries",
-            "tax": 0,
-            "discount": "0.00"
-        },
-        {
-            "id": 199,
-            "sale_point": 1,
-            "sku": "2-1340",
-            "quantity": 1,
-            "unit_cost": "35.62",
-            "total_cost": "35.62",
-            "product_name": "Davis-Wilson (Box Size: 100g)",
-            "product_category": "Groceries",
-            "tax": 0,
-            "discount": "0.00"
-        }
-    ]
+  "amount_paid": "270.00",
+  "discount_amount": "0.00",
+  "old_orders": [],
+  "terminal": 1,
+  "total_tax": "0.00",
+  "room": "",
+  "balance": "0.00",
+  "sub_total": "270.00",
+  "ordered_items": [
+    {
+      "quantity": 1,
+      "total_cost": 270,
+      "unit_cost": 270,
+      "transfer_id": "13",
+      "sku": "shakel02",
+      "product_name": "Shakes ( Lemon)",
+      "product_category": "Shakes"
+    }
+  ],
+  "payment_data": [],
+  "invoice_number": "RET#1311-187",
+  "total_net": "270.00",
+  "table": "2",
+  "status": "fully-paid",
+  "payment_options": []
 }
