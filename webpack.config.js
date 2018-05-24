@@ -67,7 +67,9 @@ var config = {
     dashboard: './saleor/static/dashboard/js/dashboard.js',
     storefront: './saleor/static/js/storefront.js',
     transfer: './saleor/static/backend/js/transfer/create/index.js',
+    transfer_close: './saleor/static/backend/js/transfer_close/list/index.js',
     transfer_list: './saleor/static/backend/js/transfer/list/index.js',
+    transferred_items_close: './saleor/static/backend/js/transfer_close/items/index.js',
     transferred_items: './saleor/static/backend/js/transfer/items/index.js',
     menu: './saleor/static/backend/js/menu/list/index.js',
     vendor: [

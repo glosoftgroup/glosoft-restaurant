@@ -5,7 +5,6 @@ import { connect } from 'react-redux';
 import ReactTooltip from 'react-tooltip';
 import Tooltip from 'react-tooltip-lite';
 import api from '../api/Api';
-import { fetchItems } from '../actions/action-items';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -23,7 +22,7 @@ export class Quantity extends Component {
   componentDidMount = () => {
     this.setState({
       qty: this.props.instance.qty,
-      maxQty: this.props.instance.quantity + this.props.instance.qty
+      maxQty: this.props.instance.quantity
     });
   }
   isNumeric = (n) => {
@@ -34,45 +33,33 @@ export class Quantity extends Component {
     // transfer qty should not exceed store qty
     var value = e.target.value;
 
-    if (value === '') {
-      this.setState({
-        [e.target.name]: value
-      });
-    } else if (!this.isNumeric(value)) {
+    if (!this.isNumeric(value)) {
       toast.error('Quantity must be a digit!');
       return;
-    } else if (value < 1) {
+    }
+    if (value < 1) {
       toast.error('Quantity must more than one!');
+      return;
+    }
+    if (value > this.state.maxQty) {
+      toast.error('Transfer Quantity cannot be more than ' + this.state.maxQty + '!');
       return;
     } else {
       this.setState({
         [e.target.name]: value
       });
-      // var payload = Object.assign(this.props.instance);
-      // payload.qty = value;
+      var payload = Object.assign(this.props.instance);
+      payload.qty = value;
     }
   }
 
   handleSubmit = () => {
-    // validate
-    if (this.state.qty < this.props.instance.qty) {
-      console.warn('reduce qty');
-    } else if (this.state.qty > this.state.maxQty) {
-      toast.error('Transfer Quantity cannot be more than ' + this.state.maxQty + '!');
-      return;
-    }
-    if (!this.isNumeric(this.state.qty)) {
-      toast.error('Quantity must be a digit!');
-      return;
-    }
     var formData = new FormData();
-    formData.append('close_details', JSON.stringify([]));
-    formData.append('qty', this.state.qty);
-    formData.append('price', (this.props.instance.unit_price * this.state.qty));
+    formData.append('qty', this.props.instance.qty);
+    formData.append('price', (this.props.instance.unit_price * this.props.instance.qty));
     api.update('/counter/transfer/api/update/item/' + this.props.instance.id + '/', formData)
     .then((response) => {
       this.setState({isOpen: false});
-      this.props.fetchItems();
     })
     .catch((error) => { console.log(error); });
   }
@@ -93,8 +80,8 @@ export class Quantity extends Component {
               <div className="editableform" >
                 <div className="control-group form-group">
                   <div className="editable-input">
-                    <input value={this.state.qty} onChange={this.handleChange}
-                    type="number" name="qty" className="form-control"
+                    <input value={this.props.instance.qty} onChange={this.handleChange}
+                    type="number" name="quantity" className="form-control"
                     />
                   </div>
                   <div className="editable-buttons">
@@ -129,8 +116,7 @@ export class Quantity extends Component {
 
 Quantity.propTypes = {
   instance: PropTypes.array.isRequired,
-  updateCartItem: PropTypes.func.isRequired,
-  fetchItems: PropTypes.func.isRequired
+  updateCartItem: PropTypes.func.isRequired
 };
 
 function mapStateToProps(state) {
@@ -138,7 +124,7 @@ function mapStateToProps(state) {
 }
 
 function matchDispatchToProps(dispatch) {
-  return bindActionCreators({fetchItems}, dispatch);
+  return bindActionCreators({}, dispatch);
 }
 
 export default connect(mapStateToProps, matchDispatchToProps)(Quantity);

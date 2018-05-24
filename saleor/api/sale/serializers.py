@@ -16,6 +16,7 @@ from ...sale.models import (
 from ...product.models import (
             Stock,
             )
+from saleor.countertransfer.models import CounterTransferItems as Item
 from decimal import Decimal
 
 
@@ -178,9 +179,9 @@ class CreateSaleSerializer(serializers.ModelSerializer):
         for sold_item_data in sold_items_data:
             SoldItem.objects.create(sales=sale, **sold_item_data)
             try:
-                stock = Stock.objects.get(variant__sku=sold_item_data['sku'])
-                if stock:
-                    Stock.objects.decrease_stock(stock, sold_item_data['quantity'])
+                item = Item.objects.get(stock__sku=sold_item_data['sku'])
+                if item:
+                    Item.objects.decrease_stock(item, sold_item_data['quantity'])
                 else:
                     print 'stock not found'
             except Exception as e:

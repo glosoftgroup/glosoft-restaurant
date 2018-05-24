@@ -13,24 +13,14 @@ class ItemList extends Component {
    * */
   render() {
     return (
-      <div className="animated fadeIn panel-group panel-group-control panel-group-control-right content-group-lg">
-        <h6 className="text-bold text-center">
-         <span className="text-bold text-primary">DATE: </span>
-         {this.props.items.date} &nbsp;
-         <span className="text-bold text-primary">COUNTER: </span>
-         {this.props.items.counter}
-        </h6>
+      <div className="panel-group panel-group-control panel-group-control-right content-group-lg">
         <table className="table table-hover table-xs">
           <thead>
             <tr className="bg-primary">
-              <th>Product</th>
-              <th>Category</th>
-              <th>SKU</th>
-              <th>Selling Price</th>
+              <th>Date</th>
+              <th>Counter</th>
               <th>Quantity</th>
-              <th>Sold</th>
-              <th>Price</th>
-              <th className="text-center">Actions</th>
+              <th>Worth</th>
             </tr>
           </thead>
           <tbody>
@@ -41,7 +31,7 @@ class ItemList extends Component {
           })
           }
           <tr>
-            <td colSpan={7}>
+            <td colSpan={5}>
             {this.props.items.results.length === 0 &&
             <div className="text-center">
               {this.props.items.loading &&

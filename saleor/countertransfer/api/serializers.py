@@ -20,13 +20,16 @@ item_fields = ('id',
                'stock',
                'sku',
                'qty',
+               'sold',
                'tax',
                'discount',
                'price',
                'unit_price',
                'quantity',
                'counter',
+               'closed',
                'productName',
+               'description',
                'product_category',)
 
 
@@ -106,21 +109,40 @@ class ItemsStockSerializer(serializers.ModelSerializer):
 
 
 class UpdateTransferItemSerializer(serializers.ModelSerializer):
+    close_details = serializers.JSONField(write_only=True)
+
     class Meta:
         model = Item
-        fields = item_fields
+        fields = item_fields + ('close_details',)
 
     def update(self, instance, validated_data):
+        instance.description = validated_data.get('description', instance.description)
+        instance.closed = False
+        instance.price = validated_data.get('price', instance.price)
         # if edit qty is more than current qty reduce stock else decrease
         if int(validated_data.get('qty')) > instance.qty:
             diff = int(validated_data.get('qty')) - int(instance.qty)
             Stock.objects.decrease_stock(instance.stock, diff)
-        else:
+            instance.qty = validated_data.get('qty', instance.qty)
+        elif int(validated_data.get('qty')) < instance.qty:
             diff = int(instance.qty) - int(validated_data.get('qty'))
             Stock.objects.increase_stock(instance.stock, diff)
-
-        instance.qty = validated_data.get('qty', instance.qty)
-        instance.price = validated_data.get('price', instance.price)
+            instance.qty = validated_data.get('qty', instance.qty)
+        else:
+            instance.qty = validated_data.get('qty', instance.qty)
+            # check if close json sent then close mark it as closed
+            close_details = validated_data.pop('close_details')
+            # mark as closed
+            instance.closed = True
+            try:
+                if close_details['store']:
+                    # return to stock
+                    if instance.qty > 0:
+                        Stock.objects.increase_stock(instance.stock, instance.qty)
+                        instance.price = Decimal(instance.sold * instance.unit_price)
+                        instance.qty = 0
+            except:
+                pass
 
         instance.save()
         return instance
@@ -129,6 +151,7 @@ class UpdateTransferItemSerializer(serializers.ModelSerializer):
 class TableListSerializer(serializers.ModelSerializer):
     update_url = serializers.HyperlinkedIdentityField(view_name='countertransfer:api-update')
     update_items_url = serializers.HyperlinkedIdentityField(view_name='countertransfer:update')
+    closing_items_url = serializers.HyperlinkedIdentityField(view_name='countertransfer:close-item')
     delete_url = serializers.HyperlinkedIdentityField(view_name='countertransfer:api-delete')
     text = serializers.SerializerMethodField()
     counter = serializers.SerializerMethodField()
@@ -140,8 +163,8 @@ class TableListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Table
         fields = fields + (
-            'quantity', 'worth', 'counter_transfer_items',
-            'text', 'update_url', 'delete_url', 'update_items_url')
+            'quantity', 'worth', 'counter_transfer_items', 'text',
+            'closing_items_url', 'update_url', 'delete_url', 'update_items_url')
 
     def get_text(self, obj):
         try:

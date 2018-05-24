@@ -1,54 +1,35 @@
+
 {
-  "amount_paid": "0.00",
-  "balance": "223.29",
-  "sub_total": "223.29",
-  "table":1,
-  "sale_point":1,
-  "mobile": "4215",
-  "customer_name": "dfghj",
-  "terminal": "1",
-  "total_tax": "0.00",
-  "invoice_number": "RET#298377796",
-  "total_net": "223.29",
-  "payment_data": [
-    {
-      "payment_id": 1,
-      "value": "100"
-    }
-  ],
-  "ordered_items": [
-    {
-      "quantity": 1,
-      "total_cost": "35.62",
-      "unit_cost": "35.62",
-      "sku": "2-1340",
-      "product_name": "Davis-Wilson (Box Size: 100g)",
-      "product_category": "Groceries",
-      "order": "1",
-      "sale_point":"1"
-    },
-    {
-      "quantity": 1,
-      "total_cost": "87.79",
-      "unit_cost": "87.79",
-      "sku": "2-1338",
-      "product_name": "Davis-Wilson (Box Size: 500g)",
-      "product_category": "Groceries",
-      "order": "1",
-      "sale_point":"1"
-    },
-    {
-      "quantity": 1,
-      "total_cost": "99.88",
-      "unit_cost": "99.88",
-      "sku": "2-1337",
-      "product_name": "Davis-Wilson (Box Size: 1kg)",
-      "product_category": "Groceries",
-      "order": "1",
-      "sale_point":"1"
-    }
-  ],
-  "payment_options": [],
-  "status": "fully-paid",
-  "discount_amount": 0
+    "id": 5,
+    "user": 1,
+    "invoice_number": "RET#1D8D-18371",
+    "table": 1,
+    "room": null,
+    "sale_point": "",
+    "total_net": "360.00",
+    "sub_total": "360.00",
+    "balance": "0.00",
+    "terminal": 1,
+    "amount_paid": "0.00",
+    "ordered_items": [
+        {
+            "id": 5,
+            "counter": null,
+            "kitchen": null,
+            "sku": "saas",
+            "transfer_id": 54,
+            "quantity": 4,
+            "unit_cost": "360.00",
+            "total_cost": "360.00",
+            "product_name": "Shakes ( Lemon)",
+            "product_category": "Shakes",
+            "tax": 0,
+            "discount": "0.00"
+        }
+    ],
+    "payment_data": [],
+    "status": "payment-pending",
+    "total_tax": "0.00",
+    "discount_amount": "0.00",
+    "old_orders": null
 }
