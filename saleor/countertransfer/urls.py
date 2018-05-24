@@ -13,6 +13,7 @@ urlpatterns = [
     url(r'^api/delete/item/(?P<pk>[0-9]+)/$', DestroyItemView.as_view(), name='api-delete-item'),
     url(r'^api/list/$', ListAPIView.as_view(), name='api-list'),
     url(r'^api/list/items/(?P<pk>[0-9]+)/$', ListItemsAPIView.as_view(), name='api-list-items'),
+    url(r'^api/list/stock/$', ListStockAPIView.as_view(), name='api-list-all-stock'),
     url(r'^api/list/stock/(?P<pk>[0-9]+)/$', ListStockAPIView.as_view(), name='api-list-stock'),
     url(r'^api/list/category/(?P<pk>[0-9]+)/$', ListCategoryAPIView.as_view(), name='api-list-category'),
     url(r'^api/update/(?P<pk>[0-9]+)/$', UpdateAPIView.as_view(), name='api-update'),
