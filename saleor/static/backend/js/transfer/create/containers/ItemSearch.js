@@ -32,7 +32,6 @@ class ItemSearch extends Component {
     // fetch items
     this.props.fetchItems();
   }
-
   handleChange = (e) => {
     this.setState({
       [e.target.name]: e.target.value

@@ -21,6 +21,7 @@ class ItemList extends Component {
               <th>Counter</th>
               <th>Quantity</th>
               <th>Worth</th>
+              <th>Status</th>
             </tr>
           </thead>
           <tbody>

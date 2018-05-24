@@ -9,6 +9,7 @@ from saleor.countertransfer.models import CounterTransfer as Table
 from saleor.product.models import Stock
 from saleor.countertransfer.models import CounterTransferItems as Item
 from .serializers import (
+    CloseTransferItemSerializer,
     CreateListSerializer,
     TableListSerializer,
     UpdateSerializer,
@@ -253,3 +254,16 @@ class UpdateItemAPIView(generics.RetrieveUpdateAPIView):
     """
     queryset = Item.objects.all()
     serializer_class = UpdateTransferItemSerializer
+
+
+class CloseItemAPIView(generics.RetrieveUpdateAPIView):
+    """
+        update instance details
+        @:param pk id
+        @:method PUT
+
+        PUT /api/house/update/
+        payload Json: /payload/update.json
+    """
+    queryset = Item.objects.all()
+    serializer_class = CloseTransferItemSerializer

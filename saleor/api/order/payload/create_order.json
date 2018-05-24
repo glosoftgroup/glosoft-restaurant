@@ -31,5 +31,5 @@
     "status": "payment-pending",
     "total_tax": "0.00",
     "discount_amount": "0.00",
-    "old_orders": null
+    "old_orders": []
 }

@@ -8,12 +8,14 @@ class TableListSerializer(serializers.ModelSerializer):
     update_url = serializers.HyperlinkedIdentityField(view_name='counter:api-update')
     delete_url = serializers.HyperlinkedIdentityField(view_name='counter:api-delete')
     text = serializers.SerializerMethodField()
+    is_closed = serializers.SerializerMethodField()
 
     class Meta:
         model = Table
         fields = ('id',
                   'name',
                   'text',
+                  'is_closed',
                   'description',
                   'update_url',
                   'delete_url'
@@ -24,6 +26,9 @@ class TableListSerializer(serializers.ModelSerializer):
             return obj.name
         except:
             return ''
+
+    def get_is_closed(self, obj):
+        return obj.is_closed()
 
 
 class CreateListSerializer(serializers.ModelSerializer):

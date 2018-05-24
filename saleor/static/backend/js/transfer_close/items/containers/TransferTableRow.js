@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import api from '../api/Api';
 import { fetchItems } from '../actions/action-items';
-
+import Quantity from './Quantity';
 export class TransferTableRow extends Component {
   /*
    * This component list stock transfers in rows
@@ -21,11 +21,24 @@ export class TransferTableRow extends Component {
       controlId: 'control',
       collapse: 'collapse',
       description: '',
+      deficit: 0,
+      qty: 0,
       showDelete: false
     };
   }
+  componentWillMount() {
+    this.setState({
+      deficit: this.props.instance.deficit,
+      qty: this.props.instance.qty
+    });
+  }
   goTo = (url) => {
     window.location.href = url;
+  }
+  getDeficit = (actualQuantity) => {
+    var instance = { ...this.props.instance };
+    var deficit = instance.qty - actualQuantity;
+    this.setState({deficit: deficit, qty: actualQuantity});
   }
   handleChange = (event) => {
     this.setState({description: event.target.value});
@@ -35,10 +48,11 @@ export class TransferTableRow extends Component {
     var closeDetails = {store: flag};
     var formData = new FormData();
     formData.append('close_details', JSON.stringify(closeDetails));
-    formData.append('qty', this.props.instance.qty);
+    formData.append('qty', this.state.qty);
+    formData.append('deficit', this.state.deficit);
     formData.append('description', this.state.description);
     formData.append('price', this.props.instance.price);
-    api.update('/counter/transfer/api/update/item/' + this.props.instance.id + '/', formData)
+    api.update('/counter/transfer/api/close/item/' + this.props.instance.id + '/', formData)
     .then((response) => {
       this.setState({isOpen: false});
       this.props.fetchItems();
@@ -50,12 +64,24 @@ export class TransferTableRow extends Component {
     return (
       <tr>
         <td>.</td>
-        <td>{instance.productName}</td>
-        <td>{instance.sku}</td>
+        <td>
+          <span>
+          {instance.productName}<br/>{instance.sku}
+          </span>
+        </td>
         <td>{instance.unit_price}</td>
-        <td>{instance.qty}</td>
+        <td>{instance.transferred_qty}</td>
         <td>{instance.sold}</td>
-        <td>{instance.price}</td>
+        <td>
+        {instance.closed &&
+         <span>{instance.qty}</span>
+        }
+        {!instance.closed &&
+          <Quantity getDeficit={this.getDeficit} instance={instance}/>
+        }
+        </td>
+        <td>{instance.expected_qty}</td>
+        <td>{this.state.deficit}</td>
         <td>
         {instance.closed &&
          <span>{instance.description}</span>

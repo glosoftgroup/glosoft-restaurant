@@ -39,17 +39,26 @@ export class Quantity extends Component {
         [e.target.name]: value
       });
     } else if (!this.isNumeric(value)) {
-      toast.error('Quantity must be a digit!');
+      toast.error('Quantity must be a digit!', {
+        position: toast.POSITION.BOTTOM_CENTER
+      });
       return;
-    } else if (value < 1) {
-      toast.error('Quantity must more than one!');
+    } else if (value < 0) {
+      toast.error('Quantity should be a positive number', {
+        position: toast.POSITION.BOTTOM_CENTER
+      });
+      return;
+    } else if (value > this.props.instance.qty) {
+      toast.error('Quantity cannot be less than Expected quatity (' + this.props.instance.qty + ')', {
+        position: toast.POSITION.BOTTOM_CENTER
+      });
       return;
     } else {
       this.setState({
         [e.target.name]: value
       });
-      // var payload = Object.assign(this.props.instance);
-      // payload.qty = value;
+      this.setState({qty: value});
+      this.props.getDeficit(value);
     }
   }
 
@@ -97,7 +106,7 @@ export class Quantity extends Component {
                     />
                   </div>
                   <div className="editable-buttons">
-                    <button onClick={this.handleSubmit} type="submit" className="btn btn-primary btn-icon editable-submit">
+                    <button onClick={this.handleSubmit} type="submit" className="btn hidden btn-primary btn-icon editable-submit">
                       <i className="icon-check"></i>
                     </button>
                     <button onClick={this.toggleEdit} type="button" className="btn btn-default btn-icon editable-cancel">
@@ -111,7 +120,7 @@ export class Quantity extends Component {
           )}
             className="target" tagName="span" eventToggle="onClick">
             <span data-tip="Edit quantity" className="edit-qty text-primary cursor-pointer">
-              {this.props.instance.qty}
+              {this.state.qty}
             </span>
         </Tooltip>
           }
@@ -128,6 +137,7 @@ export class Quantity extends Component {
 
 Quantity.propTypes = {
   instance: PropTypes.array.isRequired,
+  getDeficit: PropTypes.func.isRequired,
   updateCartItem: PropTypes.func.isRequired,
   fetchItems: PropTypes.func.isRequired
 };

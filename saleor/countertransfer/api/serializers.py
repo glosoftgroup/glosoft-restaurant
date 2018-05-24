@@ -20,6 +20,9 @@ item_fields = ('id',
                'stock',
                'sku',
                'qty',
+               'transferred_qty',
+               'expected_qty',
+               'deficit',
                'sold',
                'tax',
                'discount',
@@ -108,6 +111,34 @@ class ItemsStockSerializer(serializers.ModelSerializer):
             return 0
 
 
+class CloseTransferItemSerializer(serializers.ModelSerializer):
+    close_details = serializers.JSONField(write_only=True)
+
+    class Meta:
+        model = Item
+        fields = item_fields + ('close_details',)
+
+    def update(self, instance, validated_data):
+        instance.description = validated_data.get('description', instance.description)
+        instance.closed = True
+        instance.qty = validated_data.get('qty', instance.qty)
+        instance.deficit = validated_data.get('deficit', instance.deficit)
+        # check if close json sent then close mark it as closed
+        close_details = validated_data.pop('close_details')
+        try:
+            if close_details['store']:
+                # return to stock
+                if instance.qty > 0:
+                    Stock.objects.increase_stock(instance.stock, instance.qty)
+                    instance.price = Decimal(instance.sold * instance.unit_price)
+                    instance.qty = 0
+        except:
+            pass
+
+        instance.save()
+        return instance
+
+
 class UpdateTransferItemSerializer(serializers.ModelSerializer):
     close_details = serializers.JSONField(write_only=True)
 
@@ -124,25 +155,16 @@ class UpdateTransferItemSerializer(serializers.ModelSerializer):
             diff = int(validated_data.get('qty')) - int(instance.qty)
             Stock.objects.decrease_stock(instance.stock, diff)
             instance.qty = validated_data.get('qty', instance.qty)
+            instance.expected_qty = instance.qty
+            instance.transferred_qty = int(instance.transferred_qty) + int(diff)
         elif int(validated_data.get('qty')) < instance.qty:
             diff = int(instance.qty) - int(validated_data.get('qty'))
             Stock.objects.increase_stock(instance.stock, diff)
             instance.qty = validated_data.get('qty', instance.qty)
+            instance.expected_qty = instance.qty
+            instance.transferred_qty = int(instance.transferred_qty) - int(diff)
         else:
-            instance.qty = validated_data.get('qty', instance.qty)
-            # check if close json sent then close mark it as closed
-            close_details = validated_data.pop('close_details')
-            # mark as closed
-            instance.closed = True
-            try:
-                if close_details['store']:
-                    # return to stock
-                    if instance.qty > 0:
-                        Stock.objects.increase_stock(instance.stock, instance.qty)
-                        instance.price = Decimal(instance.sold * instance.unit_price)
-                        instance.qty = 0
-            except:
-                pass
+            pass
 
         instance.save()
         return instance
@@ -159,11 +181,12 @@ class TableListSerializer(serializers.ModelSerializer):
     counter_transfer_items = ItemsSerializer(many=True)
     quantity = serializers.SerializerMethodField()
     worth = serializers.SerializerMethodField()
+    all_item_closed = serializers.SerializerMethodField()
 
     class Meta:
         model = Table
         fields = fields + (
-            'quantity', 'worth', 'counter_transfer_items', 'text',
+            'quantity', 'worth', 'all_item_closed', 'counter_transfer_items', 'text',
             'closing_items_url', 'update_url', 'delete_url', 'update_items_url')
 
     def get_text(self, obj):
@@ -171,6 +194,9 @@ class TableListSerializer(serializers.ModelSerializer):
             return obj.name
         except:
             return ''
+
+    def get_all_item_closed(self, obj):
+        return obj.all_items_closed()
 
     def get_quantity(self, obj):
         return Item.objects.instance_quantities(obj)
@@ -203,8 +229,12 @@ def create_items(instance, items):
             pass
         query = Item.objects.filter(transfer=instance, stock=item['stock'])
         if query.exists():
+            print 'updating....'
             single = query.first()
             single.qty = int(single.qty) + int(item['qty'])
+            single.transferred_qty = int(single.transferred_qty) + int(item['qty'])
+            single.expected_qty = single.qty
+            print single.transferred_qty
             single.price = Decimal(single.price) + Decimal(item['price'])
             single.save()
         else:
@@ -219,6 +249,8 @@ def create_items(instance, items):
             single.productName = item['productName']
             single.stock = item['stock']
             single.qty = item['qty']
+            single.transferred_qty = single.qty
+            single.expected_qty = single.qty
             single.sku = item['sku']
             single.save()
 
