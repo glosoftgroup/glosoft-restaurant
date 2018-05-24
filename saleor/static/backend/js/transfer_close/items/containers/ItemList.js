@@ -25,11 +25,12 @@ class ItemList extends Component {
             <tr className="bg-primary">
               <th>.</th>
               <th>Product</th>
-              <th>SKU</th>
               <th>Selling Price</th>
-              <th>Quantity</th>
+              <th>Transferred Qty</th>
               <th>Sold</th>
-              <th>Price</th>
+              <th>Actual Qty</th>
+              <th>Expected Qty</th>
+              <th>Deficit</th>
               <th>Note</th>
               <th className="text-center">Actions</th>
             </tr>

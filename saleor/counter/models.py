@@ -1,8 +1,19 @@
 from __future__ import unicode_literals
 
 from django.db import models
+from django.db.models import Q
 from django.utils.translation import pgettext_lazy
+from django.contrib.auth.models import (AbstractBaseUser, BaseUserManager, PermissionsMixin)
 from django.utils.timezone import now
+import datetime
+
+
+class CounterManager(BaseUserManager):
+    def available_counter(self):
+        today = datetime.date.today()
+        return self.item_counter.filter(
+            Q(transfer__date__lt=today),
+            Q(closed=True))
 
 
 class Counter(models.Model):
@@ -14,6 +25,7 @@ class Counter(models.Model):
         pgettext_lazy('Counter field', 'updated at'), auto_now=True, null=True)
     created = models.DateTimeField(pgettext_lazy('Counter field', 'created'),
                                    default=now, editable=False)
+    objects = CounterManager()
 
     class Meta:
         app_label = 'counter'
@@ -22,3 +34,10 @@ class Counter(models.Model):
 
     def __str__(self):
         return self.name
+
+    def is_closed(self):
+        today = datetime.date.today()
+        transfers = self.item_counter.filter(transfer__date__lt=today, closed=False)
+        if not transfers.exists():
+            return True
+        return False

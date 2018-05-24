@@ -9,6 +9,7 @@ import Select2 from 'react-select2-wrapper';
 import { updateCartItem, deleteCartItem } from '../actions/action-cart';
 import { getTotalQty, getTotalWorth } from '../reducers';
 import { setCounter } from '../actions/action-counter';
+import api from '../api/Api';
 
 class TransferCart extends Component {
   constructor(props) {
@@ -16,10 +17,35 @@ class TransferCart extends Component {
     this.state = {
       totalQty: 0,
       totalWorth: 0,
-      counter: ''
+      counter: '',
+      closedCouters: '',
+      openCounters: ''
     };
   }
-
+  componentWillMount() {
+    this.getCounters();
+  }
+  getCounters = () => {
+    api.retrieve('/counter/api/list')
+    .then((response) => { return response.data.results; })
+    .then((response) => {
+      console.log(response);
+      var closedCouters = [];
+      var openCounters = [];
+      response.map((value, index) => {
+        delete value.description;
+        delete value.delete_url;
+        delete value.update_url;
+        if (value.is_closed) {
+          closedCouters.push(value);
+        } else {
+          openCounters.push(value);
+        }
+      });
+      this.setState({closedCouters, openCounters});
+    })
+    .catch((error) => { console.log(error); });
+  }
   selectOptions = (url, placeholder) => {
     return {
       placeholder: placeholder,
@@ -63,9 +89,14 @@ class TransferCart extends Component {
     this.props.setCounter(payload);
   }
   render() {
-    var _options = this.selectOptions('/counter/api/list/', 'Select Counter');
     return (
       <div className="product-cart-panel">
+        {this.state.openCounters.length !== 0 &&
+         <div className="alert alert-warning no-border text-center">
+           <button type="button" className="close" data-dismiss="alert"><span>×</span><span className="sr-only">Close</span></button>
+         <span className="text-semibold">Heads up!</span> Some counters previous transfers were not closed. <a href="/counter/transfer/close/" className="alert-link"> Close them to enable transfer to those counters</a>.
+         </div>
+        }
         {this.props.cart.length !== 0 &&
         <div >
           <div className="panel panel-body counter-panel">
@@ -87,7 +118,12 @@ class TransferCart extends Component {
                       onChange = {this.handleSelectChange}
                       name = 'counter'
                       value = {this.state.counter}
-                      options={ _options}/>
+                      options={{
+                        minimumResultsForSearch: -1,
+                        width: '100%',
+                        placeholder: 'Select counter'
+                      }}
+                      data={ this.state.closedCouters}/>
            </div>
           </div>
           <div className="table-responsive">

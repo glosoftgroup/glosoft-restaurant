@@ -17,6 +17,7 @@ urlpatterns = [
     url(r'^api/list/category/(?P<pk>[0-9]+)/$', ListCategoryAPIView.as_view(), name='api-list-category'),
     url(r'^api/update/(?P<pk>[0-9]+)/$', UpdateAPIView.as_view(), name='api-update'),
     url(r'^api/update/item/(?P<pk>[0-9]+)/$', UpdateItemAPIView.as_view(), name='api-update-item'),
+    url(r'^api/close/item/(?P<pk>[0-9]+)/$', CloseItemAPIView.as_view(), name='api-update-item'),
     url(r'^add/$', TemplateView.as_view(template_name="countertransfer/form.html"), name='add'),
     url(r'^close/$', TemplateView.as_view(template_name="countertransfer/close.html"), name='close'),
     url(r'^update/(?P<pk>[0-9]+)/$', UpdateView.as_view(template_name="countertransfer/items.html", model=Table, fields=['id', 'name']),

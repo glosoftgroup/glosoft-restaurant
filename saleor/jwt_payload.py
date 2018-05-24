@@ -22,9 +22,6 @@ def check_work_period():
     opening_time  = settings.opening_time
     #format = '%H:%M %p'
     now = datetime.time(datetime.now())
-    print 'now:'+str(now)
-    print 'close:'+str(closing_time)
-    print 'opening:'+str(opening_time)
     if closing_time == None and opening_time != None:
         print 'closing time not set'
         if now < opening_time:

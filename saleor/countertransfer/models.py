@@ -12,6 +12,12 @@ from saleor.product.models import Stock
 
 
 class TransferManager(BaseUserManager):
+    def all_item_closed(self, instance):
+        query = self.counter_transfer_items.filter(closed=False, transfer=instance)
+        if query.exists():
+            return False
+        return True
+
     def instance_quantities(self, instance):
         qty = self.counter_transfer_items.filter(transfer=instance).aggregate(models.Sum('qty'))['qty__sum']
         return qty
@@ -44,6 +50,12 @@ class CounterTransfer(models.Model):
     def __str__(self):
         return str(self.id)
 
+    def all_items_closed(self):
+        query = self.counter_transfer_items.filter(closed=False)
+        if query.exists():
+            return False
+        return True
+
 
 class TransferItemManager(BaseUserManager):
     def deallocate_stock(self, instance, quantity):
@@ -53,12 +65,14 @@ class TransferItemManager(BaseUserManager):
     def decrease_stock(self, instance, quantity):
         instance.sold = models.F('sold') + quantity
         instance.qty = models.F('qty') - quantity
-        instance.save(update_fields=['sold', 'qty'])
+        instance.expected_qty = instance.qty
+        instance.save(update_fields=['sold', 'qty', 'expected_qty'])
 
     def increase_stock(self, instance, quantity):
         instance.qty = models.F('qty') - quantity
         instance.sold = models.F('sold') + quantity
-        instance.save(update_fields=['qty', 'sold'])
+        instance.expected_qty = instance.qty
+        instance.save(update_fields=['qty', 'sold', 'expected_qty'])
 
     def instance_quantities(self, instance, filter_type='transfer', counter=None):
         if filter_type == 'transfer':
@@ -85,7 +99,7 @@ class CounterTransferItems(models.Model):
     transfer = models.ForeignKey(
         CounterTransfer, on_delete=models.CASCADE, related_name='counter_transfer_items',
         verbose_name=pgettext_lazy("CounterTransfer field", 'counter'))
-    counter = models.ForeignKey(Counter, on_delete=models.CASCADE, blank=True, null=True,
+    counter = models.ForeignKey(Counter, on_delete=models.CASCADE, related_name="item_counter", blank=True, null=True,
                                 verbose_name=pgettext_lazy("CounterTransfer field", 'counter'))
     stock = models.ForeignKey(Stock, on_delete=models.CASCADE, blank=True, null=True,
                               verbose_name=pgettext_lazy("CounterTransfer field", 'stock'))
@@ -107,6 +121,13 @@ class CounterTransferItems(models.Model):
                                    verbose_name=pgettext_lazy('CounterTransfer field', 'discount'))
     qty = models.PositiveIntegerField(default=1,
                                       verbose_name=pgettext_lazy('CounterTransfer field', 'quantity'))
+    transferred_qty = models.PositiveIntegerField(default=1,
+                                                  verbose_name=pgettext_lazy('CounterTransfer field', 'transferred_qty'))
+    deficit = models.PositiveIntegerField(default=0,
+                                          verbose_name=pgettext_lazy('CounterTransfer field', 'deficit'))
+    expected_qty = models.PositiveIntegerField(default=1,
+                                               verbose_name=pgettext_lazy('CounterTransfer field', 'expected_qty'))
+
     sold = models.PositiveIntegerField(default=0,
                                        verbose_name=pgettext_lazy('CounterTransfer field', 'sold'))
 

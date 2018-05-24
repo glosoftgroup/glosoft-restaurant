@@ -47,6 +47,14 @@ export class TransferTableRow extends Component {
         <td>{instance.counter.name}</td>
         <td>{instance.quantity}</td>
         <td>{instance.worth}</td>
+        <td>
+          {instance.all_item_closed &&
+            <span className="text-success">closed</span>
+          }
+          {!instance.all_item_closed &&
+            <span>open</span>
+          }
+        </td>
     </tr>
     );
   }
