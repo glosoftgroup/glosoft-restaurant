@@ -62,7 +62,7 @@ class UserLockAuthorizationSerializer(serializers.Serializer):
             self.user = User.objects.get(code=code)
             return value
         except:
-            raise ValidationError('User does not exist')
+            raise ValidationError('Invalid User Credentials.')
 
 class UserTransactionSerializer(serializers.ModelSerializer):
     email = serializers.CharField(max_length=200)
