@@ -102,6 +102,8 @@ class ListItemsAPIView(generics.ListAPIView):
             instance = Item.objects.filter(transfer__pk=self.kwargs['pk']).first()
             response.data['counter'] = instance.transfer.counter.name
             response.data['date'] = instance.transfer.date
+            response.data['instance_id'] = instance.transfer.id
+
         except:
             pass
         return response
