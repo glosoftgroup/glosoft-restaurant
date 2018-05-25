@@ -77,6 +77,7 @@ class ItemsStockSerializer(serializers.ModelSerializer):
     unit_cost = serializers.SerializerMethodField()
     total_cost = serializers.SerializerMethodField()
     product_name = serializers.SerializerMethodField()
+    counter = serializers.SerializerMethodField()
 
     class Meta:
         model = Item
@@ -109,6 +110,12 @@ class ItemsStockSerializer(serializers.ModelSerializer):
             return Item.objects.instance_quantities(obj.stock, filter_type='stock', counter=obj.counter)
         except:
             return 0
+            
+    def get_counter(self, obj):
+        try:
+            return {"id":obj.counter.id, "name":obj.counter.name}
+        except:
+            return None
 
 
 class CloseTransferItemSerializer(serializers.ModelSerializer):

@@ -16,6 +16,12 @@ from ...sale.models import (
 from ...product.models import (
             Stock,
             )
+from ...counter.models import (
+            Counter,
+            )
+from ...kitchen.models import (
+            Kitchen,
+            )
 from decimal import Decimal
 from ...customer.models import Customer
 from saleor.countertransfer.models import CounterTransferItems as Item
@@ -25,6 +31,9 @@ User = get_user_model()
 
 
 class ItemSerializer(serializers.ModelSerializer):
+    counter = serializers.SerializerMethodField()
+    kitchen = serializers.SerializerMethodField()
+    
     class Meta:
         model = OrderedItem
         fields = (
@@ -41,6 +50,18 @@ class ItemSerializer(serializers.ModelSerializer):
                 'tax',
                 'discount'
                  )
+
+    def get_counter(self, obj):
+        try:
+            return {"id":obj.counter.id, "name":obj.counter.name}
+        except:
+            return None
+
+    def get_kitchen(self, obj):
+        try:
+            return {"id":obj.kitchen.id, "name":obj.kitchen.name}
+        except:
+            return None
 
 
 class ListOrderSerializer(serializers.ModelSerializer):

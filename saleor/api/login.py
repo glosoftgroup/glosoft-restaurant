@@ -10,6 +10,7 @@ from rest_framework_jwt.serializers import JSONWebTokenSerializer
 from rest_framework_jwt.settings import api_settings
 from rest_framework_jwt.compat import get_username_field, PasswordField
 from rest_framework_jwt.views import JSONWebTokenAPIView
+from saleor.site.models import SiteSettings
 
 User = get_user_model()
 jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
@@ -22,6 +23,20 @@ class CustomJWTSerializer(JSONWebTokenSerializer):
         # email comes as the code
         username = attrs.get('email')
         password = attrs.get('password')
+        #check the working period first
+        time_now = datetime.now().time()
+        try:
+            opening_time = SiteSettings.objects.all().first().opening_time
+            closing_time = SiteSettings.objects.all().first().closing_time
+
+            if opening_time < time_now and time_now < closing_time:
+                print time_now
+            else:
+                raise serializers.ValidationError(_('Unauthorized User Login.'))
+        except Exception as e:
+            print e
+            raise serializers.ValidationError(_('Unauthorized User Login.'))
+
 
         if username and password:
             username = username.lower()
@@ -32,14 +47,14 @@ class CustomJWTSerializer(JSONWebTokenSerializer):
             try:
                 us = get_user_model().objects.get(**kwargs)
             except ObjectDoesNotExist:
-                msg = _('no such user with such credentials.')
+                msg = _('Invalid User Credentials.')
                 raise serializers.ValidationError(msg)
                 
             user = authenticate(username=us.email, password=us.rest_code)
 
             if user:				
 				if not user.is_active:
-					msg = _('User account is disabled.')
+					msg = _('Unauthorized User Login.')
 					raise serializers.ValidationError(msg)
 
 				payload = jwt_payload_handler(user)
@@ -50,7 +65,7 @@ class CustomJWTSerializer(JSONWebTokenSerializer):
 					'permissions':user.get_all_permissions(),
 				}
             else:
-                msg = _('Unable to log in with provided credentials.')
+                msg = _('Invalid User Credentials.')
                 raise serializers.ValidationError(msg)
         else:
             msg = _('Must include "{username_field}" and "password".')
