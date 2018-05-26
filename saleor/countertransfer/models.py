@@ -29,6 +29,9 @@ class CounterTransfer(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, blank=True, null=True, related_name='counter_transfer_users',
         verbose_name=pgettext_lazy('Sales field', 'user'))
+    action = models.IntegerField(
+        pgettext_lazy('Stock item field', 'action'),
+        validators=[MinValueValidator(0)], default=Decimal(1))
     name = models.CharField(
         pgettext_lazy('CounterTransfer field', 'name'), null=True, blank=True, max_length=128)
     description = models.TextField(

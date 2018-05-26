@@ -141,7 +141,6 @@ class CloseTransferItemSerializer(serializers.ModelSerializer):
                     instance.qty = 0
         except:
             pass
-
         instance.save()
         return instance
 
@@ -298,15 +297,29 @@ class CreateListSerializer(serializers.ModelSerializer):
 
 
 class UpdateSerializer(serializers.ModelSerializer):
-    counter_transfer_items = ItemsSerializer(many=True)
+    items = serializers.JSONField(write_only=True)
 
     class Meta:
         model = Table
-        fields = fields + ('counter_transfer_items', )
+        fields = ('id', 'action', 'items', )
 
     def update(self, instance, validated_data):
-        instance.name = validated_data.get('name', instance.name)
-        instance.description = validated_data.get('description', instance.description)
-
+        # action 1: carry forward 2: return to stock
+        action = validated_data.get('action')
+        items = validated_data.pop('items')
+        for cart in items:
+            item = Item.objects.get(pk=cart['id'])
+            item.qty = cart['qty']
+            item.description = cart['description']
+            item.deficit = cart['deficit']
+            if action == 2:
+                # return to stock
+                if item.qty:
+                    Stock.objects.increase_stock(item.stock, item.qty)
+                    item.price = Decimal(item.sold * item.unit_price)
+                    item.qty = 0
+            if not item.closed:
+                item.closed = True
+                item.save()
         instance.save()
         return instance

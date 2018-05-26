@@ -29,7 +29,9 @@ export class PaginateBlock extends Component {
       pageSizes: [
         {'text': '5', 'id': '5'},
         {'text': '10', 'id': '10'},
-        {'text': '20', 'id': '20'}
+        {'text': '20', 'id': '20'},
+        {'text': '50', 'id': '50'},
+        {'text': '100', 'id': '100'}
       ]
     };
   }
