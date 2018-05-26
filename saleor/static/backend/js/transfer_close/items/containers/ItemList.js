@@ -30,16 +30,16 @@ class ItemList extends Component {
   }
   componentWillMount() {
     // if all closed disable bulk actions
-    var allCleared = true;
-    this.props.items.results.map(value => {
-      console.error(value);
-      if (!value.closed) {
-        console.warn('some open');
-        allCleared = false;
-      }
-    });
-    this.setState({allCleared});
-    console.warn(allCleared);
+    // var allCleared = true;
+    // this.props.items.results.map(value => {
+    //   console.error(value);
+    //   if (!value.closed) {
+    //     console.warn('some open');
+    //     allCleared = false;
+    //   }
+    // });
+    // this.setState({allCleared});
+    // console.warn(allCleared);
   }
   onSelectChange = (e) => {
     this.setState({

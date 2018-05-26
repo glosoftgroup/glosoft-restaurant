@@ -274,7 +274,6 @@ class OrderSerializer(serializers.ModelSerializer):
                 else:
                     print 'stock not found'
             except Exception as e:
-                print e
                 print 'Error reducing stock!'
         self.order = order
         return self.order
@@ -372,18 +371,31 @@ class OrderUpdateSerializer(serializers.ModelSerializer):
             ordered_items_data = validated_data.pop('ordered_items')
         except Exception as e:
             raise ValidationError('Ordered items field should not be empty')
-        items = (instance.ordered_items).all()
+        # return order sold item to transfer stock then delete then
+        items = instance.ordered_items.all()
+        for data in items:
+            # try:
+            item = Item.objects.get(pk=data.transfer_id)
+            if item:
+                Item.objects.increase_stock(item, item.sold)
+            else:
+                print 'stock not found'
+            # except Exception as e:
+            #     print e
+            #     print 'Error reducing stock!'
         items.delete()
+
+        # recreate orders
         for ordered_item_data in ordered_items_data:
-          OrderedItem.objects.create(orders=instance, **ordered_item_data)
-          try:
-              stock = Stock.objects.get(variant__sku=ordered_item_data['sku'])
-              if stock:
-                  Stock.objects.decrease_stock(stock, ordered_item_data['quantity'])
-              else:
-                  print 'stock not found'
-          except Exception as e:
-              print 'Error reducing stock!'
+            OrderedItem.objects.create(orders=instance, **ordered_item_data)
+            try:
+                item = Item.objects.get(pk=ordered_item_data['transfer_id'])
+                if item:
+                    Item.objects.decrease_stock(item, ordered_item_data['quantity'])
+                else:
+                    print 'stock not found'
+            except Exception as e:
+                print 'Error reducing stock!'
 
         return instance
 
