@@ -22,3 +22,8 @@ class SalePointListSerializer(serializers.ModelSerializer):
                   'tables_url',
 
                  )
+
+class CountersAndKitchensSerializer(serializers.Serializer):
+   id = serializers.CharField()
+   name = serializers.CharField()
+   point = serializers.CharField()

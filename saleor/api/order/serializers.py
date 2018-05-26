@@ -29,15 +29,8 @@ from saleor.countertransfer.models import CounterTransferItems as Item
 
 User = get_user_model()
 
-
-class ItemSerializer(serializers.ModelSerializer):
-    counter = serializers.SerializerMethodField()
-    kitchen = serializers.SerializerMethodField()
-    
-    class Meta:
-        model = OrderedItem
-        fields = (
-                'id',
+global item_fields
+item_fields = ( 'id',
                 'counter',
                 'kitchen',
                 'sku',
@@ -48,8 +41,21 @@ class ItemSerializer(serializers.ModelSerializer):
                 'product_name',
                 'product_category',
                 'tax',
-                'discount'
-                 )
+                'discount',)
+
+class ItemSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = OrderedItem
+        fields = item_fields
+
+class ListItemSerializer(serializers.ModelSerializer):
+    counter = serializers.SerializerMethodField()
+    kitchen = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = OrderedItem
+        fields = item_fields
 
     def get_counter(self, obj):
         try:
@@ -65,7 +71,7 @@ class ItemSerializer(serializers.ModelSerializer):
 
 
 class ListOrderSerializer(serializers.ModelSerializer):
-    ordered_items = ItemSerializer(many=True)
+    ordered_items = ListItemSerializer(many=True)
     update_url = HyperlinkedIdentityField(view_name='order-api:update-order')
 
     class Meta:
