@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import FilterSearch from './FilterSearch';
 import FilterDate from './FilterDate';
+import PrintThis from './PrintThis';
 
 class FilterBlock extends Component {
   /*
@@ -28,6 +29,9 @@ class FilterBlock extends Component {
             <li><a href="javascript:;" className="text-bold"> Date:</a></li>
             <li>
               <FilterDate />
+            </li>
+            <li>
+              <PrintThis />
             </li>
         </ul>
       </div>
