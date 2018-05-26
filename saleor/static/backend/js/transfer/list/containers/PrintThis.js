@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 
 export default class PrintThis extends Component {
   printCanvas = () => {
-    var dataUrl = document.getElementById('anycanvas').toDataURL();  // attempt to save base64 string to server using this var
+    var dataUrl = document.getElementById('printme').toDataURL();  // attempt to save base64 string to server using this var
     var windowContent = '<!DOCTYPE html>';
     windowContent += '<html>';
     windowContent += '<head><title>Print canvas</title></head>';
@@ -20,8 +20,8 @@ export default class PrintThis extends Component {
   }
   render() {
     return (
-      <div>
-        TODO: print using javascript
+      <div id="printme">
+        <button onClick={this.printCanvas}> Print </button>
       </div>
     );
   }

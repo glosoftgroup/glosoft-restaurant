@@ -1,3 +1,4 @@
+import datetime
 from rest_framework import generics
 from django.db.models import Q
 from django.contrib.auth import get_user_model
@@ -205,16 +206,15 @@ class ListCategoryAPIView(generics.ListAPIView):
         return {"date": None, 'request': self.request}
 
     def get_queryset(self, *args, **kwargs):
+        today = datetime.date.today()
         try:
             if self.kwargs['pk']:
-                queryset_list = Item.objects.filter(stock__variant__product__categories__pk=self.kwargs['pk'])\
+                queryset_list = Item.objects.filter(transfer__date=today).filter(stock__variant__product__categories__pk=self.kwargs['pk'])\
                     .distinct('stock').select_related()
-                print queryset_list
-
             else:
-                queryset_list = Item.objects.all().distinct('stock').select_related()
+                queryset_list = Item.objects.all().filter(transfer__date=today).distinct('stock').select_related()
         except Exception as e:
-            queryset_list = Item.objects.all().distinct('stock')
+            queryset_list = Item.objects.all().filter(transfer__date=today).distinct('stock')
 
         page_size = 'page_size'
         if self.request.GET.get(page_size):
