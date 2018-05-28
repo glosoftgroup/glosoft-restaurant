@@ -220,6 +220,18 @@ class OrderSerializer(serializers.ModelSerializer):
             raise ValidationError('Terminal specified does not exist')
         return value
 
+    def validate_user(self, value):
+        data = self.get_initial()
+        user_id = int(data.get('user'))
+        try:
+            user = User.objects.get(pk=user_id)
+            print("*")*100
+            print user.name
+            print("*")*100
+        except Exception as e:
+            raise ValidationError('User specified does not exist')
+        return value
+
     def create(self, validated_data):
         # add sold amount to drawer
         try:
@@ -242,6 +254,9 @@ class OrderSerializer(serializers.ModelSerializer):
             raise ValidationError('Ordered items field should not be empty')
         status = validated_data.get('status')
         # make a sale
+        print("!")*100
+        print validated_data.get('user')
+        print("!")*100
         order.user = validated_data.get('user')
         order.invoice_number = validated_data.get('invoice_number')
         order.total_net = validated_data.get('total_net')
