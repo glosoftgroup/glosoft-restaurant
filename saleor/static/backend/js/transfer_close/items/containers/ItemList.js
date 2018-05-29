@@ -28,19 +28,6 @@ class ItemList extends Component {
       ]
     };
   }
-  componentWillMount() {
-    // if all closed disable bulk actions
-    // var allCleared = true;
-    // this.props.items.results.map(value => {
-    //   console.error(value);
-    //   if (!value.closed) {
-    //     console.warn('some open');
-    //     allCleared = false;
-    //   }
-    // });
-    // this.setState({allCleared});
-    // console.warn(allCleared);
-  }
   onSelectChange = (e) => {
     this.setState({
       [e.target.name]: e.target.value
@@ -94,13 +81,13 @@ class ItemList extends Component {
   }
   render() {
     return (
-      <div className="animated fadeIn panel-group panel-group-control panel-group-control-right content-group-lg">
+      <div className=" animated fadeIn panel-group panel-group-control panel-group-control-right content-group-lg">
         <div className="col-md-6 text-bold ">
         <ToastContainer />
           <div className="row">
-            <div className="col-md-4 bulk-actions">
+            <div className="col-md-4 bulk-actions no-print ">
               <label>
-              <div className="all">
+              <div className="all no-print ">
                 <div onClick={this.toggleCheckBox} className="">
                   <span className={this.state.checked}>
                     <input className="styled" type="checkbox" />
@@ -110,7 +97,7 @@ class ItemList extends Component {
               </label>&nbsp;&nbsp;
               check all
             </div>
-            <div className="col-md-4">
+            <div className="col-md-4 no-print ">
                 <Select2
                   data={ this.state.actions }
                   onChange={ this.onSelectChange }
@@ -122,7 +109,7 @@ class ItemList extends Component {
                   }}
                 />
             </div>
-            <div className="col-md-2">
+            <div className="col-md-2 no-print ">
                 <button onClick={this.handleSubmit} className="btn btn-primary bg-primary">Apply</button>
             </div>
           </div>
@@ -136,6 +123,9 @@ class ItemList extends Component {
         </h6>
         </div>
         <div className="col-md-4"></div>
+        <h2 className="col-md-12 text-center text-bold yes-print">
+        Transferred Item Closing Report
+        </h2>
         <table className="table table-hover table-xs">
           <thead>
             <tr className="bg-primary">

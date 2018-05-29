@@ -1,0 +1,13 @@
+@media print
+{
+    .no-print, .no-print *
+    {
+        display: none !important;
+    }
+    .yes-print {
+        display: block !important;
+    }
+    .bg-primary {
+      background-color: blue;
+    }
+}

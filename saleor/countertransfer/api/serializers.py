@@ -1,5 +1,6 @@
 # site settings rest api serializers
 from decimal import Decimal
+import datetime
 from django.utils.formats import localize
 from rest_framework import serializers
 from saleor.countertransfer.models import CounterTransfer as Table
@@ -57,14 +58,14 @@ class ItemsSerializer(serializers.ModelSerializer):
             return 0
 
 
-def format_fields(items_list):
+def format_fields(fields_data, items_list):
     """
     Exclude supplied list of fields from global item list
     :param items_list: list type of fields to exclude
     :return:
     """
     # convert tuple to list
-    temp = list(item_fields)
+    temp = list(fields_data)
     # remove supplied fields
     for item in items_list:
         temp.remove(str(item))
@@ -81,7 +82,7 @@ class ItemsStockSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Item
-        fields = format_fields(['productName', 'price', 'unit_price']) + \
+        fields = format_fields(item_fields, ['productName', 'price', 'unit_price']) + \
                  ('total_cost', 'product_name', 'unit_cost')
 
     def get_sku(self, obj):
@@ -113,7 +114,7 @@ class ItemsStockSerializer(serializers.ModelSerializer):
             
     def get_counter(self, obj):
         try:
-            return {"id":obj.counter.id, "name":obj.counter.name}
+            return {"id": obj.counter.id, "name": obj.counter.name}
         except:
             return None
 
@@ -139,6 +140,18 @@ class CloseTransferItemSerializer(serializers.ModelSerializer):
                     Stock.objects.increase_stock(instance.stock, instance.qty)
                     instance.price = Decimal(instance.sold * instance.unit_price)
                     instance.qty = 0
+            else:
+                # transfer to tomorrows stock
+                tomorrow = datetime.timedelta(days=1) + datetime.date.today()
+                counter = instance.counter
+                query = Table.objects. \
+                    filter(counter=instance.counter, date__icontains=tomorrow)
+                if not query.exists():
+                    new_transfer = Table.objects.create(date=tomorrow, counter=counter)
+                else:
+                    new_transfer = query.first()
+                carry_items(new_transfer, [instance])
+
         except:
             pass
         instance.save()
@@ -192,8 +205,10 @@ class TableListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Table
         fields = fields + (
-            'quantity', 'worth', 'all_item_closed', 'counter_transfer_items', 'text',
-            'closing_items_url', 'update_url', 'delete_url', 'update_items_url')
+            'quantity', 'worth', 'all_item_closed',
+            'counter_transfer_items', 'text',
+            'closing_items_url', 'update_url',
+            'delete_url', 'update_items_url')
 
     def get_text(self, obj):
         try:
@@ -220,6 +235,51 @@ class TableListSerializer(serializers.ModelSerializer):
             return ''
 
 
+def carry_items(instance, items):
+    """
+    Create new or update existing transferred stock items
+    :param instance: model instance: Transfer instance
+    :param items: dictionary: Stock item transferred
+    :return:
+    """
+    for item in items:
+        # if item exist, increase quantity else create
+        try:
+            item.stock = Stock.objects.get(pk=item.stock.pk)
+        except Exception as e:
+            print e
+            pass
+        query = Item.objects.filter(transfer=instance, stock=item.stock)
+        if query.exists():
+            print 'updating....'
+            single = query.first()
+            single.qty = int(single.qty) + int(item.qty)
+            single.transferred_qty = int(single.transferred_qty) + int(item.qty)
+            single.expected_qty = single.qty
+            print single.transferred_qty
+            single.price = Decimal(single.price) + Decimal(item.price)
+            single.save()
+        else:
+            single = Item()
+            single.transfer = instance
+            single.counter = instance.counter
+            single.price = item.price
+            single.unit_price = item.unit_price
+            single.discount = item.discount
+            single.tax = item.tax
+            single.product_category = item.product_category
+            single.productName = item.productName
+            single.stock = item.stock
+            single.qty = item.qty
+            single.transferred_qty = single.qty
+            single.expected_qty = single.qty
+            single.sku = item.sku
+            single.save()
+
+        # decrease stock
+        # Stock.objects.decrease_stock(item['stock'], item['qty'])
+
+
 def create_items(instance, items):
     """
     Create new or update existing transferred stock items
@@ -231,7 +291,8 @@ def create_items(instance, items):
         # if item exist, increase quantity else create
         try:
             item['stock'] = Stock.objects.get(pk=item['stock'])
-        except:
+        except Exception as e:
+            print e
             pass
         query = Item.objects.filter(transfer=instance, stock=item['stock'])
         if query.exists():
@@ -318,6 +379,19 @@ class UpdateSerializer(serializers.ModelSerializer):
                     Stock.objects.increase_stock(item.stock, item.qty)
                     item.price = Decimal(item.sold * item.unit_price)
                     item.qty = 0
+            else:
+                # carry forward
+                # transfer to tomorrows stock
+                tomorrow = datetime.timedelta(days=1) + datetime.date.today()
+                query = Table.objects. \
+                    filter(counter=instance.counter, date__icontains=tomorrow)
+                if not query.exists():
+                    new_transfer = Table.objects.create(date=tomorrow, counter=instance.counter)
+                else:
+                    new_transfer = query.first()
+                carry_items(new_transfer, [item])
+                item.qty = 0
+
             if not item.closed:
                 item.closed = True
                 item.save()

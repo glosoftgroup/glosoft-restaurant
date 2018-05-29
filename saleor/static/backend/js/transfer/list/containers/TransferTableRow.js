@@ -47,7 +47,7 @@ export class TransferTableRow extends Component {
         <td>{instance.counter.name}</td>
         <td>{instance.quantity}</td>
         <td>{instance.worth}</td>
-        <td className="text-center">
+        <td className=" text-center">
           <ul className="icons-list">
             <li className="dropdown">
               { this.state.showDelete &&
@@ -56,8 +56,8 @@ export class TransferTableRow extends Component {
               </button>
               }
               {!this.state.showDelete &&
-                <button type="button" data-toggle="dropdown" aria-expanded="true" className="animated fadeIn btn btn-md btn-primary dropdown-toggle legitRipple">
-                Actions <span className="caret"></span>
+                <button type="button" data-toggle="dropdown" aria-expanded="true" className="no-print animated fadeIn btn btn-md btn-primary dropdown-toggle legitRipple">
+                Actions <span className="no-print  caret"></span>
                 </button>
               }
               <ul className="dropdown-menu dropdown-menu-right">

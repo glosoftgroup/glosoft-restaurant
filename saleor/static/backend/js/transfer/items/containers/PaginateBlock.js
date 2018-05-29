@@ -29,7 +29,9 @@ export class PaginateBlock extends Component {
       pageSizes: [
         {'text': '5', 'id': '5'},
         {'text': '10', 'id': '10'},
-        {'text': '20', 'id': '20'}
+        {'text': '20', 'id': '20'},
+        {'text': '50', 'id': '50'},
+        {'text': '100', 'id': '100'}
       ]
     };
   }
@@ -81,7 +83,7 @@ export class PaginateBlock extends Component {
   render() {
     return (
       <div>
-        <div className="row text-center mb-15">
+        <div className="no-print row text-center mb-15">
                 <div className="col-md-2 page-of mt-15">
                 <Select2
                     data={this.state.pageSizes}

@@ -55,7 +55,7 @@ export class TransferTableRow extends Component {
         <td>{instance.sold}</td>
         <td>{instance.price}</td>
         <td className="text-center">
-          <ul className="icons-list">
+          <ul className="no-print icons-list">
             <li className="dropdown">
               { this.state.showDelete &&
                 <button onClick={this.deleteInstance} type="button" aria-expanded="true" className="animated fadeIn btn btn-md bg-danger btn-primary dropdown-toggle legitRipple">
