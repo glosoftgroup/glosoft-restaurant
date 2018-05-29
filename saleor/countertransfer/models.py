@@ -61,9 +61,13 @@ class CounterTransfer(models.Model):
 
 
 class TransferItemManager(BaseUserManager):
-    def deallocate_stock(self, instance, quantity):
-        instance.quantity_allocated = models.F('quantity_allocated') - quantity
-        instance.save(update_fields=['quantity_allocated'])
+    def carry_forward_quantity(self, stock):
+        query = self.get_queryset().filter(stock=stock)
+        query = query.filter(closed=True)
+        total_qty = 0
+        for item in query:
+            total_qty = int(total_qty) + int(item.qty)
+        return total_qty
 
     def decrease_stock(self, instance, quantity):
         instance.sold = models.F('sold') + quantity

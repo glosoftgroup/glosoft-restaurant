@@ -83,7 +83,7 @@ export class PaginateBlock extends Component {
   render() {
     return (
       <div>
-        <div className="row text-center mb-15">
+        <div className="no-print row text-center mb-15">
                 <div className="col-md-2 page-of mt-15">
                 <Select2
                     data={this.state.pageSizes}

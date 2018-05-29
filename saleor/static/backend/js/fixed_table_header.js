@@ -8,7 +8,7 @@
          function init() {
             $this.wrap('<div class="" />');
             $t_fixed = $this.clone();
-            $t_fixed.find("tbody").remove().end().addClass("fixed").insertBefore($this);
+            $t_fixed.find("tbody").remove().end().addClass("no-print fixed").insertBefore($this);
             resizeFixed();
          }
          function resizeFixed() {
