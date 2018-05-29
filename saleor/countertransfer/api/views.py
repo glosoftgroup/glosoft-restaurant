@@ -220,7 +220,7 @@ class ListCategoryAPIView(generics.ListAPIView):
         if self.request.GET.get(page_size):
             pagination.PageNumberPagination.page_size = self.request.GET.get(page_size)
         else:
-            pagination.PageNumberPagination.page_size = 10
+            pagination.PageNumberPagination.page_size = 8
         if self.request.GET.get('date'):
             queryset_list = queryset_list.filter(date__icontains=self.request.GET.get('date'))
 

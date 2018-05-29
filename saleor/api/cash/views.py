@@ -72,7 +72,17 @@ def lock_login(request):
                 user = get_user_model().objects.get(**kwargs)
                 if user.is_active and user.has_perm('sales.make_sale'):
                     record_trail(user.name,user,terminal)
-                    return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+                    permissions = []
+                    if user.has_perm('sales.make_sale'):
+                        permissions.append('make_sale') 
+                    if user.has_perm('sales.make_invoice'):
+                        permissions.append('make_invoice') 
+                    userResponse = {"user":
+                        { "id":user.id, "name":user.name, 
+                        "email":user.email, "code":user.code, 
+                        "position":user.job_title, "permissions":permissions}
+                        }
+                    return Response(userResponse, status=status.HTTP_202_ACCEPTED)
                 else:
                     return Response({'message':'Permission Denied!'}, status=status.HTTP_401_UNAUTHORIZED)
             except:
