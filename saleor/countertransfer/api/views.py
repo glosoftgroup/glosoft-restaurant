@@ -207,14 +207,24 @@ class ListCategoryAPIView(generics.ListAPIView):
 
     def get_queryset(self, *args, **kwargs):
         today = datetime.date.today()
+        yesterday = datetime.date.today() - datetime.timedelta(days=1)
         try:
             if self.kwargs['pk']:
-                queryset_list = Item.objects.filter(transfer__date=today).filter(stock__variant__product__categories__pk=self.kwargs['pk'])\
+                queryset_list = Item.objects.filter(
+                    Q(transfer__date=today) |
+                    Q(transfer__date=yesterday)
+                ).filter(stock__variant__product__categories__pk=self.kwargs['pk'])\
                     .distinct('stock').select_related()
             else:
-                queryset_list = Item.objects.all().filter(transfer__date=today).distinct('stock').select_related()
+                queryset_list = Item.objects.filter(
+                    Q(transfer__date=today) |
+                    Q(transfer__date=yesterday)
+                ).distinct('stock').select_related()
         except Exception as e:
-            queryset_list = Item.objects.all().filter(transfer__date=today).distinct('stock')
+            queryset_list = Item.objects.all().filter(
+                Q(transfer__date=today) |
+                Q(transfer__date=yesterday)
+            ).distinct('stock')
 
         page_size = 'page_size'
         if self.request.GET.get(page_size):

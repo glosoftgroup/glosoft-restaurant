@@ -4,6 +4,7 @@ import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import Select2 from 'react-select2-wrapper';
 import TransferTableRow from './TransferTableRow';
+import TransferDate from './TransferDate';
 import { addCartItem, deleteCartItem } from '../actions/action-cart';
 import api from '../api/Api';
 import { ToastContainer, toast } from 'react-toastify';
@@ -39,12 +40,14 @@ class ItemList extends Component {
     (checked === '') ? this.emptyToCart() : this.allToCart();
   }
   allToCart = () => {
+    /* add all items to cart */
     var instance = { ...this.props };
     instance.items.results.map(obj => {
       this.props.addCartItem(obj);
     });
   }
   emptyToCart = () => {
+    /* empty closing cart */
     var instance = { ...this.props };
     instance.items.results.map(obj => {
       this.props.deleteCartItem(obj.id);
@@ -52,6 +55,7 @@ class ItemList extends Component {
   }
   handleSubmit = (e) => {
     // bulk action here
+    console.log(this.props.date)
     var cart = this.props.cart;
     if (this.props.cart.length === 0) {
       toast.error('Closing Cart is empty', {
@@ -69,10 +73,10 @@ class ItemList extends Component {
     // var items = { action: pk, cart: cart };
     var formData = new FormData();
     formData.append('action', this.state.action);
+    formData.append('date', this.props.date.date);
     formData.append('items', JSON.stringify(cart));
     api.update('/counter/transfer/api/update/' + pk + '/', formData)
     .then(response => {
-      console.log(response);
       window.location.reload();
     })
     .catch(error => {
@@ -82,10 +86,10 @@ class ItemList extends Component {
   render() {
     return (
       <div className=" animated fadeIn panel-group panel-group-control panel-group-control-right content-group-lg">
-        <div className="col-md-6 text-bold ">
+        <div className="col-md-8 text-bold ">
         <ToastContainer />
           <div className="row">
-            <div className="col-md-4 bulk-actions no-print ">
+            <div className="col-md-2 bulk-actions no-print ">
               <label>
               <div className="all no-print ">
                 <div onClick={this.toggleCheckBox} className="">
@@ -97,7 +101,7 @@ class ItemList extends Component {
               </label>&nbsp;&nbsp;
               check all
             </div>
-            <div className="col-md-4 no-print ">
+            <div className="col-md-3 no-print ">
                 <Select2
                   data={ this.state.actions }
                   onChange={ this.onSelectChange }
@@ -109,7 +113,10 @@ class ItemList extends Component {
                   }}
                 />
             </div>
-            <div className="col-md-2 no-print ">
+            <div className="col-md-3 no-print">
+             <TransferDate />
+            </div>
+            <div className="col-md-1 no-print ">
                 <button onClick={this.handleSubmit} className="btn btn-primary bg-primary">Apply</button>
             </div>
           </div>
@@ -138,7 +145,6 @@ class ItemList extends Component {
               <th>Expected Qty</th>
               <th>Deficit</th>
               <th>Note</th>
-              <th className="text-center">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -173,12 +179,14 @@ ItemList.propTypes = {
   addCartItem: PropTypes.func.isRequired,
   cart: PropTypes.array.isRequired,
   items: PropTypes.array.isRequired,
-  deleteCartItem: PropTypes.func.isRequired
+  deleteCartItem: PropTypes.func.isRequired,
+  date: PropTypes.array.isRequired
 };
 function mapStateToProps(state) {
   return {
     items: state.items,
-    cart: state.cart
+    cart: state.cart,
+    date: state.transferDate
   };
 }
 

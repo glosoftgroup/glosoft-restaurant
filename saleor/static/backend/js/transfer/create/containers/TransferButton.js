@@ -29,21 +29,33 @@ export class TransferButton extends Component {
 
   handleSubmit = (e) => {
     e.preventDefault();
-    console.log('we submit data');
-    // submit
-    var formData = new FormData();
-    // validate
-    if (!this.props.date) {
-      formData.append('date', moment().format('YYYY-MM-DD'));
-    } else {
-      formData.append('date', this.props.date.date);
-    }
+    var props = { ...this.props };
+    var transferDate = props.date ? props.date.date : moment().format('YYYY-MM-DD');
     if (!this.props.counter) {
       toast.error('Please select Counter !', {
         position: toast.POSITION.BOTTOM_CENTER
       });
       return;
     }
+    // find seleted counter in closded counters
+    var found = props.closedCouters.find(function(element) {
+      return element.id === parseInt(props.counter.id);
+    });
+    if (found) {
+      if (moment(transferDate).isAfter(moment(found.last_open))) {
+        // You must close later date which is probably todays transfer
+        toast.error('Please close ' + found.last_open + ' counter transfer for ' + found.name + '.', {
+          position: toast.POSITION.BOTTOM_CENTER
+        });
+        return;
+      }
+    } else {
+      console.warn('not found');
+    }
+    // submit
+    var formData = new FormData();
+    // validate
+    formData.append('date', transferDate);
 
     if (!this.cartValidate()) {
       toast.error('All transfer cart items quantity should be a valid integer', {
@@ -86,6 +98,7 @@ export class TransferButton extends Component {
 
 TransferButton.propTypes = {
   cart: PropTypes.array.isRequired,
+  closedCouters: PropTypes.array.isRequired,
   counter: PropTypes.object,
   date: PropTypes.string.isRequired,
   totalQty: PropTypes.number.isRequired,

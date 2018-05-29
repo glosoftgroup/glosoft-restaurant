@@ -115,15 +115,15 @@ class TransferCart extends Component {
            </div>
            <div className="col-md-4">
            <Select2 ref="counter"
-                      onChange = {this.handleSelectChange}
-                      name = 'counter'
-                      value = {this.state.counter}
-                      options={{
-                        minimumResultsForSearch: -1,
-                        width: '100%',
-                        placeholder: 'Select counter'
-                      }}
-                      data={ this.state.closedCouters}/>
+              onChange = {this.handleSelectChange}
+              name = 'counter'
+              value = {this.state.counter}
+              options={{
+                minimumResultsForSearch: -1,
+                width: '100%',
+                placeholder: 'Select counter'
+              }}
+              data={ this.state.closedCouters}/>
            </div>
           </div>
           <div className="table-responsive">
@@ -179,7 +179,7 @@ class TransferCart extends Component {
                 </div>
             </div>
             <div className="col-md-6">
-              <TransferButton date={this.props.date} cart={this.props.cart} counter={this.props.counter} />
+              <TransferButton closedCouters={this.state.closedCouters} date={this.props.date} cart={this.props.cart} counter={this.props.counter} />
             </div>
           </div>
         </div>
