@@ -110,6 +110,7 @@ class Orders(models.Model):
         verbose_name=pgettext_lazy('Sales field', 'carry name'),
         max_length=255, default='', blank=True)
     old_orders = JSONField(null=True, blank=True)
+    point = JSONField(null=True, blank=True)
     objects = OrdersManager()
 
     class Meta:

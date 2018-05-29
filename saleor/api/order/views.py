@@ -196,9 +196,14 @@ class RestaurantOrdersListAPIView(generics.ListAPIView):
         # Note the use of `get_queryset()` instead of `self.queryset`
         query = self.request.GET.get('q')
         if query:
-            queryset = self.get_queryset().filter(ordered_items__sale_point__pk=pk).filter(Q(status='pending-payment') | Q(invoice_number__icontains=query)).distinct()
+            queryset = self.get_queryset().filter(
+                Q(status='pending-payment') | 
+                Q(invoice_number__icontains=query) | 
+                Q(room__name__icontains=query) | 
+                Q(table__name__icontains=query) |
+                Q(user__name__icontains=query)).distinct()
         else:
-            queryset = self.get_queryset().filter(ordered_items__sale_point__pk=pk).distinct()
+            queryset = self.get_queryset().distinct()
         serializer = RestaurantListOrderSerializer(queryset, context=serializer_context, many=True)
         return Response(serializer.data)
 

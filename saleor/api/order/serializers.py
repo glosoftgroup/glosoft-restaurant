@@ -94,14 +94,16 @@ class ListOrderSerializer(serializers.ModelSerializer):
                   'payment_data',
                   'status',
                   'total_tax',
-                  'discount_amount'
+                  'discount_amount',
+                  'point'
                   )
 
 
 class RestaurantListOrderSerializer(serializers.ModelSerializer):
-    ordered_items = serializers.SerializerMethodField()
+    ordered_items = ListItemSerializer(many=True)
+    point = serializers.SerializerMethodField()
     table = serializers.SerializerMethodField()
-    total_net = serializers.SerializerMethodField()
+    user = serializers.SerializerMethodField()
     update_url = HyperlinkedIdentityField(view_name='order-api:update-order')
 
     class Meta:
@@ -111,7 +113,8 @@ class RestaurantListOrderSerializer(serializers.ModelSerializer):
                   'created',
                   'invoice_number',
                   'table',
-                  'sale_point',
+                  'room',
+                  'point',
                   'total_net',
                   'sub_total',
                   'balance',
@@ -128,32 +131,37 @@ class RestaurantListOrderSerializer(serializers.ModelSerializer):
                   'discount_amount'
                   )
 
-    def get_ordered_items(self, orders):
-      items = OrderedItem.objects.filter(orders__pk=orders.pk, sale_point__pk=self.context['pk'])  # Whatever your query may be
-      serializer = ItemSerializer(instance=items, many=True)
-      return serializer.data
+    def get_point(self, orders):
+      try:
+          return {"id":orders.point['id'], "point":orders.point['point']}
+      except Exception as e:
+          return None
 
     def get_table(self, orders):
       try:
-          return orders.table.name
+          if orders.table:
+            return orders.table.name
+          elif orders.room:
+            return orders.room.name
       except Exception as e:
-          return 'Take away'
+          return "Take Away"
 
-    def get_total_net(self, orders):
-      initnumber = 0
+    def get_user(self, orders):
       try:
-          items = OrderedItem.objects.filter(orders__pk=orders.pk, sale_point__pk=self.context['pk'])  # Whatever your query may be
-          for i in items:
-            initnumber += i.total_cost
-          return initnumber
+          if orders.user.name:
+            return orders.user.name
+          elif orders.user.fullname:
+            return orders.user.fullname
       except Exception as e:
-          return initnumber
+          return "Not Set"
 
 
 class OrderSerializer(serializers.ModelSerializer):
     ordered_items = ItemSerializer(many=True)
     payment_data = JSONField()
     old_orders = JSONField()
+    point = JSONField()
+    waiter = serializers.CharField(required=False, write_only=True)
 
     class Meta:
         model = Orders
@@ -173,7 +181,9 @@ class OrderSerializer(serializers.ModelSerializer):
                   'status',
                   'total_tax',
                   'discount_amount',
-                  'old_orders'
+                  'old_orders',
+                  'point',
+                  'waiter'
                   )
 
     def validate_total_net(self, value):
@@ -220,17 +230,14 @@ class OrderSerializer(serializers.ModelSerializer):
             raise ValidationError('Terminal specified does not exist')
         return value
 
-    def validate_user(self, value):
+    def validate_waiter(self, value):
         data = self.get_initial()
-        user_id = int(data.get('user'))
+        user_id = int(data.get('waiter'))
         try:
             user = User.objects.get(pk=user_id)
-            print("*")*100
-            print user.name
-            print("*")*100
+            return user
         except Exception as e:
             raise ValidationError('User specified does not exist')
-        return value
 
     def create(self, validated_data):
         # add sold amount to drawer
@@ -254,10 +261,7 @@ class OrderSerializer(serializers.ModelSerializer):
             raise ValidationError('Ordered items field should not be empty')
         status = validated_data.get('status')
         # make a sale
-        print("!")*100
-        print validated_data.get('user')
-        print("!")*100
-        order.user = validated_data.get('user')
+        order.user = validated_data.get('waiter')
         order.invoice_number = validated_data.get('invoice_number')
         order.total_net = validated_data.get('total_net')
         order.debt = validated_data.get('total_net')
@@ -276,6 +280,7 @@ class OrderSerializer(serializers.ModelSerializer):
         order.total_tax = total_tax
         order.mobile = validated_data.get('mobile')
         order.discount_amount = validated_data.get('discount_amount')
+        order.point = validated_data.get('point')
 
         order.save()
         # add payment options
