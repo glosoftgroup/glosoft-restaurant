@@ -14,6 +14,9 @@ class ItemList extends Component {
   render() {
     return (
       <div className="panel-group panel-group-control panel-group-control-right content-group-lg">
+        <h2 className="col-md-12 text-center text-bold yes-print">
+        Transferred Item List
+        </h2>
         <table className="table table-hover table-xs">
           <thead>
             <tr className="bg-primary">

@@ -206,7 +206,7 @@ var parent = new Vue({
             }
             if(this.exportType == 'pdf'){
                 $("#printme").printThis({
-                    debug: false, // show the iframe for debugging
+                    debug: true, // show the iframe for debugging
                     importCSS: true, // import page CSS
                     importStyle: true, // import style tags
                     printContainer: true, // grab outer container as well as the contents of the selector

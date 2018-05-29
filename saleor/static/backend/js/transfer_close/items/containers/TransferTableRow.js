@@ -142,12 +142,12 @@ export class TransferTableRow extends Component {
          <span>{instance.description}</span>
         }
         {!instance.closed &&
-         <textarea className="form-control text-field" value={this.state.description} onChange={this.handleChange} />
+         <textarea className="no-print form-control text-field" value={this.state.description} onChange={this.handleChange} />
         }
         </td>
         <td className="text-center">
           {!instance.closed &&
-          <span>
+          <span className="no-print">
           <a onClick={ () => this.closeItem(false)} href="javascript:;" className="label label-primary">Carry forward</a>
           &nbsp;&nbsp;
           <a onClick={ () => this.closeItem(true)} href="javascript:;" className="label label-success">Return to stock</a>

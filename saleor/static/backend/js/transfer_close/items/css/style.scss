@@ -2,6 +2,19 @@
     padding: 1px 15px;
     color: #ffff;
 }
+#printme {
+  margin-top: 10px;
+  margin-right: 5px;
+}
+.text-black {
+  color: black !important;
+  :hover {
+      color: black;
+  }
+}
+.yes-print {
+  display: none;
+}
 
 input {
     padding-left: 0;
