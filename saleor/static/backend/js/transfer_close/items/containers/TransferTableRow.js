@@ -118,6 +118,9 @@ export class TransferTableRow extends Component {
             </span>
           </div>
         }
+        {instance.closed &&
+          <span className="text-size-small text-success">Closed</span>
+        }
         </td>
         <td>
           <span>
@@ -145,7 +148,7 @@ export class TransferTableRow extends Component {
          <textarea className="no-print form-control text-field" value={this.state.description} onChange={this.handleChange} />
         }
         </td>
-        <td className="text-center">
+        <td className="text-center hidden">
           {!instance.closed &&
           <span className="no-print">
           <a onClick={ () => this.closeItem(false)} href="javascript:;" className="label label-primary">Carry forward</a>

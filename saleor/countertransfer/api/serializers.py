@@ -362,11 +362,13 @@ class UpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Table
-        fields = ('id', 'action', 'items', )
+        fields = ('id', 'date', 'action', 'items', )
 
     def update(self, instance, validated_data):
         # action 1: carry forward 2: return to stock
+        # tomorrow = datetime.timedelta(days=1) + datetime.date.today()
         action = validated_data.get('action')
+        date = validated_data.pop('date')
         items = validated_data.pop('items')
         for cart in items:
             item = Item.objects.get(pk=cart['id'])
@@ -382,11 +384,10 @@ class UpdateSerializer(serializers.ModelSerializer):
             else:
                 # carry forward
                 # transfer to tomorrows stock
-                tomorrow = datetime.timedelta(days=1) + datetime.date.today()
                 query = Table.objects. \
-                    filter(counter=instance.counter, date__icontains=tomorrow)
+                    filter(counter=instance.counter, date__icontains=date)
                 if not query.exists():
-                    new_transfer = Table.objects.create(date=tomorrow, counter=instance.counter)
+                    new_transfer = Table.objects.create(date=date, counter=instance.counter)
                 else:
                     new_transfer = query.first()
                 carry_items(new_transfer, [item])

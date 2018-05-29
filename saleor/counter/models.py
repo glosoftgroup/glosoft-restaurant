@@ -41,3 +41,7 @@ class Counter(models.Model):
         if not transfers.exists():
             return True
         return False
+
+    def last_open(self):
+        transfers = self.item_counter.filter(closed=False).first()
+        return transfers.transfer.date
