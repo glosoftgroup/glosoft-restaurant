@@ -180,7 +180,7 @@
                         <td>${item.description}</td>
 
                         <td class="text-center">
-                            <ul class="icons-list">
+                            <ul class="icons-list" v-if="item.name !== 'Bar' && item.name !== 'Restaurant'">
                                 <li class="dropdown">
                                     <button type="button" class="btn btn-primary dropdown-toggle legitRipple" data-toggle="dropdown" aria-expanded="true">
                                         Actions<span class="caret"></span></button>

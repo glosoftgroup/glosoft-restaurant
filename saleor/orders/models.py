@@ -111,6 +111,8 @@ class Orders(models.Model):
         max_length=255, default='', blank=True)
     old_orders = JSONField(null=True, blank=True)
     point = JSONField(null=True, blank=True)
+    ready = models.BooleanField(default=False)
+    collected = models.BooleanField(default=False)
     objects = OrdersManager()
 
     class Meta:
@@ -134,6 +136,19 @@ class Orders(models.Model):
             return "Pending"
         else:
             return self.status
+
+    def ready_items(self, ready_status, point, counter_pk=None):
+        if point == "counter":
+            return OrderedItem.objects.filter(orders=self, ready=ready_status, counter__pk=counter_pk)
+        else:
+            return OrderedItem.objects.filter(orders=self, ready=ready_status, kitchen__pk=counter_pk)
+
+
+    def collected_items(self, collected_status, point, counter_pk=None):
+        if point == "counter":
+            return OrderedItem.objects.filter(orders=self, collected=collected_status, counter__pk=counter_pk)
+        else:
+            return OrderedItem.objects.filter(orders=self, collected=collected_status, kitchen__pk=counter_pk)
 
 
 @python_2_unicode_compatible
@@ -163,6 +178,8 @@ class OrderedItem(models.Model):
     kitchen = models.ForeignKey(
         Kitchen, related_name='order_item_kitchen', blank=True, null=True, default='',
         verbose_name=pgettext_lazy('OrderedItem field', 'Kitchen'))
+    ready = models.BooleanField(default=False)
+    collected = models.BooleanField(default=False)
 
     class Meta:
         ordering = ['order']

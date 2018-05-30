@@ -11,5 +11,8 @@ urlpatterns = [
     url(r'^business-type/(?P<pk>[0-9]+)/$',
         BusinessTypeCategoryListAPIView.as_view(),
         name='api-business_type-categories'),
+    url(r'^business-type/(?P<name>[\w\-]+)/$',
+        BusinessTypeCategoryListAPIView.as_view(),
+        name='api-business_type-categories-by-name'),
 ]
 

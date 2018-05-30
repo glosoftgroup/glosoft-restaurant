@@ -26,11 +26,15 @@ class BusinessTypeCategoryListAPIView(generics.ListAPIView):
     serializer_class = CategoryListSerializer
     queryset = Category.objects.all()
 
-    def list(self, request, pk=None):
+    def list(self, request, pk=None, name=None):
         serializer_context = {
             'request': Request(request),
         }
-        queryset = self.get_queryset().filter(section__pk=pk)
+        if pk:
+            queryset = self.get_queryset().filter(section__name=name)
+        if name:
+            queryset = self.get_queryset().filter(section__name=name)
+
         serializer = CategoryListSerializer(queryset, context=serializer_context, many=True)
         return Response(serializer.data)
 

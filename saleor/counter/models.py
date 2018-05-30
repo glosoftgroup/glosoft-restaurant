@@ -43,5 +43,8 @@ class Counter(models.Model):
         return False
 
     def last_open(self):
-        transfers = self.item_counter.filter(closed=False).first()
-        return transfers.transfer.date
+        try:
+            transfers = self.item_counter.filter(closed=False).first()
+            return transfers.transfer.date
+        except:
+            return ""

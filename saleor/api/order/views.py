@@ -17,7 +17,8 @@ from .serializers import (
     OrderSerializer,
     OrderUpdateSerializer,
     ListOrderItemSerializer,
-    RestaurantListOrderSerializer
+    OrderReadyOrCollectedSerializer,
+    SearchListOrderSerializer
      )
 from ...decorators import user_trail
 import logging
@@ -184,27 +185,64 @@ class TableOrdersListAPIView(generics.ListAPIView):
         return Response("successfully delete, status=204")
 
 
-class RestaurantOrdersListAPIView(generics.ListAPIView):
+class SearchOrdersListAPIView(generics.ListAPIView):
     queryset = Orders.objects.all()
-    serializer_class = RestaurantListOrderSerializer(instance=queryset, context=serializer_context)
+    serializer_class = SearchListOrderSerializer(instance=queryset, context=serializer_context)
 
     def list(self, request, pk=None):
         serializer_context = {
             'request': Request(request),
-            'pk': pk
+            'pk': pk,
+            'counter':self.request.GET.get('counter', ""),
+            'point':self.request.GET.get('point'),
+            'status':self.request.GET.get('status')
         }
         # Note the use of `get_queryset()` instead of `self.queryset`
+        queryset = Orders.objects.all()
+        counter = self.request.GET.get("counter", "")
+        point = self.request.GET.get("point", "")
+        status = self.request.GET.get('status')
+        readyStatusBoolean = False
+        collectedStatusBoolean = False
+        if status:
+            if status.lower() == "collected" or status.lower() == "not collected":
+                if status.lower() == "collected":
+                    collectedStatusBoolean = True
+                elif status.lower() == "not collected":
+                    collectedStatusBoolean = False
+                set_orders = []
+                for i in queryset:
+                    products_count = OrderedItem.objects.filter(orders=i, collected=collectedStatusBoolean, counter__pk=counter).count()
+                    if products_count>=1:
+                        set_orders.append(i.pk)
+
+                queryset = queryset.filter(pk__in=set_orders)
+
+            elif status.lower() == "ready" or status.lower() == "not ready":
+                if status.lower() == "ready":
+                    readyStatusBoolean = True
+                elif status.lower() == "not ready":
+                    readyStatusBoolean = False
+                set_orders = []
+                for i in queryset:
+                    products_count = OrderedItem.objects.filter(orders=i, ready=readyStatusBoolean, counter__pk=counter).count()
+                    if products_count>=1:
+                        set_orders.append(i.pk)
+
+                queryset = queryset.filter(pk__in=set_orders)
+
         query = self.request.GET.get('q')
         if query:
-            queryset = self.get_queryset().filter(
+            print 'query'
+            queryset = queryset.filter(
                 Q(status='pending-payment') | 
                 Q(invoice_number__icontains=query) | 
                 Q(room__name__icontains=query) | 
                 Q(table__name__icontains=query) |
                 Q(user__name__icontains=query)).distinct()
         else:
-            queryset = self.get_queryset().distinct()
-        serializer = RestaurantListOrderSerializer(queryset, context=serializer_context, many=True)
+            queryset = queryset.distinct()
+        serializer = SearchListOrderSerializer(queryset, context=serializer_context, many=True)
         return Response(serializer.data)
 
     def delete(self, request, pk=None):
@@ -312,3 +350,20 @@ def send_to_sale(credit):
                product_category=item.product_category
                )
         print new_item
+
+
+class OrderReadyOrCollectedAPIView(generics.RetrieveUpdateAPIView):
+    """
+        update order details
+
+        @:param pk order id
+        @:method PUT
+
+        PUT /api/order/update-order/62/
+        payload Json: /payload/update_order.json
+    """
+    queryset = Orders.objects.all()
+    serializer_class = OrderReadyOrCollectedSerializer
+
+
+

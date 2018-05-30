@@ -237,6 +237,13 @@ class PriceRangeType(graphene.ObjectType):
     min_price = graphene.Field(lambda: PriceType)
 
 
+from saleor.orders.models import *
+
+class OrdersType(DjangoObjectType):
+    class Meta:
+        model = Orders
+
+
 class Query(graphene.ObjectType):
     attributes = graphene.List(
         ProductAttributeType,
@@ -247,6 +254,44 @@ class Query(graphene.ObjectType):
     node = relay.Node.Field()
     root = graphene.Field(lambda: Query)
     debug = graphene.Field(DjangoDebug, name='__debug')
+    """ orders """
+    orders = graphene.List(OrdersType,
+                           point=graphene.String(),
+                           counter=graphene.Int())
+    order = graphene.Field(OrdersType,
+                           id=graphene.Int(),
+                           invoice_number=graphene.String()
+                           )
+    def resolve_order(self, args, context, info):
+        id = args.get('id')
+        invoice_number = args.get('invoice_number')
+
+        if id and invoice_number:
+            return Orders.objects.get(pk=id, invoice_number=invoice_number)
+
+        if id is not None:
+            return Orders.objects.get(pk=id)
+
+        if invoice_number is not None:
+            return Orders.objects.get(invoice_number=invoice_number)
+
+
+        return None
+
+    def resolve_orders(self, args, context, info):
+        counter = args.get('counter')
+        point = args.get('point')
+
+        all_orders = Orders.objects.all()
+
+        if counter and point:
+            counter_point = {"id": int(counter),"point": point}
+            return all_orders.filter(point=counter_point)
+
+        if all_orders:
+            return all_orders
+
+        return None
 
     def resolve_category(self, args, context, info):
         categories = Category.tree.filter(pk=args.get('pk')).get_cached_trees()
