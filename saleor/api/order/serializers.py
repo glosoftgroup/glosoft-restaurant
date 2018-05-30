@@ -101,6 +101,7 @@ class ListOrderSerializer(serializers.ModelSerializer):
 
 class RestaurantListOrderSerializer(serializers.ModelSerializer):
     ordered_items = ListItemSerializer(many=True)
+    testa = serializers.SerializerMethodField()
     point = serializers.SerializerMethodField()
     table = serializers.SerializerMethodField()
     user = serializers.SerializerMethodField()
@@ -128,7 +129,8 @@ class RestaurantListOrderSerializer(serializers.ModelSerializer):
                   'payment_data',
                   'status',
                   'total_tax',
-                  'discount_amount'
+                  'discount_amount',
+                  'testa'
                   )
 
     def get_point(self, orders):
@@ -154,6 +156,16 @@ class RestaurantListOrderSerializer(serializers.ModelSerializer):
             return orders.user.fullname
       except Exception as e:
           return "Not Set"
+
+    def get_testa(self, orders):
+      try:
+          # return orders.refined_items(False, "2")
+          return "test"
+      except Exception as e:
+          print "****************"
+          print e
+          print "****************"
+          return None
 
 
 class OrderSerializer(serializers.ModelSerializer):

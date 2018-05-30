@@ -194,16 +194,63 @@ class RestaurantOrdersListAPIView(generics.ListAPIView):
             'pk': pk
         }
         # Note the use of `get_queryset()` instead of `self.queryset`
+        queryset = Orders.objects.all()
+        counter = self.request.GET.get('counter', "")
+        point = self.request.GET.get('point')
+        status = self.request.GET.get('status')
+        statusBoolean = False
+        readyStatusBoolean = False
+        if counter and point:
+            counter_point = {"id": int(counter),"point": point}
+            queryset = queryset.filter(point=counter_point)
+        if status:
+            if status.lower() == "collected":
+                statusBoolean = True
+                queryset = queryset.filter(collected=statusBoolean)
+            elif status.lower() == "not collected":
+                statusBoolean = False
+                queryset = queryset.filter(collected=statusBoolean)
+            else:
+                if status.lower() == "ready":
+                    readyStatusBoolean = True
+                elif status.lower() == "not ready":
+                    readyStatusBoolean = False
+                set_orders = []
+                for i in queryset:
+                    products_count = OrderedItem.objects.filter(orders=i, ready=readyStatusBoolean, counter__pk=counter).count()
+                    if products_count>=1:
+                        set_orders.append(i.pk)
+
+                queryset = queryset.filter(pk__in=set_orders)
+                for i in queryset:
+                    products = OrderedItem.objects.filter(orders=i, ready=readyStatusBoolean, counter__pk=counter)
+                    products_count = products.count()
+                    if products_count>=1:
+                        setattr(i, "refined_items", products)
+                        setattr(i, "test", "products")
+                    else:
+                        setattr(i, "refined_items", [])
+                        setattr(i, "test", "products")
+
+                for i in queryset:
+                    print "****************"
+                    print i.refined_items
+                    if i.refined_items:
+                        for j in i.refined_items:
+                            print j.counter.name
+                    print "****************"
+
         query = self.request.GET.get('q')
         if query:
-            queryset = self.get_queryset().filter(
+            print 'query'
+            queryset = queryset.filter(
                 Q(status='pending-payment') | 
                 Q(invoice_number__icontains=query) | 
                 Q(room__name__icontains=query) | 
                 Q(table__name__icontains=query) |
                 Q(user__name__icontains=query)).distinct()
         else:
-            queryset = self.get_queryset().distinct()
+            queryset = queryset.distinct()
         serializer = RestaurantListOrderSerializer(queryset, context=serializer_context, many=True)
         return Response(serializer.data)
 
