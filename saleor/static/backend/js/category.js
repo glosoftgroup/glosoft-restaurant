@@ -31,7 +31,7 @@ $(function() {
           return false;
         }
         if(sale_point == 0){
-          notify('Sale point required');
+          notify('Business type required');
           return false;
         }
 

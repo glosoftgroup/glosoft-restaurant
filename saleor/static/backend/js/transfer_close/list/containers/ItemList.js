@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import TransferTableRow from './TransferTableRow';
+import ReactTooltip from 'react-tooltip';
 
 class ItemList extends Component {
   /*
@@ -14,14 +15,16 @@ class ItemList extends Component {
   render() {
     return (
       <div className="panel-group panel-group-control panel-group-control-right content-group-lg">
+      <ReactTooltip place="bottom"/>
         <table className="table table-hover table-xs">
           <thead>
             <tr className="bg-primary">
-              <th>Date</th>
-              <th>Counter</th>
-              <th>Quantity</th>
-              <th>Worth</th>
+              <th data-tip="Transfer date">Date</th>
+              <th data-tip="Counter name">Counter</th>
+              <th data-tip="Total quantity">Quantity</th>
+              <th data-tip="Transferred Items total cost price">Worth</th>
               <th>Status</th>
+              <th className="text-center">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -32,7 +35,7 @@ class ItemList extends Component {
           })
           }
           <tr>
-            <td colSpan={5}>
+            <td colSpan={6}>
             {this.props.items.results.length === 0 &&
             <div className="text-center">
               {this.props.items.loading &&

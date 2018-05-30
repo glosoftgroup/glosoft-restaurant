@@ -42,11 +42,11 @@ export class TransferTableRow extends Component {
   render() {
     var instance = { ...this.props.instance };
     return (
-      <tr className="cursor-pointer" onClick={ () => this.goTo(instance.closing_items_url)}>
+      <tr className="cursor-pointer">
         <td>{instance.date}</td>
         <td>{instance.counter.name}</td>
         <td>{instance.quantity}</td>
-        <td>{instance.worth}</td>
+        <td data-tip="Edit quantity">{instance.worth}</td>
         <td>
           {instance.all_item_closed &&
             <span className="text-success">closed</span>
@@ -54,6 +54,27 @@ export class TransferTableRow extends Component {
           {!instance.all_item_closed &&
             <span>open</span>
           }
+        </td>
+        <td className="text-center">
+        <ul className="icons-list">
+            <li className="dropdown">
+                <button type="button" data-toggle="dropdown" aria-expanded="true" className="no-print animated fadeIn btn btn-md btn-primary dropdown-toggle legitRipple">
+                Actions <span className="no-print  caret"></span>
+                </button>
+              <ul className="dropdown-menu dropdown-menu-right">
+                <li>
+                  <a onClick={ () => this.goTo(instance.closing_items_view_url)} href="javascript:;">
+                     <i className="icon-eye"></i> View
+                  </a>
+                </li>
+                <li>
+                  <a onClick={ () => this.goTo(instance.closing_items_url)} href="javascript:;">
+                     <i className="icon-pencil"></i> Close
+                  </a>
+                </li>
+              </ul>
+            </li>
+          </ul>
         </td>
     </tr>
     );

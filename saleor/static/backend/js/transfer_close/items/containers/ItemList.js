@@ -9,6 +9,7 @@ import { addCartItem, deleteCartItem } from '../actions/action-cart';
 import api from '../api/Api';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import ReactTooltip from 'react-tooltip';
 
 class ItemList extends Component {
   /*
@@ -55,16 +56,15 @@ class ItemList extends Component {
   }
   handleSubmit = (e) => {
     // bulk action here
-    console.log(this.props.date)
     var cart = this.props.cart;
     if (this.props.cart.length === 0) {
-      toast.error('Closing Cart is empty', {
+      toast.error('Please check on trasferred item(s) that you want to close. Closing Cart is empty', {
         position: toast.POSITION.BOTTOM_CENTER
       });
       return;
     }
     if (this.state.action === '') {
-      toast.error('Action required', {
+      toast.error('Please select closing action required', {
         position: toast.POSITION.BOTTOM_CENTER
       });
       return;
@@ -116,7 +116,7 @@ class ItemList extends Component {
             <div className="col-md-3 no-print">
              <TransferDate />
             </div>
-            <div className="col-md-1 no-print ">
+            <div className="col-md-1 no-print" data-tip="Close selected items">
                 <button onClick={this.handleSubmit} className="btn btn-primary bg-primary">Apply</button>
             </div>
           </div>
@@ -133,17 +133,18 @@ class ItemList extends Component {
         <h2 className="col-md-12 text-center text-bold yes-print">
         Transferred Item Closing Report
         </h2>
+        <ReactTooltip place="bottom"/>
         <table className="table table-hover table-xs">
           <thead>
             <tr className="bg-primary">
               <th>.</th>
               <th>Product</th>
-              <th>Selling Price</th>
+              <th>Cost Price</th>
               <th>Transferred Qty</th>
               <th>Sold</th>
               <th>Actual Qty</th>
               <th>Expected Qty</th>
-              <th>Deficit</th>
+              <th>Deficit/Surplus</th>
               <th>Note</th>
             </tr>
           </thead>

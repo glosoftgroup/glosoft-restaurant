@@ -98,7 +98,7 @@ class TransferItemManager(BaseUserManager):
             query = self.get_queryset().filter(stock=instance)
         total = 0
         for i in query:
-            total += Decimal(i.qty) * i.price
+            total += Decimal(i.qty) * Decimal(i.stock.cost_price.gross)
         return total
 
 
