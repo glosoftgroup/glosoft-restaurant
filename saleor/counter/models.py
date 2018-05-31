@@ -37,11 +37,17 @@ class Counter(models.Model):
 
     def is_closed(self):
         today = datetime.date.today()
-        transfers = self.item_counter.filter(transfer__date__lt=today, closed=False)
-        if not transfers.exists():
-            return True
-        return False
+        try:
+            transfers = self.item_counter.filter(transfer__date__lt=today, closed=False)
+            if not transfers.exists():
+                return True
+            return False
+        except:
+            return False
 
     def last_open(self):
-        transfers = self.item_counter.filter(closed=False).first()
-        return transfers.transfer.date
+        try:
+            transfers = self.item_counter.filter(closed=False).first()
+            return transfers.transfer.date
+        except:
+            return ''

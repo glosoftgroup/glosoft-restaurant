@@ -40,10 +40,17 @@ item_fields = ('id',
 class ItemsSerializer(serializers.ModelSerializer):
     sku = serializers.SerializerMethodField()
     quantity = serializers.SerializerMethodField()
+    cost_price = serializers.SerializerMethodField()
 
     class Meta:
         model = Item
-        fields = item_fields
+        fields = item_fields + ('cost_price',)
+
+    def get_cost_price(self, obj):
+        try:
+            return "{:,}".format(obj.stock.cost_price.gross)
+        except:
+            return ''
 
     def get_sku(self, obj):
         try:
@@ -193,7 +200,9 @@ class TableListSerializer(serializers.ModelSerializer):
     update_url = serializers.HyperlinkedIdentityField(view_name='countertransfer:api-update')
     update_items_url = serializers.HyperlinkedIdentityField(view_name='countertransfer:update')
     closing_items_url = serializers.HyperlinkedIdentityField(view_name='countertransfer:close-item')
+    closing_items_view_url = serializers.HyperlinkedIdentityField(view_name='countertransfer:close-item-view')
     delete_url = serializers.HyperlinkedIdentityField(view_name='countertransfer:api-delete')
+    view_url = serializers.HyperlinkedIdentityField(view_name='countertransfer:update-view')
     text = serializers.SerializerMethodField()
     counter = serializers.SerializerMethodField()
     date = serializers.SerializerMethodField()
@@ -207,7 +216,8 @@ class TableListSerializer(serializers.ModelSerializer):
         fields = fields + (
             'quantity', 'worth', 'all_item_closed',
             'counter_transfer_items', 'text',
-            'closing_items_url', 'update_url',
+            'closing_items_url', 'view_url',
+            'closing_items_view_url', 'update_url',
             'delete_url', 'update_items_url')
 
     def get_text(self, obj):

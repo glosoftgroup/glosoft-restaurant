@@ -82,7 +82,7 @@ export class TransferTableRow extends Component {
   }
   getDeficit = (actualQuantity) => {
     var instance = { ...this.props.instance };
-    var deficit = instance.qty - actualQuantity;
+    var deficit = actualQuantity - instance.qty;
     this.setState({deficit: deficit, qty: actualQuantity});
     this.updateCart(actualQuantity, deficit, this.state.description);
   }
@@ -127,7 +127,7 @@ export class TransferTableRow extends Component {
           {instance.productName}<br/>{instance.sku}
           </span>
         </td>
-        <td>{instance.unit_price}</td>
+        <td>{instance.cost_price}</td>
         <td>{instance.transferred_qty}</td>
         <td>{instance.sold}</td>
         <td>

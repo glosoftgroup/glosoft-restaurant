@@ -8,16 +8,19 @@ class TableListSerializer(serializers.ModelSerializer):
     update_url = serializers.HyperlinkedIdentityField(view_name='kitchen:api-update')
     delete_url = serializers.HyperlinkedIdentityField(view_name='kitchen:api-delete')
     text = serializers.SerializerMethodField()
+    is_closed = serializers.SerializerMethodField()
+    last_open = serializers.SerializerMethodField()
 
     class Meta:
         model = Table
         fields = ('id',
                   'name',
                   'text',
+                  'is_closed',
+                  'last_open',
                   'description',
                   'update_url',
-                  'delete_url'
-                 )
+                  'delete_url',)
 
     def get_text(self, obj):
         try:
@@ -25,14 +28,19 @@ class TableListSerializer(serializers.ModelSerializer):
         except:
             return ''
 
+    def get_is_closed(self, obj):
+        return obj.is_closed()
+
+    def get_last_open(self, obj):
+        return obj.last_open()
+
 
 class CreateListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Table
         fields = ('id',
                   'name',
-                  'description',
-                 )
+                  'description',)
 
     def create(self, validated_data):
         instance = Table()

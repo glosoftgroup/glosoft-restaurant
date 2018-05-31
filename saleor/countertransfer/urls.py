@@ -23,7 +23,11 @@ urlpatterns = [
     url(r'^close/$', TemplateView.as_view(template_name="countertransfer/close.html"), name='close'),
     url(r'^update/(?P<pk>[0-9]+)/$', UpdateView.as_view(template_name="countertransfer/items.html", model=Table, fields=['id', 'name']),
         name='update'),
+    url(r'^update/view/(?P<pk>[0-9]+)/$', UpdateView.as_view(template_name="countertransfer/item_view.html", model=Table, fields=['id', 'name']),
+        name='update-view'),
     url(r'^close/item/(?P<pk>[0-9]+)/$', UpdateView.as_view(template_name="countertransfer/item_closing.html", model=Table, fields=['id', 'name']),
         name='close-item'),
+    url(r'^close/item/view/(?P<pk>[0-9]+)/$', UpdateView.as_view(template_name="countertransfer/item_closing_view.html", model=Table, fields=['id', 'name']),
+        name='close-item-view'),
 ]
 
