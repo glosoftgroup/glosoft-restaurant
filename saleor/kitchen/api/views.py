@@ -4,7 +4,6 @@ from django.contrib.auth import get_user_model
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework import pagination
 from .pagination import PostLimitOffsetPagination
-
 from saleor.kitchen.models import Kitchen as Table
 from .serializers import (
     CreateListSerializer,
@@ -27,7 +26,6 @@ class DestroyView(generics.DestroyAPIView):
 class ListAPIView(generics.ListAPIView):
     """
         list details
-        GET /api/setting/
     """
     serializer_class = TableListSerializer
     permission_classes = (IsAuthenticatedOrReadOnly,)
