@@ -46,8 +46,8 @@ class FilterBlock extends Component {
       delete obj['closing_items_url'];
       delete obj['counter_transfer_items'];
       delete obj['text'];
-      obj['counter'] = obj.counter.name;
-      obj['closed'] = obj.all_item_closed;
+      delete obj['counter'];
+      delete obj['closed'];
       delete obj['all_item_closed'];
       items.push(obj);
     });
@@ -69,15 +69,15 @@ class FilterBlock extends Component {
             <li>
               <FilterSearch />
             </li>
-            <li><a href="javascript:;" className="text-bold"> Date:</a></li>
-            <li>
+            <li className="hidden"><a href="javascript:;" className="text-bold"> Date:</a></li>
+            <li className="hidden">
               <FilterDate />
             </li>
             <li>
-              <PrintThis printCssPaths={this.state.printCssPaths} />
+              <PrintThis printCssPaths={this.state.printCssPaths} title={'Stock Transfer Date:' + this.props.items.date + ' Kitchen:' + this.props.items.counter} />
             </li>
             <li>
-              <CsvExport getData={this.getData} title={this.state.title} label={this.state.label} />
+              <CsvExport getData={this.getData} title={'Stock Transfer Date:' + this.props.items.date + ' Kitchen:' + this.props.items.counter} label={this.state.label} />
             </li>
         </ul>
       </div>

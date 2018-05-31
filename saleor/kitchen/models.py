@@ -43,7 +43,7 @@ class Kitchen(models.Model):
                 return True
             return False
         except:
-            return False
+            return True
 
     def last_open(self):
         try:

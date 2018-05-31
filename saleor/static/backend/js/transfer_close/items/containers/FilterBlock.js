@@ -63,8 +63,8 @@ class FilterBlock extends Component {
             <li>
               <FilterSearch />
             </li>
-            <li><a href="javascript:;" className="text-bold"> Date:</a></li>
-            <li>
+            <li className="hidden"><a href="javascript:;" className="text-bold"> Date:</a></li>
+            <li className="hidden">
               <FilterDate />
             </li>
             <li>

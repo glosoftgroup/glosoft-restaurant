@@ -130,7 +130,7 @@ class CounterTransferItems(models.Model):
                                       verbose_name=pgettext_lazy('CounterTransfer field', 'quantity'))
     transferred_qty = models.PositiveIntegerField(default=1,
                                                   verbose_name=pgettext_lazy('CounterTransfer field', 'transferred_qty'))
-    deficit = models.PositiveIntegerField(default=0,
+    deficit = models.IntegerField(default=0,
                                           verbose_name=pgettext_lazy('CounterTransfer field', 'deficit'))
     expected_qty = models.PositiveIntegerField(default=1,
                                                verbose_name=pgettext_lazy('CounterTransfer field', 'expected_qty'))

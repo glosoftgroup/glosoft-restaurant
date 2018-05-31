@@ -217,6 +217,7 @@ INSTALLED_APPS = [
     'saleor.section',
     'saleor.kitchen',
     'saleor.countertransfer',
+    'saleor.kitchentransfer',
     'saleor.propertytype',
     'saleor.counter',
     'saleor.orders',

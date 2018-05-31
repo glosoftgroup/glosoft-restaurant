@@ -39,7 +39,6 @@
                     <ul class="nav nav-tabs nav-tabs-highlight"  style="margin-bottom:0px;">
                       <li class="active"><a href="#basic" data-toggle="tab">Basic Settings</a></li>
                       <li><a href="#sms" data-toggle="tab" disabled>Communications</a></li>
-                      <li><a href="#booking" data-toggle="tab" disabled>Room Booking</a></li>
                         {% if perms.sales.import_database or perms.sales.export_database %}
                             <li><a href="#db" data-toggle="tab">Databases</a></li>
                         {% endif %}
@@ -49,12 +48,6 @@
                       <div class="tab-pane fade in active" id="basic">
                        <!--  basic settings -->
                         {% include "dashboard/sites/_basic_config.html" with form=form %}
-                        <!-- ./end bsettings -->
-                      </div>
-
-                      <div class="tab-pane fade in active" id="booking">
-                       <!--  basic settings -->
-                        {% include "dashboard/sites/_booking.html" with form=form %}
                         <!-- ./end bsettings -->
                       </div>
 

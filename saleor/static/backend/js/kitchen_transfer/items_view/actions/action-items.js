@@ -27,7 +27,7 @@ export const fetchItems = (params = {}) => {
         url = url.slice(0, -1);
       }
     }
-    api.retrieve('/counter/transfer/api/list/items/' + pk + '/?' + url)
+    api.retrieve('/kitchen/transfer/api/list/items/' + pk + '/?' + url)
       .then(data => {
         data.loading = false;
         dispatch(setItems(data.data));

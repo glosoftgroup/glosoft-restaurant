@@ -64,7 +64,7 @@ class ItemList extends Component {
       return;
     }
     if (this.state.action === '') {
-      toast.error('Please select closing action required', {
+      toast.error('Please select closing action.', {
         position: toast.POSITION.BOTTOM_CENTER
       });
       return;

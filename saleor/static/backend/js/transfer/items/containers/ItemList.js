@@ -43,7 +43,7 @@ class ItemList extends Component {
           })
           }
           <tr>
-            <td colSpan={7}>
+            <td colSpan={8}>
             {this.props.items.results.length === 0 &&
             <div className="text-center">
               {this.props.items.loading &&

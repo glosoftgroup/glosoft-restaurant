@@ -26,7 +26,7 @@ class TransferCart extends Component {
     this.getCounters();
   }
   getCounters = () => {
-    api.retrieve('/counter/api/list')
+    api.retrieve('/kitchen/api/list')
     .then((response) => { return response.data.results; })
     .then((response) => {
       console.log(response);
@@ -94,7 +94,7 @@ class TransferCart extends Component {
         {this.state.openCounters.length !== 0 &&
          <div className="alert alert-warning no-border text-center">
            <button type="button" className="close" data-dismiss="alert"><span>×</span><span className="sr-only">Close</span></button>
-         <span className="text-semibold">Heads up!</span> Some counters previous transfers were not closed. <a href="/counter/transfer/close/" className="alert-link"> Close them to enable transfer to those counters</a>.
+         <span className="text-semibold">Heads up!</span> Some kitchen previous transfers were not closed. <a href="/kitchen/transfer/close/" className="alert-link"> Close them to enable transfer to those kitchens</a>.
          </div>
         }
         {this.props.cart.length !== 0 &&
@@ -110,7 +110,7 @@ class TransferCart extends Component {
             </div>
            <div className="col-md-2 transfer-to-padding">
              <span className="text-bold">
-               Counter:
+               Kitchen:
              </span>
            </div>
            <div className="col-md-4">
@@ -121,7 +121,7 @@ class TransferCart extends Component {
               options={{
                 minimumResultsForSearch: -1,
                 width: '100%',
-                placeholder: 'Select counter'
+                placeholder: 'Select kitchen'
               }}
               data={ this.state.closedCouters}/>
            </div>

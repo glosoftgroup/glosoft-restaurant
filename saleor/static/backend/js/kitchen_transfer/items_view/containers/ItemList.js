@@ -18,7 +18,7 @@ class ItemList extends Component {
         <h6 className="text-bold text-center">
          <span className="text-bold text-primary">DATE: </span>
          {this.props.items.date} &nbsp;
-         <span className="text-bold text-primary">COUNTER: </span>
+         <span className="text-bold text-primary">Kitchen: </span>
          {this.props.items.counter}
         </h6>
         <ReactTooltip place="bottom"/>

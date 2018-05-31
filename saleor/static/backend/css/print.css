@@ -10,4 +10,7 @@
     .bg-primary {
       background-color: blue;
     }
+    .__react_component_tooltip {
+        display: none !important;
+    }
 }

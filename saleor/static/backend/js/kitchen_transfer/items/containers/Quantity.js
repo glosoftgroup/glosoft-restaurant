@@ -39,10 +39,14 @@ export class Quantity extends Component {
         [e.target.name]: value
       });
     } else if (!this.isNumeric(value)) {
-      toast.error('Quantity must be a digit!');
+      toast.error('Quantity must be a digit!', {
+        position: toast.POSITION.BOTTOM_CENTER
+      });
       return;
     } else if (value < 1) {
-      toast.error('Quantity must more than one!');
+      toast.error('Quantity must be more than one!', {
+        position: toast.POSITION.BOTTOM_CENTER
+      });
       return;
     } else {
       this.setState({
@@ -58,18 +62,22 @@ export class Quantity extends Component {
     if (this.state.qty < this.props.instance.qty) {
       console.warn('reduce qty');
     } else if (this.state.qty > this.state.maxQty) {
-      toast.error('Transfer Quantity cannot be more than ' + this.state.maxQty + '!');
+      toast.error('Transfer Quantity for ' + this.props.instance.sku + ' cannot be more than ' + this.state.maxQty + '!', {
+        position: toast.POSITION.BOTTOM_CENTER
+      });
       return;
     }
     if (!this.isNumeric(this.state.qty)) {
-      toast.error('Quantity must be a digit!');
+      toast.error('Quantity must be a digit!', {
+        position: toast.POSITION.BOTTOM_CENTER
+      });
       return;
     }
     var formData = new FormData();
     formData.append('close_details', JSON.stringify([]));
     formData.append('qty', this.state.qty);
     formData.append('price', (this.props.instance.unit_price * this.state.qty));
-    api.update('/counter/transfer/api/update/item/' + this.props.instance.id + '/', formData)
+    api.update('/kitchen/transfer/api/update/item/' + this.props.instance.id + '/', formData)
     .then((response) => {
       this.setState({isOpen: false});
       this.props.fetchItems();
