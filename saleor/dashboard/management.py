@@ -4,6 +4,7 @@ from django.contrib.auth.models import Permission
 from ..sale.models import PaymentOption, Terminal
 from ..product.models import StockLocation
 from saleor.salepoints.models import SalePoint
+from saleor.section.models import Section
 from saleor.supplier.models import Supplier
 from saleor.payment.models import PaymentOption as Payment
 
@@ -32,6 +33,18 @@ def add_sale_point(sender, **kwargs):
         if not instance.exists():
             SalePoint.objects.create(name="Bar")
             SalePoint.objects.create(name="Restaurant")
+    except Exception as e:
+        print e
+
+
+def add_section(sender, **kwargs):
+    try:
+        bar = Section.objects.filter(name='Bar')
+        if not bar.exists():
+            Section.objects.create(name="Bar", description="Bar")
+        restaurant = Section.objects.filter(name='Restaurant', description="Restaurant")
+        if not restaurant.exists():
+            Section.objects.create(name="Restaurant")
     except Exception as e:
         print e
 
@@ -141,4 +154,5 @@ post_migrate.connect(add_stock_payment_options)
 post_migrate.connect(add_terminal)
 post_migrate.connect(add_stock_location)
 post_migrate.connect(add_sale_point)
+post_migrate.connect(add_section)
 post_migrate.connect(add_default_supplier)

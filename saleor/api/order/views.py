@@ -17,7 +17,8 @@ from .serializers import (
     OrderSerializer,
     OrderUpdateSerializer,
     ListOrderItemSerializer,
-    RestaurantListOrderSerializer
+    OrderReadyOrCollectedSerializer,
+    SearchListOrderSerializer
      )
 from ...decorators import user_trail
 import logging
@@ -184,33 +185,40 @@ class TableOrdersListAPIView(generics.ListAPIView):
         return Response("successfully delete, status=204")
 
 
-class RestaurantOrdersListAPIView(generics.ListAPIView):
+class SearchOrdersListAPIView(generics.ListAPIView):
     queryset = Orders.objects.all()
-    serializer_class = RestaurantListOrderSerializer(instance=queryset, context=serializer_context)
+    serializer_class = SearchListOrderSerializer(instance=queryset, context=serializer_context)
 
     def list(self, request, pk=None):
         serializer_context = {
             'request': Request(request),
-            'pk': pk
+            'pk': pk,
+            'counter':self.request.GET.get('counter', ""),
+            'point':self.request.GET.get('point'),
+            'status':self.request.GET.get('status')
         }
         # Note the use of `get_queryset()` instead of `self.queryset`
         queryset = Orders.objects.all()
-        counter = self.request.GET.get('counter', "")
-        point = self.request.GET.get('point')
+        counter = self.request.GET.get("counter", "")
+        point = self.request.GET.get("point", "")
         status = self.request.GET.get('status')
-        statusBoolean = False
         readyStatusBoolean = False
-        if counter and point:
-            counter_point = {"id": int(counter),"point": point}
-            queryset = queryset.filter(point=counter_point)
+        collectedStatusBoolean = False
         if status:
-            if status.lower() == "collected":
-                statusBoolean = True
-                queryset = queryset.filter(collected=statusBoolean)
-            elif status.lower() == "not collected":
-                statusBoolean = False
-                queryset = queryset.filter(collected=statusBoolean)
-            else:
+            if status.lower() == "collected" or status.lower() == "not collected":
+                if status.lower() == "collected":
+                    collectedStatusBoolean = True
+                elif status.lower() == "not collected":
+                    collectedStatusBoolean = False
+                set_orders = []
+                for i in queryset:
+                    products_count = OrderedItem.objects.filter(orders=i, collected=collectedStatusBoolean, counter__pk=counter).count()
+                    if products_count>=1:
+                        set_orders.append(i.pk)
+
+                queryset = queryset.filter(pk__in=set_orders)
+
+            elif status.lower() == "ready" or status.lower() == "not ready":
                 if status.lower() == "ready":
                     readyStatusBoolean = True
                 elif status.lower() == "not ready":
@@ -222,23 +230,6 @@ class RestaurantOrdersListAPIView(generics.ListAPIView):
                         set_orders.append(i.pk)
 
                 queryset = queryset.filter(pk__in=set_orders)
-                for i in queryset:
-                    products = OrderedItem.objects.filter(orders=i, ready=readyStatusBoolean, counter__pk=counter)
-                    products_count = products.count()
-                    if products_count>=1:
-                        setattr(i, "refined_items", products)
-                        setattr(i, "test", "products")
-                    else:
-                        setattr(i, "refined_items", [])
-                        setattr(i, "test", "products")
-
-                for i in queryset:
-                    print "****************"
-                    print i.refined_items
-                    if i.refined_items:
-                        for j in i.refined_items:
-                            print j.counter.name
-                    print "****************"
 
         query = self.request.GET.get('q')
         if query:
@@ -251,7 +242,7 @@ class RestaurantOrdersListAPIView(generics.ListAPIView):
                 Q(user__name__icontains=query)).distinct()
         else:
             queryset = queryset.distinct()
-        serializer = RestaurantListOrderSerializer(queryset, context=serializer_context, many=True)
+        serializer = SearchListOrderSerializer(queryset, context=serializer_context, many=True)
         return Response(serializer.data)
 
     def delete(self, request, pk=None):
@@ -359,3 +350,20 @@ def send_to_sale(credit):
                product_category=item.product_category
                )
         print new_item
+
+
+class OrderReadyOrCollectedAPIView(generics.RetrieveUpdateAPIView):
+    """
+        update order details
+
+        @:param pk order id
+        @:method PUT
+
+        PUT /api/order/update-order/62/
+        payload Json: /payload/update_order.json
+    """
+    queryset = Orders.objects.all()
+    serializer_class = OrderReadyOrCollectedSerializer
+
+
+

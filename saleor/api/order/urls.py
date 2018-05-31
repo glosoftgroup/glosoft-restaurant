@@ -6,12 +6,13 @@ from .views import (
     OrderListAPIView,
     OrderStatusListAPIView,
     OrderUpdateAPIView,
+    OrderReadyOrCollectedAPIView,
+    RoomOrdersListAPIView,
     SalePointNextOrdersListAPIView,
     SalePointOrdersItemListAPIView,
     SalePointOrdersListAPIView,
+    SearchOrdersListAPIView,
     TableOrdersListAPIView,
-    RoomOrdersListAPIView,
-    RestaurantOrdersListAPIView,
     )
 
 
@@ -38,8 +39,8 @@ urlpatterns = [
     url(r'^table/(?P<pk>[0-9]+)$',
         TableOrdersListAPIView.as_view(),
         name='api-table-orders'),
-    url(r'^rest/orders/(?P<pk>[0-9]+)/$',
-        RestaurantOrdersListAPIView.as_view(),
+    url(r'^search/orders/$',
+        SearchOrdersListAPIView.as_view(),
         name='api-restaurant-orders'),
     url(r'^room/(?P<pk>[0-9]+)$',
         RoomOrdersListAPIView.as_view(),
@@ -47,6 +48,8 @@ urlpatterns = [
     url(r'^update-order/(?P<pk>[0-9]+)/$',
         OrderUpdateAPIView.as_view(),
         name='update-order'),
-
+    url(r'^ready/collect/order/(?P<pk>[0-9]+)/$',
+        OrderReadyOrCollectedAPIView.as_view(),
+        name='ready-collect-order'),
 ]
 

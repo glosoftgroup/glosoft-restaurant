@@ -41,7 +41,9 @@ item_fields = ( 'id',
                 'product_name',
                 'product_category',
                 'tax',
-                'discount',)
+                'discount',
+                'ready',
+                'collected')
 
 class ItemSerializer(serializers.ModelSerializer):
     
@@ -99,13 +101,13 @@ class ListOrderSerializer(serializers.ModelSerializer):
                   )
 
 
-class RestaurantListOrderSerializer(serializers.ModelSerializer):
-    ordered_items = ListItemSerializer(many=True)
-    testa = serializers.SerializerMethodField()
+class SearchListOrderSerializer(serializers.ModelSerializer):
+    ordered_items = serializers.SerializerMethodField()
     point = serializers.SerializerMethodField()
     table = serializers.SerializerMethodField()
     user = serializers.SerializerMethodField()
     update_url = HyperlinkedIdentityField(view_name='order-api:update-order')
+    ready_collect_url = HyperlinkedIdentityField(view_name='order-api:ready-collect-order')
 
     class Meta:
         model = Orders
@@ -122,6 +124,7 @@ class RestaurantListOrderSerializer(serializers.ModelSerializer):
                   'terminal',
                   'amount_paid',
                   'update_url',
+                  'ready_collect_url',
                   'ordered_items',
                   'customer',
                   'mobile',
@@ -129,8 +132,7 @@ class RestaurantListOrderSerializer(serializers.ModelSerializer):
                   'payment_data',
                   'status',
                   'total_tax',
-                  'discount_amount',
-                  'testa'
+                  'discount_amount'
                   )
 
     def get_point(self, orders):
@@ -157,15 +159,63 @@ class RestaurantListOrderSerializer(serializers.ModelSerializer):
       except Exception as e:
           return "Not Set"
 
-    def get_testa(self, orders):
-      try:
-          # return orders.refined_items(False, "2")
-          return "test"
-      except Exception as e:
-          print "****************"
-          print e
-          print "****************"
-          return None
+    def get_ordered_items(self, orders):
+        try:
+            point = self.context.get('point')
+            counter = self.context.get('counter')
+            status = self.context.get('status')
+
+            if counter:
+                counter = int(counter)
+            else:
+                counter = None
+
+            if status.lower() == "collected" or status.lower() == "not collected":
+                if status.lower() == "collected":
+                    collectedStatusBoolean = True
+                elif status.lower() == "not collected":
+                    collectedStatusBoolean = False
+                items = orders.collected_items(collectedStatusBoolean, point, counter)
+
+            elif status.lower() == "ready" or status.lower() == "not ready":
+                if status.lower() == "ready":
+                    readyStatusBoolean = True
+                elif status.lower() == "not ready":
+                    readyStatusBoolean = False
+                items = orders.ready_items(readyStatusBoolean, point, counter)
+
+            items_array = []
+            for i in items:
+                try:
+                    counter = {"id": i.counter.id, "name": i.counter.name}
+                except:
+                    counter =  None
+
+                try:
+                    kitchen =  {"id": i.kitchen.id, "name": i.kitchen.name}
+                except:
+                    kitchen = None
+
+                item = {
+                    "id": i.id,
+                    "counter": counter,
+                    "kitchen": kitchen,
+                    "sku": i.sku,
+                    "transfer_id": i.transfer_id,
+                    "quantity": i.quantity,
+                    "unit_cost": i.unit_cost,
+                    "total_cost": i.total_cost,
+                    "product_name": i.product_name,
+                    "product_category": i.product_category,
+                    "tax": i.tax,
+                    "discount": i.discount,
+                    "ready": i.ready,
+                    "collected": i.collected
+                }
+                items_array.append(item)
+            return items_array
+        except Exception as e:
+            return None
 
 
 class OrderSerializer(serializers.ModelSerializer):
@@ -459,3 +509,43 @@ class ListOrderItemSerializer(serializers.ModelSerializer):
             return obj.orders.table.id
         except Exception as e:
             return 'Take away'
+
+
+class OrderReadyOrCollectedSerializer(serializers.ModelSerializer):
+    ordered_items = ItemSerializer(many=True)
+
+    class Meta:
+        model = Orders
+        fields = ('id',
+                  'invoice_number',
+                  'ordered_items',
+                  )
+
+
+
+    def update(self, instance, validated_data):
+        try:
+            ordered_items_data = validated_data.pop('ordered_items')
+        except Exception as e:
+            raise ValidationError('Ordered items field should not be empty')
+
+        """ get all the ordered items and update their ready or collected status' """
+        for ordered_item_data in ordered_items_data:
+            try:
+                if ordered_item_data['counter'] is not None:
+                    filtereditems = OrderedItem.objects.filter(sku=ordered_item_data['sku'], counter=ordered_item_data['counter'])
+            except:
+                pass
+
+            try:
+                if ordered_item_data['kitchen'] is not None:
+                    filtereditems = OrderedItem.objects.filter(sku=ordered_item_data['sku'], kitchen=ordered_item_data['kitchen'])
+            except:
+                pass
+
+            if filtereditems:
+                for i in filtereditems:
+                    i.ready = ordered_item_data['ready']
+                    i.collected = ordered_item_data['collected']
+                    i.save()
+        return instance
