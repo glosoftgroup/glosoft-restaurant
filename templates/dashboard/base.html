@@ -325,9 +325,15 @@
                         </a>
                         </li>
                            <li class="{% block menu_release_kitchen_class %}{% endblock %}">
-                            <a href="{% url 'countertransfer:index' %}">
+                            <a href="{% url 'kitchentransfer:index' %}">
                                 <i class='icon-move-up2'></i>
                                 Kitchen Stock
+                            </a>
+                        </li>
+                        <li class="{% block menu_close_kitchen_class %}{% endblock %}">
+                            <a href="{% url 'kitchentransfer:close' %}">
+                                <i class='icon-lock'></i>
+                                Close Kitchen Stock
                             </a>
                         </li>
                         {% endif %}

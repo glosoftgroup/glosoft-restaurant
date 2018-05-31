@@ -277,7 +277,10 @@ export default class PrintThis extends Component {
           removeScripts: false    // remove script tags before appending
       };
     })(jQuery);
-    $('#root').printThis({loadCSS: this.props.printCssPaths});
+    $('#root').printThis({
+      loadCSS: this.props.printCssPaths,
+      pageTitle: this.props.title
+    });
   }
   render() {
     return (

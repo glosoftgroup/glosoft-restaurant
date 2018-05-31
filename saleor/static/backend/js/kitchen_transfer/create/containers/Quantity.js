@@ -39,14 +39,20 @@ export class Quantity extends Component {
     if (value === '') {
       // pass
     } else if (!this.isNumeric(value)) {
-      toast.error('Quantity must be a digit!');
+      toast.error('Quantity must be a digit!', {
+        position: toast.POSITION.BOTTOM_CENTER
+      });
       return;
     } else if (value < 1) {
-      toast.error('Quantity must more than one!');
+      toast.error('Each transferred item quantity must more than one!', {
+        position: toast.POSITION.BOTTOM_CENTER
+      });
       return;
     }
     if (value > this.state.maxQty) {
-      toast.error(this.props.instance.sku + ' has ' + this.state.maxQty + ' items remaining! You can not transfer more that.');
+      toast.error(this.props.instance.sku + ' has ' + this.state.maxQty + ' items remaining! You can not transfer more that.', {
+        position: toast.POSITION.BOTTOM_CENTER
+      });
       return;
     }
 

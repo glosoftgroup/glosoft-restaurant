@@ -17,7 +17,7 @@ class FilterBlock extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      title: 'Counter transfer list',
+      title: 'Kitchen transfer list',
       label: 'Transfer Report',
       exportData: [],
       printCssPaths: []
@@ -43,11 +43,14 @@ class FilterBlock extends Component {
       delete obj['update_items_url'];
       delete obj['update_url'];
       delete obj['delete_url'];
+      delete obj['view_url'];
+      delete obj['closing_items_view_url'];
       delete obj['closing_items_url'];
-      delete obj['counter_transfer_items'];
+      delete obj['kitchen_transfer_items'];
       delete obj['text'];
-      obj['counter'] = obj.counter.name;
+      obj['kitchen'] = obj.counter.name;
       obj['closed'] = obj.all_item_closed;
+      delete obj['counter'];
       delete obj['all_item_closed'];
       items.push(obj);
     });
@@ -58,7 +61,7 @@ class FilterBlock extends Component {
       <div className="no-print breadcrumb-line breadcrumb-line-component content-group-lg">
         <ul className="breadcrumb">
             <li>
-              <a className="text-white btn btn-primary btn-sm btn-raised legitRipple" href="/counter/transfer/add/">
+              <a className="text-white btn btn-primary btn-sm btn-raised legitRipple" href="/kitchen/transfer/add/">
               <i className="icon-add position-left"></i>
               Transfer
               </a>
@@ -74,7 +77,7 @@ class FilterBlock extends Component {
               <FilterDate />
             </li>
             <li>
-              <PrintThis printCssPaths={this.state.printCssPaths} />
+              <PrintThis printCssPaths={this.state.printCssPaths} title={this.state.title}/>
             </li>
             <li>
               <CsvExport getData={this.getData} title={this.state.title} label={this.state.label} />

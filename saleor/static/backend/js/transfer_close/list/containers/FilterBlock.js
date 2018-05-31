@@ -43,6 +43,8 @@ class FilterBlock extends Component {
       delete obj['update_items_url'];
       delete obj['update_url'];
       delete obj['delete_url'];
+      delete obj['view_url'];
+      delete obj['closing_items_view_url'];
       delete obj['closing_items_url'];
       delete obj['counter_transfer_items'];
       delete obj['text'];
@@ -74,7 +76,7 @@ class FilterBlock extends Component {
               <FilterDate />
             </li>
             <li>
-              <PrintThis printCssPaths={this.state.printCssPaths} />
+              <PrintThis printCssPaths={this.state.printCssPaths} title={this.state.title}/>
             </li>
             <li>
               <CsvExport getData={this.getData} title={this.state.title} label={this.state.label} />
