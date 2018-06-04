@@ -12,6 +12,7 @@ from datetime import date
 from django.utils.dateformat import DateFormat
 from django.utils.encoding import smart_str
 from ...salepoints.models import SalePoint
+from ...section.models import Section
 from ..views import staff_member_required
 from ...userprofile.models import User
 from ...sale.models import Sales, SoldItem
@@ -210,18 +211,35 @@ def sales_detail(request, pk=None, point=None):
 
 		sale_points = []
 		sale_items = []
-		for n in SalePoint.objects.all():
+		for n in Section.objects.all():
 			sale_points.append(n.name)
 
 		all_sale_points = list(set(sale_points))
 
-		for i in all_sale_points:
-			items = SoldItem.objects.filter(sales=sale, sale_point__name=i)
+		# for i in all_sale_points:
+		# 	items = SoldItem.objects.filter(sales=sale, sale_point__name=i)
+		# 	try:
+		# 		totals = items.aggregate(Sum('total_cost'))['total_cost__sum']
+		# 	except:
+		# 		totals = 0
+		# 	sale_items.append({'name': i, 'items': items, 'amount': totals})
+		counter_items = SoldItem.objects.filter(sales=sale, kitchen__isnull=True)
+		if counter_items.exists():
 			try:
-				totals = items.aggregate(Sum('total_cost'))['total_cost__sum']
+				totals = counter_items.aggregate(Sum('total_cost'))['total_cost__sum']
 			except:
 				totals = 0
-			sale_items.append({'name': i, 'items': items, 'amount': totals})
+			bar = Section.objects.get(name="Bar")
+			sale_items.append({'name': bar.name, 'pk': bar.pk, 'items': counter_items, 'amount': totals})
+
+		kitchen_items = SoldItem.objects.filter(sales=sale, counter__isnull=True)
+		if kitchen_items.exists():
+			try:
+				totals = kitchen_items.aggregate(Sum('total_cost'))['total_cost__sum']
+			except:
+				totals = 0
+			rest = Section.objects.get(name="Restaurant")
+			sale_items.append({'name': rest.name, 'pk': rest.pk, 'items': kitchen_items, 'amount': totals})
 
 		data = {
 			'today': date.today(),

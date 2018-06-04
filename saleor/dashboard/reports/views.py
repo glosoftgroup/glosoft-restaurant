@@ -16,6 +16,7 @@ from ..views import staff_member_required
 from ...sale.models import Sales, SoldItem, DrawerCash
 from ...product.models import ProductVariant
 from ...salepoints.models import SalePoint
+from ...section.models import Section
 from ...decorators import permission_decorator, user_trail
 from ...dashboard.views import get_low_stock_products
 
@@ -79,15 +80,33 @@ def sales_detail(request, pk=None, point=None):
 
 		all_sale_points = list(set(sale_points))
 
-		for i in all_sale_points:
-			sale_items = SoldItem.objects.filter(sales=sale, sale_point__name=i)
-			if sale_items.exists():
-				try:
-					totals = sale_items.aggregate(Sum('total_cost'))['total_cost__sum']
-				except:
-					totals = 0
-				pks = SalePoint.objects.get(name=i).pk
-				items.append({'name': i, 'pk':pks, 'items': sale_items, 'amount': totals})
+		# for i in all_sale_points:
+		# 	sale_items = SoldItem.objects.filter(sales=sale, sale_point__name=i)
+		# 	if sale_items.exists():
+		# 		try:
+		# 			totals = sale_items.aggregate(Sum('total_cost'))['total_cost__sum']
+		# 		except:
+		# 			totals = 0
+		# 		pks = SalePoint.objects.get(name=i).pk
+		# 		items.append({'name': i, 'pk':pks, 'items': sale_items, 'amount': totals})
+
+		counter_items = SoldItem.objects.filter(sales=sale, kitchen__isnull=True)
+		if counter_items.exists():
+			try:
+				totals = counter_items.aggregate(Sum('total_cost'))['total_cost__sum']
+			except:
+				totals = 0
+			bar = Section.objects.get(name="Bar")
+			items.append({'name': bar.name, 'pk': bar.pk, 'items': counter_items, 'amount': totals})
+
+		kitchen_items = SoldItem.objects.filter(sales=sale, counter__isnull=True)
+		if kitchen_items.exists():
+			try:
+				totals = kitchen_items.aggregate(Sum('total_cost'))['total_cost__sum']
+			except:
+				totals = 0
+			rest = Section.objects.get(name="Restaurant")
+			items.append({'name': rest.name, 'pk': rest.pk, 'items': kitchen_items, 'amount': totals})
 
 
 		data = {

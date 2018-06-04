@@ -8,6 +8,7 @@ from django.core.paginator import Paginator, EmptyPage, InvalidPage, PageNotAnIn
 from django.utils.dateformat import DateFormat
 from ..views import staff_member_required
 from ...salepoints.models import SalePoint
+from ...section.models import Section
 from ...orders.models import Orders, OrderedItem
 from ...decorators import permission_decorator, user_trail
 from ...utils import render_to_pdf, default_logo
@@ -67,20 +68,38 @@ def orders_detail(request, pk=None, point=None):
 
 		sale_points = []
 		order_items = []
-		for n in SalePoint.objects.all():
+		for n in Section.objects.all():
 			sale_points.append(n.name)
 
 		all_sale_points = list(set(sale_points))
 
-		for i in all_sale_points:
-			items = OrderedItem.objects.filter(orders=order, sale_point__name=i)
-			if items.exists():
-				try:
-					totals = items.aggregate(Sum('total_cost'))['total_cost__sum']
-				except:
-					totals = 0
-				pks = SalePoint.objects.get(name=i).pk
-				order_items.append({'name': i, 'pk':pks, 'items':items, 'amount': totals})
+		# for i in all_sale_points:
+		# 	items = OrderedItem.objects.filter(orders=order, sale_point__name=i)
+		# 	if items.exists():
+		# 		try:
+		# 			totals = items.aggregate(Sum('total_cost'))['total_cost__sum']
+		# 		except:
+		# 			totals = 0
+		# 		pks = SalePoint.objects.get(name=i).pk
+		# 		order_items.append({'name': i, 'pk':pks, 'items':items, 'amount': totals})
+
+		counter_items = OrderedItem.objects.filter(orders=order, kitchen__isnull=True)
+		if counter_items.exists():
+			try:
+				totals = counter_items.aggregate(Sum('total_cost'))['total_cost__sum']
+			except:
+				totals = 0
+			bar = Section.objects.get(name="Bar")
+			order_items.append({'name': bar.name, 'pk': bar.pk, 'items': counter_items, 'amount': totals})
+
+		kitchen_items = OrderedItem.objects.filter(orders=order, counter__isnull=True)
+		if kitchen_items.exists():
+			try:
+				totals = kitchen_items.aggregate(Sum('total_cost'))['total_cost__sum']
+			except:
+				totals = 0
+			rest = Section.objects.get(name="Restaurant")
+			order_items.append({'name': rest.name, 'pk': rest.pk, 'items': kitchen_items, 'amount': totals})
 
 		data = {
 			'order': order,
@@ -106,18 +125,35 @@ def order_detail_pdf(request, pk=None, point=None):
 		order = Orders.objects.get(pk=pk)
 		sale_points = []
 		order_items = []
-		for n in SalePoint.objects.all():
+		for n in Section.objects.all():
 			sale_points.append(n.name)
 
 		all_sale_points = list(set(sale_points))
-
-		for i in all_sale_points:
-			items = OrderedItem.objects.filter(orders=order, sale_point__name=i)
+		""" TODO: remember to delete after kitchen verification"""
+		# for i in all_sale_points:
+		# 	items = OrderedItem.objects.filter(orders=order, sale_point__name=i)
+		# 	try:
+		# 		totals = items.aggregate(Sum('total_cost'))['total_cost__sum']
+		# 	except:
+		# 		totals = 0
+		# 	order_items.append({'name': i, 'items':items, 'amount': totals})
+		counter_items = OrderedItem.objects.filter(orders=order, kitchen__isnull=True)
+		if counter_items.exists():
 			try:
-				totals = items.aggregate(Sum('total_cost'))['total_cost__sum']
+				totals = counter_items.aggregate(Sum('total_cost'))['total_cost__sum']
 			except:
 				totals = 0
-			order_items.append({'name': i, 'items':items, 'amount': totals})
+			bar = Section.objects.get(name="Bar")
+			order_items.append({'name': bar.name, 'pk': bar.pk, 'items': counter_items, 'amount': totals})
+
+		kitchen_items = OrderedItem.objects.filter(orders=order, counter__isnull=True)
+		if kitchen_items.exists():
+			try:
+				totals = kitchen_items.aggregate(Sum('total_cost'))['total_cost__sum']
+			except:
+				totals = 0
+			rest = Section.objects.get(name="Restaurant")
+			order_items.append({'name': rest.name, 'pk': rest.pk, 'items': kitchen_items, 'amount': totals})
 
 		img = default_logo()
 		data = {

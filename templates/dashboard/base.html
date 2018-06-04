@@ -16,7 +16,6 @@
     {% block meta %}
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-      <meta http-equiv="refresh" content = "1200; url=/lock/?next={{request.path}}">
     {% endblock meta %}
 
     {% include 'favicon.html' %}    
@@ -778,34 +777,55 @@
 
     <script type="text/javascript">
    
-  function getNotification() {
-    var dynamicData = {};    
-    return $.ajax({
-      url: "{% url 'dashboard:unread_count'%}",
-      type: "get",
-      data: dynamicData
-    });
-  }
+    function getNotification() {
+        var dynamicData = {};
+        return $.ajax({
+                url: "{% url 'dashboard:unread_count'%}",
+                type: "get",
+                data: dynamicData
+            });
+    }
 
-  function checkDueCredit() {
-    var dynamicData = {};    
-    return $.ajax({
-      url: "{% url 'dashboard:due_credit_notifier'%}",
-      type: "get",
-      data: dynamicData
+    function checkDueCredit() {
+        var dynamicData = {};
+        return $.ajax({
+                url: "{% url 'dashboard:due_credit_notifier'%}",
+                type: "get",
+                data: dynamicData
+            });
+    }
+    checkDueCredit();
+    getNotification().done(function (data) {
+        $(".status-mark22").text(data);
     });
-  }
-  checkDueCredit();
-  getNotification().done(function (data) {
-       $(".status-mark22").text(data);
-    }); 
 
-  $(document).ready(function(){
-    setInterval(function(){ getNotification().done(function (data) {
-       $(".status-mark22").text(data);
-    }) }, 9920000);  
-    
-  });
+    $(document).ready(function(){
+        setInterval(function(){ getNotification().done(function (data) {
+           $(".status-mark22").text(data);
+        }) }, 9920000);
+
+    });
+
+    function idleTimer() {
+        var t;
+        window.onmousemove = resetTimer; // catches mouse movements
+        window.onmousedown = resetTimer; // catches mouse movements
+        window.onclick = resetTimer;     // catches mouse clicks
+        window.onscroll = resetTimer;    // catches scrolling
+        window.onkeypress = resetTimer;  //catches keyboard actions
+
+        function reload() {
+              window.location = "/lock/?next={{request.path}}";  //Reloads the current page
+        }
+
+        function resetTimer() {
+            clearTimeout(t);
+            t= setTimeout(reload, 1200000);  // time is in milliseconds (1000 is 1 second) : 20minutes
+        }
+    }
+
+
+    idleTimer();
 
 
 
