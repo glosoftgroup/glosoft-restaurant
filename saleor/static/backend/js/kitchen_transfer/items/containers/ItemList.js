@@ -26,9 +26,9 @@ class ItemList extends Component {
           <thead>
             <tr className="bg-primary">
               <th>Product</th>
-              <th>Category</th>
               <th>SKU</th>
               <th>Cost Price</th>
+              <th>Added to menu</th>
               <th>Quantity</th>
               <th>Sold</th>
               <th>Price</th>

@@ -20,16 +20,6 @@ export class Quantity extends Component {
       maxQty: this.props.instance.quantity
     });
   }
-  // componentDidUpdate(prevProps, prevState, snapshot) {
-  //   console.log('inside update compoent');
-  //   this.props.cart.map(value => {
-  //     console.log(value.qty)
-  //     console.warn(value.id);
-  //     if (value.id === this.props.instance.id) {
-  //       this.setState({qty: value.qty});
-  //     }
-  //   })
-  // }
   isNumeric = (n) => {
     return !isNaN(parseFloat(n)) && isFinite(n);
   }

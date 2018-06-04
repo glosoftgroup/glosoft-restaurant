@@ -4,7 +4,6 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import api from '../api/Api';
 import { fetchItems } from '../actions/action-items';
-import Quantity from './Quantity';
 import Price from './Price';
 import Name from './Name';
 import Category from './Category';
@@ -58,9 +57,6 @@ export class TransferTableRow extends Component {
         </td>
         <td>
           <Price instance={instance} />
-        </td>
-        <td>
-          <Quantity instance={instance}/>
         </td>
         <td className="text-center">
           <ul className="icons-list">

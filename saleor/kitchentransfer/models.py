@@ -30,7 +30,7 @@ class KitchenTransfer(models.Model):
         settings.AUTH_USER_MODEL, blank=True, null=True, related_name='kitchen_transfer_users',
         verbose_name=pgettext_lazy('Kitchen transfer user field', 'user'))
     action = models.IntegerField(
-        pgettext_lazy('Stock item field', 'action'),
+        pgettext_lazy('KitchenTransfer field', 'action'),
         validators=[MinValueValidator(0)], default=Decimal(1))
     name = models.CharField(
         pgettext_lazy('KitchenTransfer field', 'name'), null=True, blank=True, max_length=128)
@@ -42,7 +42,6 @@ class KitchenTransfer(models.Model):
                             default=now)
     created = models.DateTimeField(pgettext_lazy('KitchenTransfer field', 'created'),
                                    default=now, editable=False)
-
     objects = TransferManager()
 
     class Meta:
@@ -113,10 +112,14 @@ class TransferItems(models.Model):
     quantity = models.IntegerField(
         pgettext_lazy('TransferItems item field', 'quantity'),
         validators=[MinValueValidator(0)], default=Decimal(1))
+    menu_category = models.IntegerField(pgettext_lazy('KitchenTransfer field', 'menu category'),
+                                        validators=[MinValueValidator(0)], default=Decimal(0))
     sku = models.CharField(max_length=60, blank=True, null=True,
                            verbose_name=pgettext_lazy('TransferItems field', 'sku'))
     product_category = models.CharField(max_length=60, blank=True, null=True,
                                         verbose_name=pgettext_lazy('TransferItems field', 'category'))
+    category_name = models.CharField(max_length=60, blank=True, null=True,
+                                        verbose_name=pgettext_lazy('TransferItems field', 'category name'))
     price = models.DecimalField(max_digits=9, decimal_places=2, default=Decimal(0),
                                 verbose_name=pgettext_lazy('TransferItems field', 'price'))
     unit_price = models.DecimalField(max_digits=9, decimal_places=2, default=Decimal(0),

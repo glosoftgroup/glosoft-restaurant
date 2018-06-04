@@ -36,7 +36,7 @@ export const getTotalWorth = state => {
   var total = 0;
   state.cart.map((value, index) => {
     if (value.qty) {
-      total += parseInt(value.qty) * value.price;
+      total += parseInt(value.qty) * value.cost_price;
     }
   });
   return formatNumber(total, 2, '.', ',');

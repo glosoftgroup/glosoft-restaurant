@@ -5,6 +5,7 @@ import { bindActionCreators } from 'redux';
 import api from '../api/Api';
 import Quantity from './Quantity';
 import { fetchItems } from '../actions/action-items';
+import Category from './Category';
 
 export class TransferTableRow extends Component {
   /*
@@ -48,9 +49,11 @@ export class TransferTableRow extends Component {
     return (
       <tr>
         <td>{instance.productName}</td>
-        <td>{instance.product_category}</td>
         <td>{instance.sku}</td>
         <td>{instance.cost_price}</td>
+        <td>
+            <Category instance={instance} />
+        </td>
         <td><Quantity instance={instance} /></td>
         <td>{instance.sold}</td>
         <td>{instance.price}</td>

@@ -26,7 +26,7 @@
     <!-- Global stylesheets -->
   <link href="{% static 'backend/css/roboto/roboto.css' %}" rel="stylesheet" type="text/css">
   <link href="{% static 'backend/css/icons/icomoon/styles.css' %}" rel="stylesheet" type="text/css">
- <link href="{% static 'backend/css/icons/fontawesome/styles.min.css' %}" rel="stylesheet" type="text/css">
+  <link href="{% static 'backend/css/icons/fontawesome/styles.min.css' %}" rel="stylesheet" type="text/css">
   <link href="{% static 'backend/css/bootstrap.css' %}" rel="stylesheet" type="text/css">
   <link href="{% static 'backend/css/cards-shadow.css' %}" rel="stylesheet" type="text/css">
   <link href="{% static 'backend/css/core.css' %}" rel="stylesheet" type="text/css">
@@ -41,6 +41,7 @@
   <!-- /global stylesheets -->
   <style type="text/css">
     .search-panel{padding: 6px;}
+    .Toastify__toast { z-index:12121212 }
   </style>
 
     {% block custom_css %}
@@ -357,10 +358,16 @@
                             Menu
                         </a>
                         </li>
-                           <li class="{% block menu_menu_category_class %}{% endblock %}">
+                        <li class="{% block menu_menu_category_class %}{% endblock %}">
                             <a href="{% url 'menucategory:index' %}">
                                 <i class='icon-books'></i>
                                 Menu Categories
+                            </a>
+                        </li>
+                        <li class="{% block menu_menu_transfer_class %}{% endblock %}">
+                            <a href="{% url 'menutransfer:index' %}">
+                                <i class='icon-move-up2'></i>
+                                Menu Transfer
                             </a>
                         </li>
                         {% endif %}

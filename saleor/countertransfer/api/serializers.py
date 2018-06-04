@@ -268,7 +268,8 @@ def carry_items(instance, items):
             single.expected_qty = single.qty
             print single.transferred_qty
             single.price = Decimal(single.price) + Decimal(item.price)
-            single.save()
+            if single.qty < 1:
+                single.save()
         else:
             single = Item()
             single.transfer = instance
@@ -284,7 +285,8 @@ def carry_items(instance, items):
             single.transferred_qty = single.qty
             single.expected_qty = single.qty
             single.sku = item.sku
-            single.save()
+            if single.qty < 1:
+                single.save()
 
         # decrease stock
         # Stock.objects.decrease_stock(item['stock'], item['qty'])

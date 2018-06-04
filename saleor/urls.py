@@ -54,6 +54,7 @@ from .kitchen.urls import urlpatterns as kitchen_urls
 from .counter.urls import urlpatterns as counter_urls
 from .kitchentransfer.urls import urlpatterns as kitchentransfer_urls
 from .countertransfer.urls import urlpatterns as countertransfer_urls
+from .menutransfer.urls import urlpatterns as menutransfer_urls
 import notifications.urls
 from .api.login import ObtainJSONWebToken
 from . import decorators
@@ -108,6 +109,7 @@ urlpatterns = [
     url(r'^counter/', include(counter_urls, namespace='counter')),
     url(r'^counter/transfer/', include(countertransfer_urls, namespace='countertransfer')),
     url(r'^kitchen/transfer/', include(kitchentransfer_urls, namespace='kitchentransfer')),
+    url(r'^menu/transfer/', include(menutransfer_urls, namespace='menutransfer')),
     url(r'^sitemap\.xml$', sitemap, {'sitemaps': sitemaps},
         name='django.contrib.sitemaps.views.sitemap'),
     url(r'^sale/points/', include(salepoints_urls, namespace='salepoints')),

@@ -108,3 +108,8 @@ input {
   padding-left: 16px;
   background-color: transparent;
 }
+
+// toast
+.Toastify__toast-container { z-index:12121212 !important; }
+.Toastify__toast { z-index:12121212 !important; }
+.Toastify__toast-body { z-index:12121212 !important; }

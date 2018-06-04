@@ -58,7 +58,7 @@ class FilterBlock extends Component {
       <div className="no-print breadcrumb-line breadcrumb-line-component content-group-lg">
         <ul className="breadcrumb">
             <li>
-              <a className="text-white btn btn-primary btn-sm btn-raised legitRipple" href="/counter/transfer/add/">
+              <a className="text-white btn btn-primary btn-sm btn-raised legitRipple" href="/kitchen/transfer/add/">
               <i className="icon-add position-left"></i>
               Transfer
               </a>

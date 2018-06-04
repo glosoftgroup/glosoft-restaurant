@@ -31,7 +31,7 @@ export class TransferTableRow extends Component {
     }, 3000);
   }
   deleteInstance = () => {
-    api.destroy('/counter/transfer/api/delete/' + this.props.instance.id + '/')
+    api.destroy('/kitchen/transfer/api/delete/' + this.props.instance.id + '/')
     .then((response) => {
       window.location.reload();
     })
