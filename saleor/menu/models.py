@@ -13,7 +13,7 @@ class Menu(models.Model):
     name = models.CharField(
         pgettext_lazy('Menu field', 'name'), unique=True, max_length=128)
     category = models.ForeignKey(Category, on_delete=models.CASCADE,
-                                 blank=True, null=True,
+                                 blank=True, null=True, related_name="menu_category",
                                  verbose_name=pgettext_lazy("Menu field", 'counter'))
 
     quantity = models.IntegerField(

@@ -6,6 +6,7 @@ from rest_framework import serializers
 from saleor.menutransfer.models import MenuTransfer as Table
 from saleor.menutransfer.models import TransferItems as Item
 from saleor.product.models import Stock
+from saleor.menu.models import Menu
 
 global fields, item_fields, module
 # global variable
@@ -19,51 +20,26 @@ fields = ('id',
           'description')
 
 item_fields = ('id',
-               'stock',
-               'sku',
+               'menu',
+               'name',
                'qty',
                'transferred_qty',
                'expected_qty',
                'deficit',
                'sold',
-               'tax',
-               'discount',
                'price',
                'unit_price',
                'quantity',
                'counter',
                'closed',
-               'productName',
                'description',
-               'product_category',)
+               'category',)
 
 
 class ItemsSerializer(serializers.ModelSerializer):
-    sku = serializers.SerializerMethodField()
-    quantity = serializers.SerializerMethodField()
-    cost_price = serializers.SerializerMethodField()
-
     class Meta:
         model = Item
-        fields = item_fields + ('cost_price',)
-
-    def get_cost_price(self, obj):
-        try:
-            return "{:,}".format(obj.stock.cost_price.gross)
-        except:
-            return ''
-
-    def get_sku(self, obj):
-        try:
-            return obj.stock.variant.sku
-        except:
-            return ''
-
-    def get_quantity(self, obj):
-        try:
-            return obj.stock.quantity
-        except:
-            return 0
+        fields = item_fields
 
 
 def format_fields(fields_data, items_list):
@@ -76,37 +52,37 @@ def format_fields(fields_data, items_list):
     temp = list(fields_data)
     # remove supplied fields
     for item in items_list:
-        temp.remove(str(item))
+        try:
+            temp.remove(str(item))
+        except:
+            pass
     return tuple(temp)
 
 
 class ItemsStockSerializer(serializers.ModelSerializer):
     sku = serializers.SerializerMethodField()
-    quantity = serializers.SerializerMethodField()
-    unit_cost = serializers.SerializerMethodField()
     total_cost = serializers.SerializerMethodField()
     product_name = serializers.SerializerMethodField()
-    counter = serializers.SerializerMethodField()
+    product_category = serializers.SerializerMethodField()
+    kitchen = serializers.SerializerMethodField()
+    unit_cost = serializers.SerializerMethodField()
 
     class Meta:
         model = Item
-        fields = format_fields(item_fields, ['productName', 'price', 'unit_price']) + \
-                 ('total_cost', 'product_name', 'unit_cost')
+        fields = format_fields(item_fields, ['productName', 'category', 'counter', 'menu', 'name', 'price', 'unit_price']) + \
+                 ('total_cost', 'kitchen', 'unit_cost', 'product_category', 'product_name', 'sku')
 
     def get_sku(self, obj):
         try:
-            return obj.stock.variant.sku
+            return obj.menu.id
         except:
             return ''
 
     def get_product_name(self, obj):
-        return obj.productName
+        return obj.name
 
-    def get_unit_cost(self, obj):
-        try:
-            return obj.stock.price_override.gross
-        except:
-            return obj.unit_price
+    def get_product_category(self, obj):
+        return obj.menu.category.name
 
     def get_total_cost(self, obj):
         try:
@@ -114,13 +90,13 @@ class ItemsStockSerializer(serializers.ModelSerializer):
         except:
             return 0
 
-    def get_quantity(self, obj):
+    def get_unit_cost(self, obj):
         try:
-            return Item.objects.instance_quantities(obj.stock, filter_type='stock', counter=obj.counter)
+            return obj.price
         except:
             return 0
-            
-    def get_counter(self, obj):
+
+    def get_kitchen(self, obj):
         try:
             return {"id": obj.counter.id, "name": obj.counter.name}
         except:
@@ -178,16 +154,13 @@ class UpdateTransferItemSerializer(serializers.ModelSerializer):
         instance.description = validated_data.get('description', instance.description)
         instance.closed = False
         instance.price = validated_data.get('price', instance.price)
-        # if edit qty is more than current qty reduce stock else decrease
         if int(validated_data.get('qty')) > instance.qty:
             diff = int(validated_data.get('qty')) - int(instance.qty)
-            Stock.objects.decrease_stock(instance.stock, diff)
             instance.qty = validated_data.get('qty', instance.qty)
             instance.expected_qty = instance.qty
             instance.transferred_qty = int(instance.transferred_qty) + int(diff)
         elif int(validated_data.get('qty')) < instance.qty:
             diff = int(instance.qty) - int(validated_data.get('qty'))
-            Stock.objects.increase_stock(instance.stock, diff)
             instance.qty = validated_data.get('qty', instance.qty)
             instance.expected_qty = instance.qty
             instance.transferred_qty = int(instance.transferred_qty) - int(diff)
@@ -208,7 +181,7 @@ class TableListSerializer(serializers.ModelSerializer):
     text = serializers.SerializerMethodField()
     counter = serializers.SerializerMethodField()
     date = serializers.SerializerMethodField()
-    kitchen_transfer_items = ItemsSerializer(many=True)
+    menu_transfer_items = ItemsSerializer(many=True)
     quantity = serializers.SerializerMethodField()
     worth = serializers.SerializerMethodField()
     all_item_closed = serializers.SerializerMethodField()
@@ -217,7 +190,7 @@ class TableListSerializer(serializers.ModelSerializer):
         model = Table
         fields = fields + (
             'quantity', 'worth', 'all_item_closed',
-            'kitchen_transfer_items', 'text',
+            'menu_transfer_items', 'text',
             'closing_items_url', 'view_url',
             'closing_items_view_url', 'update_url',
             'delete_url', 'update_items_url')
@@ -304,11 +277,11 @@ def create_items(instance, items):
     for item in items:
         # if item exist, increase quantity else create
         try:
-            item['stock'] = Stock.objects.get(pk=item['stock'])
+            item['menu'] = Menu.objects.get(pk=item.get('id'))
         except Exception as e:
             print e
             pass
-        query = Item.objects.filter(transfer=instance, stock=item['stock'])
+        query = Item.objects.filter(transfer=instance, menu=item['menu'])
         if query.exists():
             print 'updating....'
             single = query.first()
@@ -317,37 +290,30 @@ def create_items(instance, items):
             single.expected_qty = single.qty
             single.closed = False
             single.price = Decimal(single.price) + Decimal(item['price'])
-            if single.qty < 1:
+            if single.qty > 0:
                 single.save()
         else:
             single = Item()
             single.transfer = instance
             single.counter = instance.counter
             single.price = item['price']
-            single.unit_price = item['price_override']
-            single.discount = item['discount']
-            single.tax = item['tax']
-            single.product_category = item['product_category']
-            single.productName = item['productName']
-            single.stock = item['stock']
+            single.name = item['name']
+            single.menu = item['menu']
             single.qty = item['qty']
             single.transferred_qty = single.qty
             single.expected_qty = single.qty
-            single.sku = item['sku']
-            if single.qty < 1:
+            single.category = item['category']['name']
+            if single.qty > 0:
                 single.save()
-
-        # decrease stock
-        Stock.objects.decrease_stock(item['stock'], item['qty'])
 
 
 class CreateListSerializer(serializers.ModelSerializer):
     # counter_transfer_items = ItemsSerializer(many=True)
-    kitchen_transfer_items = serializers.JSONField(write_only=True)
+    menu_transfer_items = serializers.JSONField(write_only=True)
 
     class Meta:
         model = Table
-        fields = fields + ('kitchen_transfer_items',)
+        fields = fields + ('menu_transfer_items',)
 
     def create(self, validated_data):
         instance = Table()
@@ -356,7 +322,7 @@ class CreateListSerializer(serializers.ModelSerializer):
         instance.date = validated_data.get('date')
         if validated_data.get('description'):
             instance.description = validated_data.get('description')
-        counter_transfer_items = validated_data.pop('kitchen_transfer_items')
+        counter_transfer_items = validated_data.pop('menu_transfer_items')
 
         # check if transfer with counter/date exists
         query = Table.objects.\
@@ -388,10 +354,10 @@ class UpdateSerializer(serializers.ModelSerializer):
         items = validated_data.pop('items')
         for cart in items:
             item = Item.objects.get(pk=cart['id'])
-            item.qty = cart['qty']
-            item.sold = cart['sold']
-            item.description = cart['description']
-            item.deficit = cart['deficit']
+            item.qty = cart.get('qty')
+            item.sold = cart.get('sold')
+            item.description = cart.get('description')
+            item.deficit = cart.get('deficit')
             if action == 2:
                 # return to stock
                 if item.qty:

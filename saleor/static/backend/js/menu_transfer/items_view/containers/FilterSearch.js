@@ -37,7 +37,7 @@ class FilterSearch extends Component {
             <div className="has-feedback has-feedback-right">
                 <input value={this.state.search} name="search"
                   onChange={this.handleChange} className="form-control"
-                  placeholder="Product name or sku" type="search" />
+                  placeholder="Menu name or category" type="search" />
                 <div className="form-control-feedback">
                     <i className="icon-search4 text-size-large text-muted"></i>
                 </div>

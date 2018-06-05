@@ -58,7 +58,7 @@ class FilterBlock extends Component {
       <div className="no-print breadcrumb-line breadcrumb-line-component content-group-lg">
         <ul className="breadcrumb">
             <li>
-              <a className="text-white btn btn-primary btn-sm btn-raised legitRipple" href="/counter/transfer/add/">
+              <a className="text-white btn btn-primary btn-sm btn-raised legitRipple" href="/menu/transfer/add/">
               <i className="icon-add position-left"></i>
               Transfer
               </a>
@@ -74,10 +74,10 @@ class FilterBlock extends Component {
               <FilterDate />
             </li>
             <li>
-              <PrintThis printCssPaths={this.state.printCssPaths} title={'Stock Transfer Date:' + this.props.items.date + ' Counter:' + this.props.items.counter}/>
+              <PrintThis printCssPaths={this.state.printCssPaths} title={'Stock Transfer Date:' + this.props.items.date + ' Kitchen:' + this.props.items.counter}/>
             </li>
             <li>
-              <CsvExport getData={this.getData} title={'Stock Transfer Date:' + this.props.items.date + ' Counter:' + this.props.items.counter} label={this.state.label} />
+              <CsvExport getData={this.getData} title={'Stock Transfer Date:' + this.props.items.date + ' Kitchen:' + this.props.items.counter} label={this.state.label} />
             </li>
         </ul>
       </div>

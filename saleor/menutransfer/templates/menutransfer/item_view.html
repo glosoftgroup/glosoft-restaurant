@@ -4,18 +4,19 @@
 {% load i18n %}
 
 {% block title %}
-   Kitchen Transfer Items
+   Menu Transfer Items
 {% endblock %}
 
  {% block breadcrumbs %}
-     <li class=""><a href="/kitchen/transfer/"> Kitchen Transfers</a></li>
-     <li class="active"><a >Kitchen Transferred Items</a></li>
+     <li><a href="/menu/">Menu Management</a></li>
+     <li class=""><a href="/menu/transfer/"> Menu Transfers</a></li>
+     <li class="active">Transferred Items</li>
  {% endblock %}
 
 
- {% block menu_release_kitchen_class %}active{% endblock %}
+ {% block menu_menu_transfer_class %}active{% endblock %}
  {% block custom_css %}
- {% render_bundle 'kitchen_transferred_items_view' 'css' %}
+ {% render_bundle 'menu_transferred_items_view' 'css' %}
 <style>
           .theme_xbox .pace_activity, .theme_xbox .pace_activity::after, .theme_xbox .pace_activity::before, .theme_xbox_sm .pace_activity, .theme_xbox_sm .pace_activity::after, .theme_xbox_sm .pace_activity::before, .theme_xbox_xs .pace_activity, .theme_xbox_xs .pace_activity::after, .theme_xbox_xs .pace_activity::before {
         border-radius: 50%;
@@ -67,5 +68,5 @@
 <!--<script src="https://../popper.js/1.12.3/umd/popper.min.js"></script>-->
 <!--<script src="https://../bootstrap/4.0.0-beta.2/js/bootstrap.min.js"></script>-->
 {% render_bundle 'vendor' 'js' %}
-{% render_bundle 'kitchen_transferred_items_view' 'js' %}
+{% render_bundle 'menu_transferred_items_view' 'js' %}
 {% endblock %}

@@ -4,19 +4,17 @@ import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import { ToastContainer, toast } from 'react-toastify';
 
-export class Quantity extends Component {
+export class Number extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      qty: 1,
-      maxQty: 0
+      number: 1
     };
   }
 
   componentDidMount = () => {
     this.setState({
-      qty: this.props.instance.qty,
-      maxQty: this.props.instance.quantity
+      number: this.props.instance.price
     });
   }
   isNumeric = (n) => {
@@ -43,7 +41,7 @@ export class Quantity extends Component {
       [e.target.name]: value
     });
     var payload = Object.assign(this.props.instance);
-    payload.qty = value;
+    payload.price = value;
     this.props.updateCartItem(payload);
   }
 
@@ -51,15 +49,15 @@ export class Quantity extends Component {
     return (
       <div>
         <ToastContainer />
-        <input value={this.state.qty} onChange={this.handleChange}
-          type="number" name="qty" className="form-control"
+        <input value={this.state.number} onChange={this.handleChange}
+          type="number" name="number" className="form-control"
         />
       </div>
     );
   }
 }
 
-Quantity.propTypes = {
+Number.propTypes = {
   instance: PropTypes.array.isRequired,
   updateCartItem: PropTypes.func.isRequired,
   cart: PropTypes.array.isRequired
@@ -73,4 +71,4 @@ function matchDispatchToProps(dispatch) {
   return bindActionCreators({}, dispatch);
 }
 
-export default connect(mapStateToProps, matchDispatchToProps)(Quantity);
+export default connect(mapStateToProps, matchDispatchToProps)(Number);

@@ -46,10 +46,8 @@ export class TransferTableRow extends Component {
     var instance = { ...this.props.instance };
     return (
       <tr>
-        <td>{instance.productName}</td>
-        <td>{instance.product_category}</td>
-        <td>{instance.sku}</td>
-        <td>{instance.cost_price}</td>
+        <td>{instance.name}</td>
+        <td>{instance.category}</td>
         <td>{instance.qty}</td>
         <td>{instance.sold}</td>
         <td>{instance.price}</td>
