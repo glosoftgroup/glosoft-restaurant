@@ -121,7 +121,6 @@ class InstanceForm extends Component {
                 <th>Category</th>
                 <th>Name</th>
                 <th>Price</th>
-                <th>Quantity</th>
                 <th></th>
               </tr>
             </thead>
@@ -153,14 +152,6 @@ class InstanceForm extends Component {
                     name="price" placeholder="price"
                     onChange={this.handleChange} type="number" />
                     <span className="help-block text-warning">{errors.price}</span>
-                  </div>
-                </td>
-                <td>
-                  <div className="form-group">
-                    <input className="form-control"
-                    name="quantity" placeholder="Quantity"
-                    onChange={this.handleChange} type="number" />
-                    <span className="help-block text-warning">{errors.quantity}</span>
                   </div>
                 </td>
                 <td>

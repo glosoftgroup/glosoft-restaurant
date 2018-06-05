@@ -9,6 +9,7 @@ from django.core.validators import MinValueValidator, RegexValidator
 from django.contrib.auth.models import (AbstractBaseUser, BaseUserManager, PermissionsMixin)
 from saleor.kitchen.models import Kitchen as Counter
 from saleor.product.models import Stock
+from saleor.menu.models import Menu
 
 
 class TransferManager(BaseUserManager):
@@ -54,7 +55,7 @@ class MenuTransfer(models.Model):
         return str(self.id)
 
     def all_items_closed(self):
-        query = self.kitchen_transfer_items.filter(closed=False)
+        query = self.menu_transfer_items.filter(closed=False)
         if query.exists():
             return False
         return True
@@ -62,24 +63,12 @@ class MenuTransfer(models.Model):
 
 class TransferItemManager(BaseUserManager):
     def carry_forward_quantity(self, stock):
-        query = self.get_queryset().filter(stock=stock)
+        query = self.get_queryset() #.filter(stock=stock)
         query = query.filter(closed=True)
         total_qty = 0
         for item in query:
             total_qty = int(total_qty) + int(item.qty)
         return total_qty
-
-    def decrease_stock(self, instance, quantity):
-        instance.sold = models.F('sold') + quantity
-        instance.qty = models.F('qty') - quantity
-        instance.expected_qty = instance.qty
-        instance.save(update_fields=['sold', 'qty', 'expected_qty'])
-
-    def increase_stock(self, instance, quantity):
-        instance.qty = models.F('qty') + quantity
-        instance.sold = models.F('sold') - quantity
-        instance.expected_qty = instance.qty
-        instance.save(update_fields=['qty', 'sold', 'expected_qty'])
 
     def instance_quantities(self, instance, filter_type='transfer', counter=None):
         if filter_type == 'transfer':
@@ -98,7 +87,7 @@ class TransferItemManager(BaseUserManager):
             query = self.get_queryset().filter(stock=instance)
         total = 0
         for i in query:
-            total += Decimal(i.qty) * Decimal(i.stock.cost_price.gross)
+            total += Decimal(i.qty) * Decimal(i.price)
         return total
 
 
@@ -108,14 +97,15 @@ class TransferItems(models.Model):
         verbose_name=pgettext_lazy("TransferItems field", 'counter'))
     counter = models.ForeignKey(Counter, on_delete=models.CASCADE, related_name="menu_item_counter", blank=True, null=True,
                                 verbose_name=pgettext_lazy("TransferItems field", 'counter'))
-    stock = models.ForeignKey(Stock, related_name="menu_stock", on_delete=models.CASCADE, blank=True, null=True,
-                              verbose_name=pgettext_lazy("TransferItems field", 'stock'))
+    menu = models.ForeignKey(Menu, related_name="menu_stock", on_delete=models.CASCADE,
+                             blank=True, null=True,
+                             verbose_name=pgettext_lazy("TransferItems field", 'stock'))
     quantity = models.IntegerField(
         pgettext_lazy('TransferItems item field', 'quantity'),
         validators=[MinValueValidator(0)], default=Decimal(1))
-    sku = models.CharField(max_length=60, blank=True, null=True,
-                           verbose_name=pgettext_lazy('TransferItems field', 'sku'))
-    product_category = models.CharField(max_length=60, blank=True, null=True,
+    name = models.CharField(max_length=60, blank=True, null=True,
+                           verbose_name=pgettext_lazy('TransferItems field', 'name'))
+    category = models.CharField(max_length=60, blank=True, null=True,
                                         verbose_name=pgettext_lazy('TransferItems field', 'category'))
     price = models.DecimalField(max_digits=9, decimal_places=2, default=Decimal(0),
                                 verbose_name=pgettext_lazy('TransferItems field', 'price'))

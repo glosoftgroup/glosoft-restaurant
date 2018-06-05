@@ -21,7 +21,7 @@ export const fetchItems = (params = {}) => {
         url = url.slice(0, -1);
       }
     }
-    api.retrieve('/api/stock?' + url)
+    api.retrieve('/menu/api/list?' + url)
     .then(data => {
       data.loading = false;
       dispatch(setItems(data.data));

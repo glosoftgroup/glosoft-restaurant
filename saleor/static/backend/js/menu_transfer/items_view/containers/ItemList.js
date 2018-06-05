@@ -25,10 +25,8 @@ class ItemList extends Component {
         <table className="table table-hover table-xs">
           <thead>
             <tr className="bg-primary">
-              <th>Product</th>
+              <th>Menu Name</th>
               <th>Category</th>
-              <th>SKU</th>
-              <th>Cost Price</th>
               <th>Quantity</th>
               <th>Sold</th>
               <th>Price</th>

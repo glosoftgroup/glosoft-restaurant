@@ -18,17 +18,15 @@ class ItemList extends Component {
         <h6 className="text-bold text-center">
          <span className="text-bold text-primary">DATE: </span>
          {this.props.items.date} &nbsp;
-         <span className="text-bold text-primary">COUNTER: </span>
+         <span className="text-bold text-primary">KITCHEN: </span>
          {this.props.items.counter}
         </h6>
         <ReactTooltip place="bottom"/>
         <table className="table table-hover table-xs">
           <thead>
             <tr className="bg-primary">
-              <th>Product</th>
+              <th>Menu Name</th>
               <th>Category</th>
-              <th>SKU</th>
-              <th>Cost Price</th>
               <th>Quantity</th>
               <th>Sold</th>
               <th>Price</th>

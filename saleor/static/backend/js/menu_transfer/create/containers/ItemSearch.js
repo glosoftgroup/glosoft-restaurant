@@ -109,14 +109,12 @@ class ItemSearch extends Component {
     };
   }
   render() {
-    var _options = this.selectOptions('/api/category/', 'Select Category');
+    var _options = this.selectOptions('/menucategory/api/list/', 'Select Category');
     return (
       <div>
         <div className="breadcrumb-line breadcrumb-line-component content-group-lg">
                 <ul className="breadcrumb">
-                    <li><a href="javascript:;">
-                        <i className="icon-checkbox-partial position-left"></i> </a>
-                    </li>
+                    
                 </ul>
 
                 <ul className="breadcrumb-elements">
@@ -137,7 +135,7 @@ class ItemSearch extends Component {
                   <li>
                     <div className="form-grou search-form-group mr-15">
                         <div className="has-feedback has-feedback-right">
-                            <input value={this.state.search} name="search" onChange={this.handleChange} className="form-control" placeholder="Product name or SKU" type="search" />
+                            <input value={this.state.search} name="search" onChange={this.handleChange} className="form-control" placeholder="Menu name" type="search" />
                             <div className="form-control-feedback">
                                 <i className="icon-search4 text-size-large text-muted"></i>
                             </div>

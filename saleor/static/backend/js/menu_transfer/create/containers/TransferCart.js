@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import { Quantity } from './Quantity';
+import Number from './Number';
 import FilterDate from './FilterDate';
 import { TransferButton } from './TransferButton';
 import Select2 from 'react-select2-wrapper';
@@ -26,7 +27,7 @@ class TransferCart extends Component {
     this.getCounters();
   }
   getCounters = () => {
-    api.retrieve('/counter/api/list')
+    api.retrieve('/kitchen/api/list')
     .then((response) => { return response.data.results; })
     .then((response) => {
       console.log(response);
@@ -110,7 +111,7 @@ class TransferCart extends Component {
             </div>
            <div className="col-md-2 transfer-to-padding">
              <span className="text-bold">
-               Counter:
+               Kitchen:
              </span>
            </div>
            <div className="col-md-4">
@@ -121,7 +122,7 @@ class TransferCart extends Component {
               options={{
                 minimumResultsForSearch: -1,
                 width: '100%',
-                placeholder: 'Select counter'
+                placeholder: 'Select kitchen'
               }}
               data={ this.state.closedCouters}/>
            </div>
@@ -130,9 +131,10 @@ class TransferCart extends Component {
               <table className="table table-xs table-hover">
                   <thead>
                       <tr className="bg-primary">
-                          <th>Product</th>
-                          <th>SKU</th>
+                          <th>Name</th>
+                          <th>Category</th>
                           <th>Quantity</th>
+                          <th>Price</th>
                           <th>Remove</th>
                       </tr>
                   </thead>
@@ -140,8 +142,8 @@ class TransferCart extends Component {
                   {this.props.cart.map(obj => {
                     return (
                       <tr key={obj.id}>
-                          <td>{obj.productName}</td>
-                          <td>{obj.sku}</td>
+                          <td>{obj.name}</td>
+                          <td>{obj.category.name}</td>
                           <td>
                             <Quantity
                             updateCartItem={(obj) => this.props.updateCartItem(obj) }
@@ -149,7 +151,14 @@ class TransferCart extends Component {
                             cart={this.props.cart}
                             />
                           </td>
-                          <td onClick={ () => this.deleteItem(obj.id)}>
+                          <td>
+                            <Number
+                             updateCartItem={(obj) => this.props.updateCartItem(obj) }
+                             instance={obj}
+                             cart={this.props.cart}
+                             />
+                          </td>
+                          <td title="remove from cart" onClick={ () => this.deleteItem(obj.id)}>
                             <i className="animated shake icon-trash cursor-pointer"></i>
                           </td>
                       </tr>

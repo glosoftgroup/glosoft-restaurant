@@ -34,9 +34,9 @@ class DestroyView(generics.DestroyAPIView):
     queryset = Table.objects.all()
 
     def perform_destroy(self, instance):
-        items = instance.counter_transfer_items.all()
-        for item in items:
-            Stock.objects.increase_stock(item.stock, item.qty)
+        # items = instance.counter_transfer_items.all()
+        # for item in items:
+        #     Stock.objects.increase_stock(item.stock, item.qty)
         # raise serializers.ValidationError('You cannot delete ')
         instance.delete()
 
@@ -45,7 +45,7 @@ class DestroyItemView(generics.DestroyAPIView):
     queryset = Item.objects.all()
 
     def perform_destroy(self, instance):
-        Stock.objects.increase_stock(instance.stock, instance.qty)
+        # Stock.objects.increase_stock(instance.stock, instance.qty)
         # raise serializers.ValidationError('You cannot delete ')
         instance.delete()
 
@@ -134,8 +134,8 @@ class ListItemsAPIView(generics.ListAPIView):
         query = self.request.GET.get('q')
         if query:
             queryset_list = queryset_list.filter(
-                Q(stock__variant__sku__icontains=query) |
-                Q(stock__variant__product__name__icontains=query))
+                Q(menu__category__name__icontains=query) |
+                Q(name__icontains=query))
         return queryset_list.order_by('-id')
 
 
@@ -214,17 +214,17 @@ class ListCategoryAPIView(generics.ListAPIView):
                     Q(transfer__date=today) |
                     Q(transfer__date=yesterday)
                 ).filter(stock__variant__product__categories__pk=self.kwargs['pk'])\
-                    .distinct('stock').select_related()
+                    .distinct('menu').select_related()
             else:
                 queryset_list = Item.objects.filter(
                     Q(transfer__date=today) |
                     Q(transfer__date=yesterday)
-                ).distinct('stock').select_related()
+                ).distinct('menu').select_related()
         except Exception as e:
             queryset_list = Item.objects.all().filter(
                 Q(transfer__date=today) |
                 Q(transfer__date=yesterday)
-            ).distinct('stock')
+            ).distinct('menu')
 
         page_size = 'page_size'
         if self.request.GET.get(page_size):
@@ -242,7 +242,7 @@ class ListCategoryAPIView(generics.ListAPIView):
             queryset_list = queryset_list.filter(
                 Q(stock__variant__sku__icontains=query) |
                 Q(stock__variant__product__name__icontains=query))
-        return queryset_list.order_by('stock')
+        return queryset_list.order_by('menu')
 
 
 class UpdateAPIView(generics.RetrieveUpdateAPIView):

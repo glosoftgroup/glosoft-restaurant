@@ -4,6 +4,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import api from '../api/Api';
 import Quantity from './Quantity';
+import Price from './Price';
 import { fetchItems } from '../actions/action-items';
 
 export class TransferTableRow extends Component {
@@ -35,7 +36,7 @@ export class TransferTableRow extends Component {
     }, 3000);
   }
   deleteInstance = () => {
-    api.destroy('/counter/transfer/api/delete/item/' + this.props.instance.id + '/')
+    api.destroy('/menu/transfer/api/delete/item/' + this.props.instance.id + '/')
     .then((response) => {
       this.props.fetchItems();
     })
@@ -47,13 +48,11 @@ export class TransferTableRow extends Component {
     var instance = { ...this.props.instance };
     return (
       <tr>
-        <td>{instance.productName}</td>
-        <td>{instance.product_category}</td>
-        <td>{instance.sku}</td>
-        <td>{instance.cost_price}</td>
+        <td>{instance.name}</td>
+        <td>{instance.category}</td>
         <td><Quantity instance={instance} /></td>
         <td>{instance.sold}</td>
-        <td>{instance.price}</td>
+        <td><Price instance={instance} /></td>
         <td className="text-center">
           <ul className="no-print icons-list">
             <li className="dropdown">

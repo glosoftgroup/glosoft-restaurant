@@ -32,7 +32,7 @@ export class TransferButton extends Component {
     var props = { ...this.props };
     var transferDate = props.date ? props.date.date : moment().format('YYYY-MM-DD');
     if (!this.props.counter) {
-      toast.error('Please select Counter !', {
+      toast.error('Please select Kitchen !', {
         position: toast.POSITION.BOTTOM_CENTER
       });
       return;
@@ -71,11 +71,11 @@ export class TransferButton extends Component {
       return;
     }
     formData.append('counter', this.props.counter.id);
-    formData.append('counter_transfer_items', JSON.stringify(this.props.cart));
+    formData.append('menu_transfer_items', JSON.stringify(this.props.cart));
 
-    api.create('/counter/transfer/api/create/', formData)
+    api.create('/menu/transfer/api/create/', formData)
     .then((data) => {
-      window.location.href = '/counter/transfer/';
+      window.location.href = '/menu/transfer/';
     })
     .catch((error) => {
       console.log(error);

@@ -46,7 +46,6 @@ export class TransferTableRow extends Component {
         <td>{instance.date}</td>
         <td>{instance.counter.name}</td>
         <td>{instance.quantity}</td>
-        <td>{instance.worth}</td>
         <td className=" text-center">
           <ul className="icons-list">
             <li className="dropdown">
