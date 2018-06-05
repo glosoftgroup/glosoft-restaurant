@@ -15,7 +15,6 @@ from ..product.templatetags.product_images import product_first_image
 from .scalars import AttributesFilterScalar
 from .utils import (CategoryAncestorsCache, DjangoPkInterface)
 
-
 CONTEXT_CACHE_NAME = '__cache__'
 CACHE_ANCESTORS = 'ancestors'
 
@@ -239,6 +238,7 @@ class PriceRangeType(graphene.ObjectType):
 
 from saleor.orders.models import *
 
+
 class OrdersType(DjangoObjectType):
     class Meta:
         model = Orders
@@ -262,6 +262,7 @@ class Query(graphene.ObjectType):
                            id=graphene.Int(),
                            invoice_number=graphene.String()
                            )
+
     def resolve_order(self, args, context, info):
         id = args.get('id')
         invoice_number = args.get('invoice_number')
@@ -275,7 +276,6 @@ class Query(graphene.ObjectType):
         if invoice_number is not None:
             return Orders.objects.get(invoice_number=invoice_number)
 
-
         return None
 
     def resolve_orders(self, args, context, info):
@@ -285,7 +285,7 @@ class Query(graphene.ObjectType):
         all_orders = Orders.objects.all()
 
         if counter and point:
-            counter_point = {"id": int(counter),"point": point}
+            counter_point = {"id": int(counter), "point": point}
             return all_orders.filter(point=counter_point)
 
         if all_orders:

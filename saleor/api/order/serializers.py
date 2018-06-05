@@ -521,8 +521,6 @@ class OrderReadyOrCollectedSerializer(serializers.ModelSerializer):
                   'ordered_items',
                   )
 
-
-
     def update(self, instance, validated_data):
         try:
             ordered_items_data = validated_data.pop('ordered_items')
@@ -534,13 +532,13 @@ class OrderReadyOrCollectedSerializer(serializers.ModelSerializer):
             try:
                 if ordered_item_data['counter'] is not None:
                     filtereditems = OrderedItem.objects.filter(sku=ordered_item_data['sku'], counter=ordered_item_data['counter'])
-            except:
+            except (Exception, IndexError) as e:
                 pass
 
             try:
                 if ordered_item_data['kitchen'] is not None:
                     filtereditems = OrderedItem.objects.filter(sku=ordered_item_data['sku'], kitchen=ordered_item_data['kitchen'])
-            except:
+            except Exception as e:
                 pass
 
             if filtereditems:

@@ -143,7 +143,6 @@ class Orders(models.Model):
         else:
             return OrderedItem.objects.filter(orders=self, ready=ready_status, kitchen__pk=counter_pk)
 
-
     def collected_items(self, collected_status, point, counter_pk=None):
         if point == "counter":
             return OrderedItem.objects.filter(orders=self, collected=collected_status, counter__pk=counter_pk)

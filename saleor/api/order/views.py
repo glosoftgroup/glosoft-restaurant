@@ -268,7 +268,7 @@ class RoomOrdersListAPIView(generics.ListAPIView):
         return Response(serializer.data)
 
     def delete(self, request, pk=None):
-        orders = Orders.objects.filter(table__pk=pk)
+        orders = Orders.objects.filter(room__pk=pk)
         orders.delete()
         return Response("successfully delete, status=204")
 
@@ -349,6 +349,9 @@ def send_to_sale(credit):
                unit_cost=item.unit_cost,
                product_category=item.product_category
                )
+        new_item.counter = item.counter
+        new_item.kitchen = item.kitchen
+        new_item.save()
         print new_item
 
 

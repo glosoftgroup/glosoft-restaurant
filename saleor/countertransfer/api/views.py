@@ -164,13 +164,25 @@ class ListStockAPIView(generics.ListAPIView):
         return {"date": None, 'request': self.request}
 
     def get_queryset(self, *args, **kwargs):
+        today = datetime.date.today()
+        yesterday = datetime.date.today() - datetime.timedelta(days=1)
         try:
             if self.kwargs['pk']:
-                queryset_list = Item.objects.filter(transfer__counter__pk=self.kwargs['pk']).distinct('stock').select_related()
+                queryset_list = Item.objects.filter(
+                    Q(transfer__date=today) |
+                    Q(transfer__date=yesterday)
+                ).filter(transfer__counter__pk=self.kwargs['pk'])\
+                    .distinct('stock').select_related()
             else:
-                queryset_list = Item.objects.all().distinct('stock').select_related()
+                queryset_list = Item.objects.filter(
+                    Q(transfer__date=today) |
+                    Q(transfer__date=yesterday)
+                ).distinct('stock').select_related()
         except Exception as e:
-            queryset_list = Item.objects.all().distinct('stock')
+            queryset_list = Item.objects.all().filter(
+                Q(transfer__date=today) |
+                Q(transfer__date=yesterday)
+            ).distinct('stock')
 
         page_size = 'page_size'
         if self.request.GET.get(page_size):
@@ -178,7 +190,7 @@ class ListStockAPIView(generics.ListAPIView):
         else:
             pagination.PageNumberPagination.page_size = 10
         if self.request.GET.get('date'):
-            queryset_list = queryset_list.filter(date__icontains=self.request.GET.get('date'))
+            queryset_list = queryset_list.filter(transfer__date__icontains=self.request.GET.get('date'))
 
         query = self.request.GET.get('q')
         if query:
