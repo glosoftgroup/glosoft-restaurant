@@ -3,12 +3,14 @@ import PropTypes from 'prop-types';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import { Quantity } from './Quantity';
+import { Category } from './Category';
 import FilterDate from './FilterDate';
 import { TransferButton } from './TransferButton';
 import Select2 from 'react-select2-wrapper';
 import { updateCartItem, deleteCartItem } from '../actions/action-cart';
 import { getTotalQty, getTotalWorth } from '../reducers';
 import { setCounter } from '../actions/action-counter';
+
 import api from '../api/Api';
 
 class TransferCart extends Component {
@@ -29,7 +31,6 @@ class TransferCart extends Component {
     api.retrieve('/kitchen/api/list')
     .then((response) => { return response.data.results; })
     .then((response) => {
-      console.log(response);
       var closedCouters = [];
       var openCounters = [];
       response.map((value, index) => {
@@ -132,6 +133,7 @@ class TransferCart extends Component {
                       <tr className="bg-primary">
                           <th>Product</th>
                           <th>SKU</th>
+                          <th>Add to Menu</th>
                           <th>Quantity</th>
                           <th>Remove</th>
                       </tr>
@@ -142,6 +144,9 @@ class TransferCart extends Component {
                       <tr key={obj.id}>
                           <td>{obj.productName}</td>
                           <td>{obj.sku}</td>
+                          <td><Category instance={obj}
+                          updateCartItem={(obj) => this.props.updateCartItem(obj) }
+                          /></td>
                           <td>
                             <Quantity
                             updateCartItem={(obj) => this.props.updateCartItem(obj) }

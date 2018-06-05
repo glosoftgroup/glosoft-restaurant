@@ -6,6 +6,7 @@ import PaginationBlock from '../containers/PaginateBlock';
 import '../css/style.scss';
 import '../css/tooltip.scss';
 import '../css/print.scss';
+import '../../../common/css/tooltip.scss';
 
 export default class App extends Component {
   static propTypes = {

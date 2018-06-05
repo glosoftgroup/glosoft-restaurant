@@ -2,6 +2,8 @@ import React, { Component } from 'react';
 import TransferCart from '../containers/TransferCart';
 import ItemSearch from '../containers/ItemSearch';
 import '../css/styles.scss';
+import '../../../common/css/tooltip.scss';
+
 class App extends Component {
   render() {
     return (

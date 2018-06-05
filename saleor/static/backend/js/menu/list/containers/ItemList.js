@@ -20,7 +20,6 @@ class ItemList extends Component {
               <th>Category</th>
               <th>Name</th>
               <th>Price</th>
-              <th>Quantity</th>
               <th className="text-center">Actions</th>
             </tr>
           </thead>

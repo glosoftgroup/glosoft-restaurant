@@ -34,7 +34,7 @@ class DestroyView(generics.DestroyAPIView):
     queryset = Table.objects.all()
 
     def perform_destroy(self, instance):
-        items = instance.counter_transfer_items.all()
+        items = instance.kitchen_transfer_items.all()
         for item in items:
             Stock.objects.increase_stock(item.stock, item.qty)
         # raise serializers.ValidationError('You cannot delete ')

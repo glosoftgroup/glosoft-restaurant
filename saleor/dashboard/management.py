@@ -46,7 +46,7 @@ def add_section(sender, **kwargs):
         if not restaurant.exists():
             Section.objects.create(name="Restaurant")
     except Exception as e:
-        print e
+        pass
 
 
 def add_terminal(sender,**kwargs):

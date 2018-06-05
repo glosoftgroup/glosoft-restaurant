@@ -35,6 +35,8 @@ item_fields = ('id',
                'closed',
                'productName',
                'description',
+               'menu_category',
+               'category_name',
                'product_category',)
 
 
@@ -178,6 +180,8 @@ class UpdateTransferItemSerializer(serializers.ModelSerializer):
         instance.description = validated_data.get('description', instance.description)
         instance.closed = False
         instance.price = validated_data.get('price', instance.price)
+        instance.menu_category = validated_data.get('menu_category', instance.menu_category)
+        instance.category_name = validated_data.get('category_name', instance.category_name)
         # if edit qty is more than current qty reduce stock else decrease
         if int(validated_data.get('qty')) > instance.qty:
             diff = int(validated_data.get('qty')) - int(instance.qty)
@@ -302,22 +306,33 @@ def create_items(instance, items):
     for item in items:
         # if item exist, increase quantity else create
         try:
-            item['stock'] = Stock.objects.get(pk=item['stock'])
+            item['stock'] = Stock.objects.get(pk=item.get('stock'))
         except Exception as e:
             print e
             pass
         query = Item.objects.filter(transfer=instance, stock=item['stock'])
+        if item.get('category'):
+            query = query.filter(menu_category=item['category']['value'])
         if query.exists():
-            print 'updating....'
             single = query.first()
             single.qty = int(single.qty) + int(item['qty'])
             single.transferred_qty = int(single.transferred_qty) + int(item['qty'])
             single.expected_qty = single.qty
             single.closed = False
             single.price = Decimal(single.price) + Decimal(item['price'])
-            single.save()
+            if single.qty > 0:
+                single.save()
         else:
             single = Item()
+            try:
+                if item.get('category'):
+                    single.menu_category = item['category']['value']
+                    single.category_name = item['category']['label']
+                else:
+                    print 'no cat'
+                    print '_'*120
+            except Exception as e:
+                print(e)
             single.transfer = instance
             single.counter = instance.counter
             single.price = item['price']
@@ -327,11 +342,18 @@ def create_items(instance, items):
             single.product_category = item['product_category']
             single.productName = item['productName']
             single.stock = item['stock']
-            single.qty = item['qty']
+            try:
+                single.qty = int(item['qty'])
+            except Exception as e:
+                print(e)
             single.transferred_qty = single.qty
             single.expected_qty = single.qty
             single.sku = item['sku']
-            single.save()
+            if single.qty > 0:
+                single.save()
+            else:
+                print(single.qty)
+                print('not saved qty less than one')
 
         # decrease stock
         Stock.objects.decrease_stock(item['stock'], item['qty'])
