@@ -32,7 +32,7 @@ export class TransferButton extends Component {
     var props = { ...this.props };
     var transferDate = props.date ? props.date.date : moment().format('YYYY-MM-DD');
     if (!this.props.counter) {
-      toast.error('Please select Kitchen !', {
+      toast.error('Please select Kitchen !. Did you forget to close kitchen transfer?', {
         position: toast.POSITION.BOTTOM_CENTER
       });
       return;

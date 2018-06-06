@@ -103,10 +103,14 @@ class TransferItems(models.Model):
     quantity = models.IntegerField(
         pgettext_lazy('TransferItems item field', 'quantity'),
         validators=[MinValueValidator(0)], default=Decimal(1))
+    category_id = models.IntegerField(
+        pgettext_lazy('TransferItems item field', 'category id'),
+        validators=[MinValueValidator(0)], default=Decimal(1))
     name = models.CharField(max_length=60, blank=True, null=True,
                            verbose_name=pgettext_lazy('TransferItems field', 'name'))
     category = models.CharField(max_length=60, blank=True, null=True,
                                         verbose_name=pgettext_lazy('TransferItems field', 'category'))
+
     price = models.DecimalField(max_digits=9, decimal_places=2, default=Decimal(0),
                                 verbose_name=pgettext_lazy('TransferItems field', 'price'))
     unit_price = models.DecimalField(max_digits=9, decimal_places=2, default=Decimal(0),

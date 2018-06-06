@@ -18,8 +18,19 @@ class FilterDate extends Component {
     super(props);
     this.state = {
       search: '',
-      date: moment().add(1, 'days').format('YYYY-MM-DD')
+      date: moment().add(1, 'days').format('YYYY-MM-DD'),
+      dateLimit: ''
     };
+  }
+  componentWillMount() {
+    // format item transfer date
+    setTimeout(() => {
+      var dateLimit = moment(this.props.itemsDate).format('YYYY-MM-DD');
+      if (moment().format('YYYY-MM-DD') === dateLimit) {
+        dateLimit = this.state.date;
+      }
+      this.setState({dateLimit});
+    }, 3000);
   }
   dayMonthFormatter = (num) => {
     return (num < 10) ? '0' + num : num;
@@ -48,7 +59,7 @@ class FilterDate extends Component {
     return (
         <div className="form-grou search-form-group mr-15">
             <div className="has-feedback has-feedback-left">
-                <DayPickerInput placeholder={this.state.date} dayPickerProps={{ disabledDays: {before: new Date()} }} onDayChange={day => this.handleChange(day)}/>
+                <DayPickerInput placeholder={this.state.date} dayPickerProps={{ disabledDays: {before: new Date(this.state.dateLimit)} }} onDayChange={day => this.handleChange(day)}/>
                 <div className="form-control-feedback">
                     <i className="icon-calendar22 text-size-large text-muted">&nbsp;&nbsp;</i>
                 </div>
@@ -61,7 +72,8 @@ class FilterDate extends Component {
 FilterDate.propTypes = {
   setDate: PropTypes.func.isRequired,
   search: PropTypes.array.isRequired,
-  fetchItems: PropTypes.func.isRequired
+  fetchItems: PropTypes.func.isRequired,
+  itemsDate: PropTypes.string.isRequired
 };
 
 function mapDispatchToProps(dispatch) {

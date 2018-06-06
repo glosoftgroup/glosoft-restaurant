@@ -69,7 +69,7 @@ export class TransferTableRow extends Component {
                 </li>
                 <li>
                   <a onClick={ () => this.goTo(instance.closing_items_url)} href="javascript:;">
-                     <i className="icon-pencil"></i> Close
+                     <i className="icon-cancel-square"></i> Close
                   </a>
                 </li>
               </ul>

@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import { Quantity } from './Quantity';
-import { Category } from './Category';
 import FilterDate from './FilterDate';
 import { TransferButton } from './TransferButton';
 import Select2 from 'react-select2-wrapper';
@@ -133,7 +132,6 @@ class TransferCart extends Component {
                       <tr className="bg-primary">
                           <th>Product</th>
                           <th>SKU</th>
-                          <th>Add to Menu</th>
                           <th>Quantity</th>
                           <th>Remove</th>
                       </tr>
@@ -144,9 +142,6 @@ class TransferCart extends Component {
                       <tr key={obj.id}>
                           <td>{obj.productName}</td>
                           <td>{obj.sku}</td>
-                          <td><Category instance={obj}
-                          updateCartItem={(obj) => this.props.updateCartItem(obj) }
-                          /></td>
                           <td>
                             <Quantity
                             updateCartItem={(obj) => this.props.updateCartItem(obj) }

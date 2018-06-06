@@ -192,7 +192,7 @@ class ListCategoryAPIView(generics.ListAPIView):
     """
         list transferred stock in {pk} category
         :param pk category pk
-        GET /counter/transfer/api/list/category/1/
+        GET /menu/transfer/api/list/category/1/
 
         Json payload => /payload/category-items.json
     """
@@ -213,7 +213,7 @@ class ListCategoryAPIView(generics.ListAPIView):
                 queryset_list = Item.objects.filter(
                     Q(transfer__date=today) |
                     Q(transfer__date=yesterday)
-                ).filter(stock__variant__product__categories__pk=self.kwargs['pk'])\
+                ).filter(menu__category__pk=self.kwargs['pk'])\
                     .distinct('menu').select_related()
             else:
                 queryset_list = Item.objects.filter(
@@ -221,10 +221,14 @@ class ListCategoryAPIView(generics.ListAPIView):
                     Q(transfer__date=yesterday)
                 ).distinct('menu').select_related()
         except Exception as e:
+            print e
             queryset_list = Item.objects.all().filter(
                 Q(transfer__date=today) |
                 Q(transfer__date=yesterday)
             ).distinct('menu')
+
+        if self.request.GET.get('kitchen'):
+            queryset_list = queryset_list.filter(counter__pk=self.request.GET.get('kitchen'))
 
         page_size = 'page_size'
         if self.request.GET.get(page_size):

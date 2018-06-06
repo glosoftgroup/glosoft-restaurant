@@ -1,0 +1,36 @@
+{
+    "count": 3,
+    "total_pages": 1,
+    "results": [
+        {
+            "id": 290,
+            "name": "T2",
+            "text": "T2",
+            "description": null,
+            "categories_url": "http://127.0.0.1:8000/api/category/business-type/290/",
+            "update_url": "http://127.0.0.1:8000/section/api/update/290/",
+            "delete_url": "http://127.0.0.1:8000/section/api/delete/290/"
+        },
+        {
+            "id": 2,
+            "name": "Restaurant",
+            "text": "Restaurant",
+            "description": null,
+            "categories_url": "http://127.0.0.1:8000/api/category/business-type/2/",
+            "update_url": "http://127.0.0.1:8000/section/api/update/2/",
+            "delete_url": "http://127.0.0.1:8000/section/api/delete/2/"
+        },
+        {
+            "id": 1,
+            "name": "Bar",
+            "text": "Bar",
+            "description": null,
+            "categories_url": "http://127.0.0.1:8000/api/category/business-type/1/",
+            "update_url": "http://127.0.0.1:8000/section/api/update/1/",
+            "delete_url": "http://127.0.0.1:8000/section/api/delete/1/"
+        }
+    ],
+    "links": {
+        "previous": null,
+        "next": null
+    }

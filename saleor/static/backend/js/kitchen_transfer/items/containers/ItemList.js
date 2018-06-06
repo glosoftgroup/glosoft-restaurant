@@ -28,7 +28,6 @@ class ItemList extends Component {
               <th>Product</th>
               <th>SKU</th>
               <th>Cost Price</th>
-              <th>Added to menu</th>
               <th>Quantity</th>
               <th>Sold</th>
               <th>Price</th>

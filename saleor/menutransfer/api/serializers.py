@@ -66,11 +66,13 @@ class ItemsStockSerializer(serializers.ModelSerializer):
     product_category = serializers.SerializerMethodField()
     kitchen = serializers.SerializerMethodField()
     unit_cost = serializers.SerializerMethodField()
+    tax = serializers.SerializerMethodField()
+    discount = serializers.SerializerMethodField()
 
     class Meta:
         model = Item
         fields = format_fields(item_fields, ['productName', 'category', 'counter', 'menu', 'name', 'price', 'unit_price']) + \
-                 ('total_cost', 'kitchen', 'unit_cost', 'product_category', 'product_name', 'sku')
+                 ('total_cost', 'tax', 'discount', 'kitchen', 'unit_cost', 'product_category', 'product_name', 'sku')
 
     def get_sku(self, obj):
         try:
@@ -80,6 +82,12 @@ class ItemsStockSerializer(serializers.ModelSerializer):
 
     def get_product_name(self, obj):
         return obj.name
+
+    def get_tax(self, obj):
+        return 0
+
+    def get_discount(self, obj):
+        return 0
 
     def get_product_category(self, obj):
         return obj.menu.category.name
@@ -303,6 +311,7 @@ def create_items(instance, items):
             single.transferred_qty = single.qty
             single.expected_qty = single.qty
             single.category = item['category']['name']
+            single.category_id = item['category']['id']
             if single.qty > 0:
                 single.save()
 
