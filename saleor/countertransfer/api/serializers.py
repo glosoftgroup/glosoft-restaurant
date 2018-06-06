@@ -313,9 +313,9 @@ def create_items(instance, items):
             single.qty = int(single.qty) + int(item['qty'])
             single.transferred_qty = int(single.transferred_qty) + int(item['qty'])
             single.expected_qty = single.qty
-            print single.transferred_qty
             single.price = Decimal(single.price) + Decimal(item['price'])
-            single.save()
+            if single.qty > 0:
+                single.save()
         else:
             single = Item()
             single.transfer = instance
@@ -331,7 +331,8 @@ def create_items(instance, items):
             single.transferred_qty = single.qty
             single.expected_qty = single.qty
             single.sku = item['sku']
-            single.save()
+            if single.qty > 0:
+                single.save()
 
         # decrease stock
         Stock.objects.decrease_stock(item['stock'], item['qty'])

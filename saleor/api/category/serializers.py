@@ -29,10 +29,12 @@ class CategoryListSerializer(serializers.ModelSerializer):
     def get_total_products(self, obj):
         return len(ProductVariant.objects.filter(product__categories__pk=obj.pk))
 
+
 class MenuCategoryListSerializer(serializers.ModelSerializer):
     product_variants_url = HyperlinkedIdentityField(view_name='menutransfer:api-list-category')
     section = SerializerMethodField()
     total_products = SerializerMethodField()
+    description = SerializerMethodField()
 
     class Meta:
         model = MenuCategory
@@ -48,6 +50,9 @@ class MenuCategoryListSerializer(serializers.ModelSerializer):
             return Menu.objects.filter(category__pk=obj.pk).count()
         except Exception as e:
             return 0
+
+    def get_description(self, obj):
+        return ''
 
     def get_section(self, obj):
         try:

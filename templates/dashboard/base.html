@@ -289,7 +289,7 @@
                         <li class="{% block menu_bar_class %}{% endblock %}">
                             <a href="{% url 'counter:index' %}">
                                 <i class='icon-stairs'></i>
-                                Counter
+                                Counters
                             </a>
                         </li>
                         <li class="{% block menu_release_counter_class %}{% endblock %}">
@@ -314,7 +314,7 @@
                     <li id="first2">
                       <a href="{% url 'dashboard:product-list' %}">
                           <i class="icon-cup2"></i>
-                          <span> Restaurant Management</span>
+                          <span> Kitchen Management</span>
                       </a>
                       <ul>
                        {% if perms.product.view_product %}
@@ -366,7 +366,14 @@
                         <li class="{% block menu_menu_transfer_class %}{% endblock %}">
                             <a href="{% url 'menutransfer:index' %}">
                                 <i class='icon-move-up2'></i>
-                                Menu Transfer
+                                Menu Transfers
+                            </a>
+                        </li>
+
+                          <li class="{% block menu_menu_transfer_close_class %}{% endblock %}">
+                            <a href="{% url 'menutransfer:close' %}">
+                                <i class='icon-move-up2'></i>
+                                Menu Transfer Closing
                             </a>
                         </li>
                         {% endif %}

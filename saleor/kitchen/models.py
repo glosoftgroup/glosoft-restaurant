@@ -38,7 +38,7 @@ class Kitchen(models.Model):
     def is_closed(self):
         try:
             today = datetime.date.today()
-            transfers = self.item_counter.filter(transfer__date__lt=today, closed=False)
+            transfers = self.kitchen_item_counter.filter(transfer__date__lt=today, closed=False)
             if not transfers.exists():
                 return True
             return False
@@ -47,7 +47,8 @@ class Kitchen(models.Model):
 
     def last_open(self):
         try:
-            transfers = self.item_kitchen.filter(closed=False).first()
+            transfers = self.kitchen_item_counter.filter(closed=False).first()
             return transfers.transfer.date
-        except:
+        except Exception as e:
+            print(e)
             return ''

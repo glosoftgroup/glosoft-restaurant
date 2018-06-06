@@ -355,14 +355,17 @@ class OrderSerializer(serializers.ModelSerializer):
 
         for ordered_item_data in ordered_items_data:
             OrderedItem.objects.create(orders=order, **ordered_item_data)
-            try:
-                item = Item.objects.get(pk=ordered_item_data['transfer_id'])
-                if item:
-                    Item.objects.decrease_stock(item, ordered_item_data['quantity'])
-                else:
-                    print 'stock not found'
-            except Exception as e:
-                print 'Error reducing stock!'
+            if ordered_item_data.get('counter'):
+                try:
+                    item = Item.objects.get(pk=ordered_item_data['transfer_id'])
+                    if item:
+                        Item.objects.decrease_stock(item, ordered_item_data['quantity'])
+                    else:
+                        print 'stock not found'
+                except Exception as e:
+                    print 'Error reducing stock!'
+            else:
+                print ('kitchen.....')
         self.order = order
         return self.order
 

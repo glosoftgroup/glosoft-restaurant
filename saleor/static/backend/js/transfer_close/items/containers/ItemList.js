@@ -56,6 +56,7 @@ class ItemList extends Component {
   }
   handleSubmit = (e) => {
     // bulk action here
+    console.warn(this.props.date.date);
     var cart = this.props.cart;
     if (this.props.cart.length === 0) {
       toast.error('Please check on trasferred item(s) that you want to close. Closing Cart is empty', {
@@ -114,7 +115,7 @@ class ItemList extends Component {
                 />
             </div>
             <div className="col-md-3 no-print">
-             <TransferDate />
+             <TransferDate itemsDate={this.props.items.date}/>
             </div>
             <div className="col-md-1 no-print" data-tip="Close selected items">
                 <button onClick={this.handleSubmit} className="btn btn-primary bg-primary">Apply</button>

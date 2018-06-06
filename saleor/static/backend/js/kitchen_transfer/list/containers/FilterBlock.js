@@ -63,7 +63,7 @@ class FilterBlock extends Component {
             <li>
               <a className="text-white btn btn-primary btn-sm btn-raised legitRipple" href="/kitchen/transfer/add/">
               <i className="icon-add position-left"></i>
-              Transfer
+              Kitchen Transfer
               </a>
             </li>
         </ul>

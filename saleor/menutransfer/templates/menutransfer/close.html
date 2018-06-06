@@ -4,18 +4,19 @@
 {% load i18n %}
 
 {% block title %}
-   Kitchen Transfer Closing
+   Menu Transfer Closing
 {% endblock %}
 
  {% block breadcrumbs %}
-     <li class="active"><a href="/kitchen/transfer/"> Close Kitchen Stock</a></li>
+     <li><a href="/menu/">Menu Management</a></li>
+     <li class="active"><a > Menu Transfer Closing</a></li>
 
  {% endblock %}
 
 
- {% block menu_close_kitchen_class %}active{% endblock %}
+ {% block menu_menu_transfer_close_class %}active{% endblock %}
  {% block custom_css %}
- {% render_bundle 'kitchen_transfer_close' 'css' %}
+ {% render_bundle 'menu_transfer_close' 'css' %}
 <style>
           .theme_xbox .pace_activity, .theme_xbox .pace_activity::after, .theme_xbox .pace_activity::before, .theme_xbox_sm .pace_activity, .theme_xbox_sm .pace_activity::after, .theme_xbox_sm .pace_activity::before, .theme_xbox_xs .pace_activity, .theme_xbox_xs .pace_activity::after, .theme_xbox_xs .pace_activity::before {
         border-radius: 50%;
@@ -67,5 +68,5 @@
 <!--<script src="https://../popper.js/1.12.3/umd/popper.min.js"></script>-->
 <!--<script src="https://../bootstrap/4.0.0-beta.2/js/bootstrap.min.js"></script>-->
 {% render_bundle 'vendor' 'js' %}
-{% render_bundle 'kitchen_transfer_close' 'js' %}
+{% render_bundle 'menu_transfer_close' 'js' %}
 {% endblock %}

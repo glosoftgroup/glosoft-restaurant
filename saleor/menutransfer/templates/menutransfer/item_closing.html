@@ -4,18 +4,19 @@
 {% load i18n %}
 
 {% block title %}
-   Kitchen Transfer Items
+   Menu Transfer Items
 {% endblock %}
 
  {% block breadcrumbs %}
-     <li class=""><a href="/kitchen/transfer/close/"> Close Kitchen Stock</a></li>
-     <li class="active"><a >Kitchen Transferred Items</a></li>
+     <li><a href="/menu/">Menu Management</a></li>
+     <li class=""><a href="/menu/transfer/close/">Menu transfer closing</a></li>
+     <li class="active"><a >Menu Transferred Items</a></li>
  {% endblock %}
 
 
  {% block menu_close_kitchen_class %}active{% endblock %}
  {% block custom_css %}
- {% render_bundle 'kitchen_transferred_items_close' 'css' %}
+ {% render_bundle 'menu_transferred_items_close' 'css' %}
 <style>
           .theme_xbox .pace_activity, .theme_xbox .pace_activity::after, .theme_xbox .pace_activity::before, .theme_xbox_sm .pace_activity, .theme_xbox_sm .pace_activity::after, .theme_xbox_sm .pace_activity::before, .theme_xbox_xs .pace_activity, .theme_xbox_xs .pace_activity::after, .theme_xbox_xs .pace_activity::before {
         border-radius: 50%;
@@ -65,5 +66,5 @@
     {% endif %}
 </script>
 {% render_bundle 'vendor' 'js' %}
-{% render_bundle 'kitchen_transferred_items_close' 'js' %}
+{% render_bundle 'menu_transferred_items_close' 'js' %}
 {% endblock %}

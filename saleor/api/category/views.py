@@ -28,12 +28,14 @@ class BusinessTypeCategoryListAPIView(generics.ListAPIView):
 
     """ choose the default serializer class based on the name """
     def get_serializer_class(self):
-        if self.kwargs["name"].lower() == "restaurant": # here add the logic to decide the asset type
-             return MenuCategoryListSerializer
+        self.kwargs["name"] = self.kwargs.get("name", 'bar')
+        if self.kwargs["name"].lower() == "restaurant":  # here add the logic to decide the asset type
+            return MenuCategoryListSerializer
         return CategoryListSerializer
 
     """ choose the default queryset based on the name """
     def get_queryset(self):
+        self.kwargs["name"] = self.kwargs.get("name", 'bar')
         if self.kwargs["name"].lower() == "restaurant":  # here add the logic to decide the asset type
             return MenuCategory.objects.all()
         return Category.objects.all()
