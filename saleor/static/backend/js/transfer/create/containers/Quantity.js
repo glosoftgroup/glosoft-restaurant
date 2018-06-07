@@ -2,8 +2,9 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
-import { ToastContainer, toast } from 'react-toastify';
+import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import jGrowl from 'jgrowl';
 
 export class Quantity extends Component {
   constructor(props) {
@@ -19,17 +20,8 @@ export class Quantity extends Component {
       qty: this.props.instance.qty,
       maxQty: this.props.instance.quantity
     });
+    try { jGrowl; } catch (error) {};
   }
-  // componentDidUpdate(prevProps, prevState, snapshot) {
-  //   console.log('inside update compoent');
-  //   this.props.cart.map(value => {
-  //     console.log(value.qty)
-  //     console.warn(value.id);
-  //     if (value.id === this.props.instance.id) {
-  //       this.setState({qty: value.qty});
-  //     }
-  //   })
-  // }
   isNumeric = (n) => {
     return !isNaN(parseFloat(n)) && isFinite(n);
   }
@@ -39,14 +31,24 @@ export class Quantity extends Component {
     if (value === '') {
       // pass
     } else if (!this.isNumeric(value)) {
-      toast.error('Quantity must be a digit!');
+      $.jGrowl('Quantity must be a digit!', {
+        header: 'Quantity field error',
+        theme: 'bg-danger'
+      });
       return;
     } else if (value < 1) {
-      toast.error('Quantity must more than one!');
+      $.jGrowl('Quantity must more than one!', {
+        header: 'Quantity field error',
+        theme: 'bg-danger'
+      });
       return;
     }
     if (value > this.state.maxQty) {
-      toast.error(this.props.instance.sku + ' has ' + this.state.maxQty + ' items remaining! You can not transfer more that.');
+      var msg = this.props.instance.sku + ' has ' + this.state.maxQty + ' items remaining! You can not transfer more that.';
+      $.jGrowl(msg, {
+        header: 'Quantity error',
+        theme: 'bg-danger'
+      });
       return;
     }
 

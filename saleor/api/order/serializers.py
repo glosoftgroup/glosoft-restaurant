@@ -25,7 +25,7 @@ from ...kitchen.models import (
 from decimal import Decimal
 from ...customer.models import Customer
 from saleor.countertransfer.models import CounterTransferItems as Item
-
+from saleor.menutransfer.models import TransferItems as MenuItem
 
 User = get_user_model()
 
@@ -45,11 +45,13 @@ item_fields = ( 'id',
                 'ready',
                 'collected')
 
+
 class ItemSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = OrderedItem
         fields = item_fields
+
 
 class ListItemSerializer(serializers.ModelSerializer):
     counter = serializers.SerializerMethodField()
@@ -361,11 +363,20 @@ class OrderSerializer(serializers.ModelSerializer):
                     if item:
                         Item.objects.decrease_stock(item, ordered_item_data['quantity'])
                     else:
-                        print 'stock not found'
+                        print('stock not found')
                 except Exception as e:
-                    print 'Error reducing stock!'
+                    print('Error reducing stock!')
+            elif ordered_item_data.get('kitchen'):
+                try:
+                    item = MenuItem.objects.get(pk=ordered_item_data['transfer_id'])
+                    if item:
+                        MenuItem.objects.decrease_stock(item, ordered_item_data['quantity'])
+                    else:
+                        print('stock not found')
+                except Exception as e:
+                    print('Error reducing stock!')
             else:
-                print ('kitchen.....')
+                print('Unknown ordered item')
         self.order = order
         return self.order
 
@@ -465,29 +476,49 @@ class OrderUpdateSerializer(serializers.ModelSerializer):
         # return order sold item to transfer stock then delete then
         items = instance.ordered_items.all()
         for data in items:
-            # try:
-            item = Item.objects.get(pk=data.transfer_id)
-            if item:
-                Item.objects.increase_stock(item, item.sold)
+            if data.counter:
+                item = Item.objects.get(pk=data.transfer_id)
+                if item:
+                    Item.objects.increase_stock(item, item.sold)
+                else:
+                    print 'stock not found'
+            elif data.kitchen:
+                item = MenuItem.objects.get(pk=data.transfer_id)
+                if item:
+                    print('decreasing sold item')
+                    print item.sold
+                    print '*'*120
+                    MenuItem.objects.increase_stock(item, item.sold)
+                else:
+                    print 'stock not found'
             else:
-                print 'stock not found'
-            # except Exception as e:
-            #     print e
-            #     print 'Error reducing stock!'
+                print('Unkown point')
+
         items.delete()
 
         # recreate orders
         for ordered_item_data in ordered_items_data:
             OrderedItem.objects.create(orders=instance, **ordered_item_data)
-            try:
-                item = Item.objects.get(pk=ordered_item_data['transfer_id'])
-                if item:
-                    Item.objects.decrease_stock(item, ordered_item_data['quantity'])
-                else:
-                    print 'stock not found'
-            except Exception as e:
-                print 'Error reducing stock!'
-
+            if ordered_item_data.get('counter'):
+                try:
+                    item = Item.objects.get(pk=ordered_item_data['transfer_id'])
+                    if item:
+                        Item.objects.decrease_stock(item, ordered_item_data['quantity'])
+                    else:
+                        print('stock not found')
+                except Exception as e:
+                    print('Error reducing stock!')
+            elif ordered_item_data.get('kitchen'):
+                try:
+                    item = MenuItem.objects.get(pk=ordered_item_data['transfer_id'])
+                    if item:
+                        MenuItem.objects.decrease_stock(item, ordered_item_data['quantity'])
+                    else:
+                        print('stock not found')
+                except Exception as e:
+                    print('Error reducing stock!')
+            else:
+                print('Kitchen or counter were not provided')
         return instance
 
 

@@ -27,10 +27,11 @@ class FilterDate extends Component {
     setTimeout(() => {
       var dateLimit = moment(this.props.itemsDate).format('YYYY-MM-DD');
       if (moment().format('YYYY-MM-DD') === dateLimit) {
-        // console.warn('cannot close today');
+        console.warn('cannot close today');
         dateLimit = this.state.date;
       } else {
         console.warn('can close its not today');
+        dateLimit = moment().format('YYYY-MM-DD');
       }
       this.setState({dateLimit});
       console.log(dateLimit);

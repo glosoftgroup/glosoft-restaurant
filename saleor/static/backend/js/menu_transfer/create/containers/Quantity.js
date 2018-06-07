@@ -2,7 +2,8 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
-import { ToastContainer, toast } from 'react-toastify';
+import { ToastContainer } from 'react-toastify';
+import jGrowl from 'jgrowl';
 
 export class Quantity extends Component {
   constructor(props) {
@@ -18,6 +19,7 @@ export class Quantity extends Component {
       qty: this.props.instance.qty,
       maxQty: this.props.instance.quantity
     });
+    try { jGrowl; } catch (error) {};
   }
   isNumeric = (n) => {
     return !isNaN(parseFloat(n)) && isFinite(n);
@@ -28,13 +30,15 @@ export class Quantity extends Component {
     if (value === '') {
       // pass
     } else if (!this.isNumeric(value)) {
-      toast.error('Quantity must be a digit!', {
-        position: toast.POSITION.BOTTOM_CENTER
+      $.jGrowl('Quantity must be a digit!', {
+        header: 'Field error',
+        theme: 'bg-danger'
       });
       return;
     } else if (value < 1) {
-      toast.error('Quantity must more than one!', {
-        position: toast.POSITION.BOTTOM_CENTER
+      $.jGrowl('Quantity must more than one!', {
+        header: 'Field error',
+        theme: 'bg-danger'
       });
       return;
     }

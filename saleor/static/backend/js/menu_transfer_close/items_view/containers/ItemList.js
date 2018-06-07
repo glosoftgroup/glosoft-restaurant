@@ -73,7 +73,7 @@ class ItemList extends Component {
               <th>Menu Name</th>
               <th>Price</th>
               <th>Transferred Qty</th>
-              <th>Used</th>
+              <th>Sold</th>
               <th>Actual Qty</th>
               <th>Expected Qty</th>
               <th>Deficit/Surplus</th>

@@ -5,6 +5,7 @@ import { bindActionCreators } from 'redux';
 import api from '../api/Api';
 import { fetchItems } from '../actions/action-items';
 import Quantity from './Quantity';
+import Number from './Number';
 import { addCartItem, deleteCartItem, updateCartItem } from '../actions/action-cart';
 
 export class TransferTableRow extends Component {
@@ -26,6 +27,7 @@ export class TransferTableRow extends Component {
       deficit: 0,
       qty: 0,
       sold: 0,
+      expectedQty: 0,
       showDelete: false,
       checked: ''
     };
@@ -34,7 +36,8 @@ export class TransferTableRow extends Component {
     this.setState({
       deficit: this.props.instance.deficit,
       qty: this.props.instance.qty,
-      sold: this.props.instance.sold
+      sold: this.props.instance.sold,
+      expectedQty: this.props.instance.expected_qty
     });
   }
   componentDidUpdate(prevProps, prevState, snapshot) {
@@ -67,7 +70,7 @@ export class TransferTableRow extends Component {
     payload.qty = this.state.qty;
     checked === 'checked' ? this.props.addCartItem(payload) : this.props.deleteCartItem(payload.id);
   }
-  updateCart = (actualQuantity, deficit, description, sold = null) => {
+  updateCart = (actualQuantity, deficit, description, sold = null, expectedQty = null) => {
     var checked = 'add';
     this.setState({checked: 'checked'});
     var payload = { ...this.props.instance };
@@ -79,6 +82,9 @@ export class TransferTableRow extends Component {
     payload.deficit = deficit;
     payload.description = description;
     payload.qty = actualQuantity;
+    if (expectedQty) {
+      payload.expected_qty = expectedQty;
+    }
     if (sold) {
       payload.sold = sold;
     }
@@ -92,13 +98,22 @@ export class TransferTableRow extends Component {
     // compute sold
     var sold = instance.qty - actualQuantity;
     this.setState({sold: sold, deficit: deficit, qty: actualQuantity});
-    this.updateCart(actualQuantity, deficit, this.state.description, sold);
+    this.updateCart(actualQuantity, deficit, this.state.description, sold, this.state.expectedQty);
+  }
+  getExpected = (sold) => {
+    var instance = { ...this.props.instance };
+    var expectedQty = instance.transferred_qty - sold;
+
+    var deficit = expectedQty - this.state.qty;
+    // compute sold
+    this.setState({ expectedQty });
+    this.updateCart(this.state.qty, deficit, this.state.description, sold, expectedQty);
   }
   getUsed = (actualQuantity) => {
     var instance = { ...this.props.instance };
     var sold = instance.qty - actualQuantity;
     this.setState({sold: sold, qty: actualQuantity});
-    this.updateCart(actualQuantity, this.state.deficit, this.state.description, sold);
+    this.updateCart(actualQuantity, this.state.deficit, this.state.description, sold, this.state.expectedQty);
   }
   handleChange = (event) => {
     this.setState({description: event.target.value});
@@ -143,7 +158,9 @@ export class TransferTableRow extends Component {
         </td>
         <td>{instance.cost_price}</td>
         <td>{instance.transferred_qty}</td>
-        <td>{this.state.sold}</td>
+        <td>
+          <Number getExpected={this.getExpected} instance={instance}/>
+        </td>
         <td>
         {instance.closed &&
          <span>{instance.qty}</span>
@@ -152,7 +169,7 @@ export class TransferTableRow extends Component {
           <Quantity getDeficit={this.getDeficit} instance={instance}/>
         }
         </td>
-        <td>{instance.expected_qty}</td>
+        <td>{this.state.expectedQty}</td>
         <td>{this.state.deficit}</td>
         <td>
         {instance.closed &&

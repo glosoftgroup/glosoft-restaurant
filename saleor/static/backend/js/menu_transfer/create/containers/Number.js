@@ -2,7 +2,8 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
-import { ToastContainer, toast } from 'react-toastify';
+import { ToastContainer } from 'react-toastify';
+import jGrowl from 'jgrowl';
 
 export class Number extends Component {
   constructor(props) {
@@ -16,6 +17,7 @@ export class Number extends Component {
     this.setState({
       number: this.props.instance.price
     });
+    try { jGrowl; } catch (error) {};
   }
   isNumeric = (n) => {
     return !isNaN(parseFloat(n)) && isFinite(n);
@@ -26,13 +28,15 @@ export class Number extends Component {
     if (value === '') {
       // pass
     } else if (!this.isNumeric(value)) {
-      toast.error('Quantity must be a digit!', {
-        position: toast.POSITION.BOTTOM_CENTER
+      $.jGrowl('Price must be a digit!', {
+        header: 'Field error',
+        theme: 'bg-danger'
       });
       return;
     } else if (value < 1) {
-      toast.error('Quantity must more than one!', {
-        position: toast.POSITION.BOTTOM_CENTER
+      $.jGrowl('Price must more than one!', {
+        header: 'Field error',
+        theme: 'bg-danger'
       });
       return;
     }

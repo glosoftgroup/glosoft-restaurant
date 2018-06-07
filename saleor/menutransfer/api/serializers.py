@@ -68,10 +68,11 @@ class ItemsStockSerializer(serializers.ModelSerializer):
     unit_cost = serializers.SerializerMethodField()
     tax = serializers.SerializerMethodField()
     discount = serializers.SerializerMethodField()
+    quantity = serializers.SerializerMethodField()
 
     class Meta:
         model = Item
-        fields = format_fields(item_fields, ['productName', 'category', 'counter', 'menu', 'name', 'price', 'unit_price']) + \
+        fields = format_fields(item_fields, ['qty', 'productName', 'category', 'counter', 'menu', 'name', 'price', 'unit_price']) + \
                  ('total_cost', 'tax', 'discount', 'kitchen', 'unit_cost', 'product_category', 'product_name', 'sku')
 
     def get_sku(self, obj):
@@ -85,6 +86,9 @@ class ItemsStockSerializer(serializers.ModelSerializer):
 
     def get_tax(self, obj):
         return 0
+
+    def get_quantity(self, obj):
+        return obj.qty
 
     def get_discount(self, obj):
         return 0

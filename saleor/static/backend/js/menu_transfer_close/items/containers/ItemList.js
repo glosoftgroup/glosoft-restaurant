@@ -23,10 +23,9 @@ class ItemList extends Component {
     this.state = {
       checked: '',
       allCleared: false,
-      action: '',
+      action: '1',
       actions: [
-        {'text': 'Carry Forward', 'id': '1'},
-        {'text': 'Return to Stock', 'id': '2'}
+        {'text': 'Carry Forward', 'id': '1'}
       ]
     };
   }
@@ -114,7 +113,7 @@ class ItemList extends Component {
                 />
             </div>
             <div className="col-md-3 no-print">
-             <TransferDate />
+            <TransferDate itemsDate={this.props.items.date}/>
             </div>
             <div className="col-md-1 no-print" data-tip="Close selected items">
                 <button onClick={this.handleSubmit} className="btn btn-primary bg-primary">Apply</button>
@@ -142,7 +141,7 @@ class ItemList extends Component {
               <th>Category</th>
               <th>Price</th>
               <th>Transferred Qty</th>
-              <th>Used Qty</th>
+              <th>Sold</th>
               <th>Actual Qty</th>
               <th>Expected Qty</th>
               <th>Deficit/Surplus</th>

@@ -2,8 +2,9 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
-import { ToastContainer, toast } from 'react-toastify';
+import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import jGrowl from 'jgrowl';
 
 export class Quantity extends Component {
   constructor(props) {
@@ -19,6 +20,7 @@ export class Quantity extends Component {
       qty: this.props.instance.qty,
       maxQty: this.props.instance.quantity
     });
+    try { jGrowl; } catch (error) {};
   }
   isNumeric = (n) => {
     return !isNaN(parseFloat(n)) && isFinite(n);
@@ -29,19 +31,24 @@ export class Quantity extends Component {
     if (value === '') {
       // pass
     } else if (!this.isNumeric(value)) {
-      toast.error('Quantity must be a digit!', {
-        position: toast.POSITION.BOTTOM_CENTER
+      $.jGrowl('Quantity must be a digit!', {
+        header: 'Quantity field error',
+        theme: 'bg-danger'
       });
       return;
     } else if (value < 1) {
-      toast.error('Each transferred item quantity must more than one!', {
-        position: toast.POSITION.BOTTOM_CENTER
+      var msg = 'Each transferred item quantity must more than one!';
+      $.jGrowl(msg, {
+        header: 'Quantities field error',
+        theme: 'bg-danger'
       });
       return;
     }
     if (value > this.state.maxQty) {
-      toast.error(this.props.instance.sku + ' has ' + this.state.maxQty + ' items remaining! You can not transfer more that.', {
-        position: toast.POSITION.BOTTOM_CENTER
+      msg = this.props.instance.sku + ' has ' + this.state.maxQty + ' items remaining! You can not transfer more that.';
+      $.jGrowl(msg, {
+        header: 'Quantity cannot exceed stock quantity',
+        theme: 'bg-danger'
       });
       return;
     }
