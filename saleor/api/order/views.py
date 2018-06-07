@@ -172,7 +172,13 @@ class TableOrdersListAPIView(generics.ListAPIView):
         }
         # Note the use of `get_queryset()` instead of `self.queryset`
         query = self.request.GET.get('q')
-        if query:
+        order = self.request.GET.get('order')
+
+        if order and query:
+            queryset = self.get_queryset().filter(
+                Q(table__pk=pk) & Q(invoice_number=order)
+            )
+        elif query:
             queryset = self.get_queryset().filter(table__pk=pk).filter(status=query)
         else:
             queryset = self.get_queryset().filter(table__pk=pk)
