@@ -1,19 +1,32 @@
+import datetime
+import logging
 from rest_framework import generics
 from django.db.models import Q
 from django.contrib.auth import get_user_model
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework import pagination
+from rest_framework.request import Request
+from rest_framework.response import Response
+from rest_framework.test import APIRequestFactory
 from .pagination import PostLimitOffsetPagination
 
 from saleor.product.models import Stock as Table
+from saleor.countertransfer.models import CounterTransferItems as CounterItems
+from saleor.menutransfer.models import TransferItems as MenuItem
 from .serializers import (
     CreateListSerializer,
     TableListSerializer,
-    UpdateSerializer
+    UpdateSerializer,
+    SearchTransferredStockListSerializer
      )
 
 User = get_user_model()
-
+request = APIRequestFactory().get('/')
+serializer_context = {
+    'request': Request(request),
+}
+logger = logging.getLogger(__name__)
+info_logger = logging.getLogger('info_logger')
 
 class CreateAPIView(generics.CreateAPIView):
     queryset = Table.objects.all()
@@ -66,3 +79,203 @@ class UpdateAPIView(generics.RetrieveUpdateAPIView):
     """
     queryset = Table.objects.all()
     serializer_class = UpdateSerializer
+
+from rest_framework.views import APIView
+
+class SearchTransferredStockListAPIView(APIView):
+    def get(self, request):
+
+        query = self.request.GET.get('q', '')
+        today = datetime.date.today()
+        yesterday = datetime.date.today() - datetime.timedelta(days=1)
+        all_counter_menu_stock = []
+        """ get the counter stocks """
+        try:
+            counter_stock = CounterItems.objects.filter(
+                    Q(transfer__date=today) |
+                    Q(transfer__date=yesterday)
+                ).distinct('stock').select_related()
+
+            if query:
+                counter_stock = counter_stock.filter(
+                    Q(stock__variant__sku__icontains=query) |
+                    Q(stock__variant__product__name__icontains=query) |
+                    Q(counter__name__icontains=query)).order_by('stock')
+
+            if counter_stock.exists():
+                for i in counter_stock:
+                    """ set the json data fields 
+                        using getCounterItemsJsonData(obj)
+                    """
+                    all_counter_menu_stock.append(getCounterItemsJsonData(i))
+
+
+        except Exception as e:
+            """ log error """
+            info_logger.info('Error in getting counter stock: ' + str(e))
+            pass
+
+
+        """ get the menu stocks """
+        try:
+            menu_stock = MenuItem.objects.filter(
+                Q(transfer__date=today) |
+                Q(transfer__date=yesterday)
+            ).distinct('menu').select_related()
+            print menu_stock
+            if query:
+                menu_stock = menu_stock.filter(
+                    Q(menu__category__name__icontains=query) |
+                    Q(name__icontains=query) |
+                    Q(counter__name__icontains=query)|
+                    Q(menu__name__icontains=query)|
+                    Q(menu__id__icontains=query)).order_by('menu')
+
+
+            if menu_stock.exists():
+                for i in menu_stock:
+                    """ set the json data fields 
+                        using getMenuItemsJsonData(obj)
+                    """
+                    all_counter_menu_stock.append(getMenuItemsJsonData(i))
+
+
+        except Exception as e:
+            """ log error """
+            info_logger.info('Error in getting menu stock: ' + str(e))
+            pass
+
+        serializer = SearchTransferredStockListSerializer(all_counter_menu_stock, many=True)
+        return Response(serializer.data)
+
+
+""" set the counter items json """
+def getCounterItemsJsonData(obj):
+    """ id """
+    id = obj.id
+
+    """ sku """
+    try:
+        sku = obj.stock.variant.sku
+    except:
+        sku = ''
+
+    """ product_name """
+    try:
+        product_name = obj.productName
+    except:
+        product_name = ''
+
+    """ product_category """
+    try:
+        product_category = obj.product_category
+    except:
+        product_category = ''
+
+    """ counter """
+    try:
+        counter = {"id": obj.counter.id, "name": obj.counter.name}
+    except:
+        counter = None
+
+    """ unit_cost """
+    try:
+        unit_cost = obj.stock.price_override.gross
+    except:
+        unit_cost = obj.unit_price
+
+    """ quantity """
+    try:
+        quantity = CounterItems.objects.instance_quantities(obj.stock, filter_type='stock', counter=obj.counter)
+    except:
+        quantity = 0
+
+    """ tax """
+    try:
+        tax = obj.tax
+    except:
+        tax = 0
+
+    """ discount """
+    try:
+        discount = obj.discount
+    except:
+        discount = 0
+
+    json_data = {
+        "id": id,
+        "sku": sku,
+        "quantity": quantity,
+        "product_name": product_name,
+        "product_category": product_category,
+        "unit_cost": unit_cost,
+        "tax": tax,
+        "discount": discount,
+        "counter": counter,
+        "kitchen":None
+    }
+
+    return json_data
+
+
+""" set the menu items json """
+def getMenuItemsJsonData(obj):
+    """ id """
+    id = obj.id
+
+    """ sku """
+    try:
+        sku = obj.menu.id
+    except:
+        sku = ''
+
+    """ product_name """
+    try:
+        product_name = obj.name
+    except:
+        product_name = ''
+
+    """ product_category """
+    try:
+        product_category = obj.menu.category.name
+    except:
+        product_category = ''
+
+    """ kitchen """
+    try:
+        kitchen = {"id": obj.counter.id, "name": obj.counter.name}
+    except:
+        kitchen = None
+
+    """ unit_cost """
+    try:
+        unit_cost = obj.price
+    except:
+        unit_cost = 0
+
+    """ quantity """
+    try:
+        quantity = obj.qty
+    except:
+        quantity = 0
+
+    """ tax """
+    tax = 0
+
+    """ discount """
+    discount = 0
+
+    json_data = {
+        "id": id,
+        "sku": sku,
+        "quantity": quantity,
+        "product_name": product_name,
+        "product_category": product_category,
+        "unit_cost": unit_cost,
+        "tax": tax,
+        "discount": discount,
+        "kitchen": kitchen,
+        "counter":None
+    }
+
+    return json_data
