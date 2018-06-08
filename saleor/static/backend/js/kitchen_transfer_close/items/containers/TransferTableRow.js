@@ -93,7 +93,7 @@ export class TransferTableRow extends Component {
   }
   getDeficit = (actualQuantity) => {
     var instance = { ...this.props.instance };
-    var deficit = actualQuantity - instance.qty;
+    var deficit = actualQuantity - this.state.expectedQty;
 
     // compute sold
     var sold = instance.qty - actualQuantity;
