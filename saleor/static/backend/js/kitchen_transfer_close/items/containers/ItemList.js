@@ -7,9 +7,10 @@ import TransferTableRow from './TransferTableRow';
 import TransferDate from './TransferDate';
 import { addCartItem, deleteCartItem } from '../actions/action-cart';
 import api from '../api/Api';
-import { ToastContainer, toast } from 'react-toastify';
+import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import ReactTooltip from 'react-tooltip';
+import jGrowl from 'jgrowl';
 
 class ItemList extends Component {
   /*
@@ -29,6 +30,9 @@ class ItemList extends Component {
         {'text': 'Return to Stock', 'id': '2'}
       ]
     };
+  }
+  componentDidMount() {
+    try { jGrowl; } catch (error) {};
   }
   onSelectChange = (e) => {
     this.setState({
@@ -58,14 +62,16 @@ class ItemList extends Component {
     // bulk action here
     var cart = this.props.cart;
     if (this.props.cart.length === 0) {
-      toast.error('Please check on trasferred item(s) that you want to close. Closing Cart is empty', {
-        position: toast.POSITION.BOTTOM_CENTER
+      $.jGrowl('Please check on trasferred item(s) that you want to close. Closing Cart is empty', {
+        header: '',
+        theme: 'bg-danger'
       });
       return;
     }
     if (this.state.action === '') {
-      toast.error('Please select closing action', {
-        position: toast.POSITION.BOTTOM_CENTER
+      $.jGrowl('Please select closing action', {
+        header: '',
+        theme: 'bg-danger'
       });
       return;
     }

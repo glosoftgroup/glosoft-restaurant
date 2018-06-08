@@ -187,7 +187,8 @@ class TableOrdersListAPIView(generics.ListAPIView):
 
     def delete(self, request, pk=None):
         orders = Orders.objects.filter(table__pk=pk)
-        orders.delete()
+        print request.POST
+        # orders.delete()
         return Response("successfully delete, status=204")
 
 

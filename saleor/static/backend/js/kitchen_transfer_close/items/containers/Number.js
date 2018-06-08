@@ -10,7 +10,7 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import jGrowl from 'jgrowl';
 
-export class Quantity extends Component {
+export class Number extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -23,8 +23,8 @@ export class Quantity extends Component {
 
   componentDidMount = () => {
     this.setState({
-      qty: this.props.instance.qty,
-      maxQty: this.props.instance.quantity + this.props.instance.qty
+      qty: this.props.instance.sold,
+      maxQty: this.props.instance.transferred_qty
     });
     try { jGrowl; } catch (error) {};
   }
@@ -52,12 +52,18 @@ export class Quantity extends Component {
         theme: 'bg-danger'
       });
       return;
+    } else if (value > this.state.maxQty) {
+      $.jGrowl('Quantity cannot be more than transferred qty', {
+        header: '',
+        theme: 'bg-danger'
+      });
+      return;
     } else {
       this.setState({
         [e.target.name]: value
       });
       this.setState({qty: value});
-      this.props.getDeficit(value);
+      this.props.getExpected(value);
     }
   }
 
@@ -141,9 +147,9 @@ export class Quantity extends Component {
   }
 }
 
-Quantity.propTypes = {
+Number.propTypes = {
   instance: PropTypes.array.isRequired,
-  getDeficit: PropTypes.func.isRequired,
+  getExpected: PropTypes.func.isRequired,
   updateCartItem: PropTypes.func.isRequired,
   fetchItems: PropTypes.func.isRequired
 };
@@ -156,4 +162,4 @@ function matchDispatchToProps(dispatch) {
   return bindActionCreators({fetchItems}, dispatch);
 }
 
-export default connect(mapStateToProps, matchDispatchToProps)(Quantity);
+export default connect(mapStateToProps, matchDispatchToProps)(Number);

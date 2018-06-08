@@ -3,9 +3,10 @@ import PropTypes from 'prop-types';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import moment from 'moment';
-import { ToastContainer, toast } from 'react-toastify';
+import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import api from '../api/Api';
+import jGrowl from 'jgrowl';
 
 export class TransferButton extends Component {
   constructor(props) {
@@ -16,7 +17,9 @@ export class TransferButton extends Component {
       counter: ''
     };
   }
-
+  componentDidMount() {
+    try { jGrowl; } catch (error) {};
+  }
   cartValidate = () => {
     var valid = true;
     this.props.cart.map((value, index) => {
@@ -32,8 +35,9 @@ export class TransferButton extends Component {
     var props = { ...this.props };
     var transferDate = props.date ? props.date.date : moment().format('YYYY-MM-DD');
     if (!this.props.counter) {
-      toast.error('Please select Counter !', {
-        position: toast.POSITION.BOTTOM_CENTER
+      $.jGrowl('Please select Counter !', {
+        header: 'Counter required',
+        theme: 'bg-danger'
       });
       return;
     }
@@ -44,8 +48,10 @@ export class TransferButton extends Component {
     if (found) {
       if (moment(transferDate).isAfter(moment(found.last_open))) {
         // You must close later date which is probably todays transfer
-        toast.error('Please close ' + found.last_open + ' counter transfer for ' + found.name + '.', {
-          position: toast.POSITION.BOTTOM_CENTER
+        var msg = 'Please close ' + found.last_open + ' counter transfer for ' + found.name + '.';
+        $.jGrowl(msg, {
+          header: 'Counters are not closed',
+          theme: 'bg-danger'
         });
         return;
       }
@@ -58,15 +64,17 @@ export class TransferButton extends Component {
     formData.append('date', transferDate);
 
     if (!this.cartValidate()) {
-      toast.error('All transfer cart items quantity should be a valid integer', {
-        position: toast.POSITION.BOTTOM_CENTER
+      $.jGrowl('All transfer cart items quantity should be a valid integer', {
+        header: 'Invalid item quantity detected',
+        theme: 'bg-danger'
       });
       return;
     }
 
     if (this.props.cart.length < 1) {
-      toast.error('Transfer Cart can not be empty', {
-        position: toast.POSITION.BOTTOM_CENTER
+      $.jGrowl('Transfer Cart can not be empty', {
+        header: 'Your cart is empty',
+        theme: 'bg-danger'
       });
       return;
     }

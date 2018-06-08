@@ -6,8 +6,9 @@ import ReactTooltip from 'react-tooltip';
 import Tooltip from 'react-tooltip-lite';
 import api from '../api/Api';
 import { fetchItems } from '../actions/action-items';
-import { ToastContainer, toast } from 'react-toastify';
+import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import jGrowl from 'jgrowl';
 
 export class Quantity extends Component {
   constructor(props) {
@@ -25,6 +26,7 @@ export class Quantity extends Component {
       qty: this.props.instance.qty,
       maxQty: this.props.instance.quantity + this.props.instance.qty
     });
+    try { jGrowl; } catch (error) {};
   }
   isNumeric = (n) => {
     return !isNaN(parseFloat(n)) && isFinite(n);
@@ -39,20 +41,17 @@ export class Quantity extends Component {
         [e.target.name]: value
       });
     } else if (!this.isNumeric(value)) {
-      toast.error('Quantity must be a digit!', {
-        position: toast.POSITION.BOTTOM_CENTER
+      $.jGrowl('Quantity must be a digit!', {
+        header: 'Quantity field error',
+        theme: 'bg-danger'
       });
       return;
     } else if (value < 0) {
-      toast.error('Quantity should be a positive number', {
-        position: toast.POSITION.BOTTOM_CENTER
+      $.jGrowl('Quantity should be a positive number', {
+        header: 'Quantity field error',
+        theme: 'bg-danger'
       });
       return;
-    // } else if (value > this.props.instance.qty) {
-    //   toast.error('Quantity cannot be less than Expected quatity (' + this.props.instance.qty + ')', {
-    //     position: toast.POSITION.BOTTOM_CENTER
-    //   });
-    //   return;
     } else {
       this.setState({
         [e.target.name]: value
@@ -67,11 +66,18 @@ export class Quantity extends Component {
     if (this.state.qty < this.props.instance.qty) {
       console.warn('reduce qty');
     } else if (this.state.qty > this.state.maxQty) {
-      toast.error('Transfer Quantity cannot be more than ' + this.state.maxQty + '!');
+      var msg = 'Transfer Quantity cannot be more than ' + this.state.maxQty + '!';
+      $.jGrowl(msg, {
+        header: 'Transfer Quantity error',
+        theme: 'bg-danger'
+      });
       return;
     }
     if (!this.isNumeric(this.state.qty)) {
-      toast.error('Quantity must be a digit!');
+      $.jGrowl('Quantity must be a digit!', {
+        header: 'Transfer Quantity error',
+        theme: 'bg-danger'
+      });
       return;
     }
     var formData = new FormData();

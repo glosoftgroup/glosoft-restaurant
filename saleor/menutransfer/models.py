@@ -70,6 +70,18 @@ class TransferItemManager(BaseUserManager):
             total_qty = int(total_qty) + int(item.qty)
         return total_qty
 
+    def decrease_stock(self, instance, quantity):
+        instance.sold = models.F('sold') + quantity
+        instance.qty = models.F('qty') - quantity
+        instance.expected_qty = instance.qty
+        instance.save(update_fields=['sold', 'qty', 'expected_qty'])
+
+    def increase_stock(self, instance, quantity):
+        instance.qty = models.F('qty') + quantity
+        instance.sold = models.F('sold') - quantity
+        instance.expected_qty = instance.qty
+        instance.save(update_fields=['qty', 'sold', 'expected_qty'])
+
     def instance_quantities(self, instance, filter_type='transfer', counter=None):
         if filter_type == 'transfer':
             query = self.get_queryset().filter(transfer=instance)
