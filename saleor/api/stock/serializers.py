@@ -127,3 +127,16 @@ class UpdateSerializer(serializers.ModelSerializer):
 
         instance.save()
         return instance
+
+
+class SearchTransferredStockListSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    sku = serializers.CharField(max_length=200)
+    product_name = serializers.CharField(max_length=200, allow_null=True)
+    product_category = serializers.CharField(max_length=200, allow_null=True)
+    unit_cost = serializers.DecimalField(max_digits=11, decimal_places=2)
+    quantity = serializers.IntegerField()
+    tax = serializers.CharField(max_length=200)
+    discount = serializers.CharField(max_length=200)
+    counter = serializers.JSONField(allow_null=True)
+    kitchen = serializers.JSONField(allow_null=True)

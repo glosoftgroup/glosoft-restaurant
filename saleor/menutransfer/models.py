@@ -161,7 +161,7 @@ class TransferItems(models.Model):
         verbose_name_plural = pgettext_lazy('TransferItems model', 'TransferItems')
 
     def __str__(self):
-        return str(self.sku) + ' ' + str(self.qty)
+        return str(self.pk) + ' ' + str(self.qty)
 
 
 
