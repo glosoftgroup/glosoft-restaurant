@@ -4,7 +4,6 @@ from django.contrib.auth import get_user_model
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework import pagination
 from .pagination import PostLimitOffsetPagination
-
 from saleor.menucategory.models import MenuCategory as Table
 from .serializers import (
     CreateListSerializer,

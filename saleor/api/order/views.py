@@ -1,6 +1,7 @@
 from django.db.models import Q
 from rest_framework.response import Response
 from rest_framework import generics
+from rest_framework import status
 from django.contrib.auth import get_user_model
 from ...orders.models import Orders, OrderedItem
 from ...table.models import Table
@@ -24,6 +25,9 @@ from ...decorators import user_trail
 import logging
 from rest_framework.request import Request
 from rest_framework.test import APIRequestFactory
+from saleor.countertransfer.models import CounterTransferItems as Item
+from saleor.menutransfer.models import TransferItems as MenuItem
+
 User = get_user_model()
 debug_logger = logging.getLogger('debug_logger')
 info_logger = logging.getLogger('info_logger')
@@ -34,6 +38,38 @@ request = factory.get('/')
 serializer_context = {
     'request': Request(request),
 }
+
+
+def return_to_stock(ordered_items):
+    for item in ordered_items:
+        if item.counter:
+            # return to stock
+            stock = Item.objects.get(pk=item.transfer_id)
+            if item:
+                Item.objects.increase_stock(stock, item.quantity)
+            else:
+                print 'stock not found'
+            pass
+        elif item.kitchen:
+            # return to menu stock
+            print len(item.__dict__)
+            stock = MenuItem.objects.get(pk=item.transfer_id)
+            if item:
+                MenuItem.objects.increase_stock(stock, item.quantity)
+            else:
+                print 'stock not found'
+            pass
+
+
+class DestroyView(generics.DestroyAPIView):
+    queryset = Orders.objects.all()
+
+    def perform_destroy(self, instance):
+        ordered_items = instance.ordered_items.all()
+        # return stock/menu items then delete
+        return_to_stock(ordered_items)
+        instance.delete()
+        return Response({}, status=status.HTTP_201_CREATED)
 
 
 class OrderDetailAPIView(generics.RetrieveAPIView):
@@ -186,9 +222,15 @@ class TableOrdersListAPIView(generics.ListAPIView):
         return Response(serializer.data)
 
     def delete(self, request, pk=None):
-        orders = Orders.objects.filter(table__pk=pk)
-        print request.POST
-        # orders.delete()
+        if request.data.get('status') == 'delete':
+            # delete each order and return orders to counter/menu transfer
+            if request.data.get('orders'):
+                for order in request.data.get('orders'):
+                    instance = Orders.objects.get(invoice_number=str(order))
+                    ordered_items = instance.ordered_items.all()
+                    # return stock/menu items then delete
+                    return_to_stock(ordered_items)
+                    instance.delete()
         return Response("successfully delete, status=204")
 
 
@@ -256,6 +298,7 @@ class SearchOrdersListAPIView(generics.ListAPIView):
         orders = Orders.objects.filter(table__pk=pk)
         orders.delete()
         return Response("successfully delete, status=204")
+
 
 class RoomOrdersListAPIView(generics.ListAPIView):
     queryset = Orders.objects.all()

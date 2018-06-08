@@ -242,11 +242,11 @@ def carry_items(instance, items):
     for item in items:
         # if item exist, increase quantity else create
         try:
-            item.stock = Stock.objects.get(pk=item.stock.pk)
+            item.menu = Item.objects.get(pk=item.menu.pk)
         except Exception as e:
             print e
             pass
-        query = Item.objects.filter(transfer=instance, stock=item.stock)
+        query = Item.objects.filter(transfer=instance, menu=item.menu)
         if query.exists():
             print 'updating....'
             single = query.first()
@@ -262,17 +262,14 @@ def carry_items(instance, items):
             single.transfer = instance
             single.counter = instance.counter
             single.price = item.price
-            single.unit_price = item.unit_price
-            single.discount = item.discount
-            single.tax = item.tax
-            single.product_category = item.product_category
-            single.productName = item.productName
-            single.stock = item.stock
+            single.name = item.name
+            single.menu = item.menu
             single.qty = item.qty
             single.transferred_qty = single.qty
             single.expected_qty = single.qty
-            single.sku = item.sku
-            if single.qty < 1:
+            single.category = item.category
+            single.category_id = item.category_id
+            if single.qty > 0:
                 single.save()
 
         # decrease stock

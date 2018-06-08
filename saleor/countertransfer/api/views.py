@@ -5,7 +5,6 @@ from django.contrib.auth import get_user_model
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework import pagination
 from .pagination import PostLimitOffsetPagination
-
 from saleor.countertransfer.models import CounterTransfer as Table
 from saleor.product.models import Stock
 from saleor.countertransfer.models import CounterTransferItems as Item
@@ -18,7 +17,7 @@ from .serializers import (
     ItemsSerializer,
     ItemsStockSerializer
      )
-
+from saleor.core.utils.closing_time import is_business_time
 User = get_user_model()
 
 
@@ -164,8 +163,15 @@ class ListStockAPIView(generics.ListAPIView):
         return {"date": None, 'request': self.request}
 
     def get_queryset(self, *args, **kwargs):
+        # determine whether to show yesterdays transfer
+        # This will enable selling today's stock after mid day
+        show_yesterday = is_business_time()
         today = datetime.date.today()
-        yesterday = datetime.date.today() - datetime.timedelta(days=1)
+        if show_yesterday:
+            yesterday = datetime.date.today() - datetime.timedelta(days=1)
+        else:
+            yesterday = today
+
         try:
             if self.kwargs['pk']:
                 queryset_list = Item.objects.filter(
@@ -218,8 +224,12 @@ class ListCategoryAPIView(generics.ListAPIView):
         return {"date": None, 'request': self.request}
 
     def get_queryset(self, *args, **kwargs):
+        show_yesterday = is_business_time()
         today = datetime.date.today()
-        yesterday = datetime.date.today() - datetime.timedelta(days=1)
+        if show_yesterday:
+            yesterday = datetime.date.today() - datetime.timedelta(days=1)
+        else:
+            yesterday = today
         try:
             if self.kwargs['pk']:
                 queryset_list = Item.objects.filter(

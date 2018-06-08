@@ -17,20 +17,20 @@ def check_work_period():
         period
         else false
     """
-    settings= SiteSettings.objects.get(pk=1)
+    settings = SiteSettings.objects.get(pk=1)
     closing_time = settings.closing_time
-    opening_time  = settings.opening_time
-    #format = '%H:%M %p'
+    opening_time = settings.opening_time
+    # format = '%H:%M %p'
     now = datetime.time(datetime.now())
-    if closing_time == None and opening_time != None:
+    if closing_time is None and opening_time is not None:
         print 'closing time not set'
         if now < opening_time:
             return False
-    if opening_time == None and closing_time != None:
+    if opening_time is None and closing_time is not None:
         print 'opening time not set'
         if now > closing_time:
             return False
-    if opening_time != None and closing_time != None:
+    if opening_time is not None and closing_time is not None:
         if now < opening_time and now > closing_time:
             return False
         else:

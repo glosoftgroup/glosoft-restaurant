@@ -15,6 +15,7 @@
       "terminal": 1,
       "amount_paid": "0.00",
       "update_url": "http://127.0.0.1:8000/api/order/update-order/179/",
+      "delete_url": "http://127.0.0.1:8000/api/order/delete/28",
       "ordered_items": [
         {
           "id": 816,

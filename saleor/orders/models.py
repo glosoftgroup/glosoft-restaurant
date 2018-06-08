@@ -38,7 +38,6 @@ class OrdersManager(models.Manager):
             models.Q(room=room_pk), models.Q(status='payment-pending'))
 
 
-
 #@python_2_unicode_compatible
 class Orders(models.Model):
     status = models.CharField(

@@ -336,12 +336,10 @@ class ProductVariant(models.Model, Item):
         quantity = 0
         try:
             while checker:
+                quantity = self.stock.filter(quantity__gte=1).first().quantity
+                # if quantity > 0:
                 quantity = self.stock.all().first().quantity
-                if quantity > 0:
-                    quantity = self.stock.all().first().quantity
-                    checker = False
-                else:
-                    self.stock.all().first().delete()
+                checker = False
             return quantity
         except:
             return quantity
@@ -352,12 +350,10 @@ class ProductVariant(models.Model, Item):
         price = 0
         try:
             while checker:
-                stock = self.stock.all().first().quantity
-                if stock > 0:
-                    price = self.stock.all().first().minimum_price
-                    checker = False
-                else:
-                    self.stock.all().first().delete()
+                stock = self.stock.filter(quantity__gte=1).first().quantity
+                # if stock > 0:
+                price = self.stock.all().first().minimum_price
+                checker = False
             return price
         except Exception as e:
             return price
@@ -368,11 +364,9 @@ class ProductVariant(models.Model, Item):
         try:
             while checker:
                 stock = self.stock.all().first().quantity
-                if stock > 0:
-                    price = self.stock.all().first().price_override
-                    checker = False
-                else:
-                    self.stock.all().first().delete()
+                # if stock > 0:
+                price = self.stock.filter(quantity__gte=1).first().price_override
+                checker = False
             price = calculate_discounted_price(self.product, price, discounts,
                                                **kwargs)
             return price
@@ -385,11 +379,9 @@ class ProductVariant(models.Model, Item):
         try:
             while checker:
                 quantity = self.stock.all().first().quantity
-                if quantity > 0:
-                    price = self.stock.all().first().wholesale_override
-                    checker = False
-                else:
-                    self.stock.all().first().delete()
+                # if quantity > 0:
+                price = self.stock.filter(quantity__gte=1).first().wholesale_override
+                checker = False
             price = calculate_discounted_price(self.product, price, discounts,
                                                **kwargs)
             return price
@@ -421,12 +413,10 @@ class ProductVariant(models.Model, Item):
         price = 0
         try:
             while checker:
-                quantity = self.stock.all().first().quantity
-                if quantity > 0:
-                    price = self.stock.all().first().cost_price.gross
-                    checker = False
-                else:
-                    self.stock.all().first().delete()
+                quantity = self.stock.filter(quantity__gte=1).first().quantity
+                # if quantity > 0:
+                price = self.stock.filter(quantity__gte=1).first().cost_price.gross
+                checker = False
             return price
         except Exception as e:
             return price

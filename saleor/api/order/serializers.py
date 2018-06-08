@@ -77,6 +77,7 @@ class ListItemSerializer(serializers.ModelSerializer):
 class ListOrderSerializer(serializers.ModelSerializer):
     ordered_items = ListItemSerializer(many=True)
     update_url = HyperlinkedIdentityField(view_name='order-api:update-order')
+    delete_url = HyperlinkedIdentityField(view_name='order-api:delete-order')
 
     class Meta:
         model = Orders
@@ -91,6 +92,7 @@ class ListOrderSerializer(serializers.ModelSerializer):
                   'terminal',
                   'amount_paid',
                   'update_url',
+                  'delete_url',
                   'ordered_items',
                   'customer',
                   'mobile',
@@ -365,6 +367,7 @@ class OrderSerializer(serializers.ModelSerializer):
                     else:
                         print('stock not found')
                 except Exception as e:
+                    print(e)
                     print('Error reducing stock!')
             elif ordered_item_data.get('kitchen'):
                 try:
@@ -485,9 +488,6 @@ class OrderUpdateSerializer(serializers.ModelSerializer):
             elif data.kitchen:
                 item = MenuItem.objects.get(pk=data.transfer_id)
                 if item:
-                    print('decreasing sold item')
-                    print item.sold
-                    print '*'*120
                     MenuItem.objects.increase_stock(item, item.sold)
                 else:
                     print 'stock not found'
