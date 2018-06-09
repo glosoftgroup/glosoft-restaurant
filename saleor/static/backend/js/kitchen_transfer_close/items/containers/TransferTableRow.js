@@ -104,10 +104,15 @@ export class TransferTableRow extends Component {
     var instance = { ...this.props.instance };
     var expectedQty = instance.transferred_qty - sold;
 
-    var deficit = expectedQty - this.state.qty;
+    var deficit = 0;
+    // console.error(instance.qty);
+    // console.error(expectedQty)
+    // reset qty
+    var qty = expectedQty;
+    // console.error('sdfsdfsdffdsdfsdfsfsdfsdf')
     // compute sold
-    this.setState({ expectedQty });
-    this.updateCart(this.state.qty, deficit, this.state.description, sold, expectedQty);
+    this.setState({ expectedQty, qty, deficit });
+    this.updateCart(qty, deficit, this.state.description, sold, expectedQty);
   }
   getUsed = (actualQuantity) => {
     var instance = { ...this.props.instance };
