@@ -71,12 +71,20 @@ def lock_login(request):
             try:
                 user = get_user_model().objects.get(**kwargs)
                 if user.is_active and user.has_perm('sales.make_sale'):
-                    record_trail(user.name,user,terminal)
+                    # record_trail(user.name,user,terminal)
+                    trail = str(user.name) + ' ' + \
+                            ' lock login in Terminal:'
+                    user_trail(user, trail,  'view')
+                    print user
                     permissions = []
                     if user.has_perm('sales.make_sale'):
                         permissions.append('make_sale') 
                     if user.has_perm('sales.make_invoice'):
-                        permissions.append('make_invoice') 
+                        permissions.append('set_ready')
+                    if user.has_perm('sales.set_ready'):
+                        permissions.append('set_ready')
+                    if user.has_perm('sales.set_collected'):
+                        permissions.append('set_collected')
                     userResponse = {"user":
                         { "id":user.id, "name":user.name, 
                         "email":user.email, "code":user.code, 
@@ -85,7 +93,7 @@ def lock_login(request):
                     return Response(userResponse, status=status.HTTP_202_ACCEPTED)
                 else:
                     return Response({'message':'Permission Denied!'}, status=status.HTTP_401_UNAUTHORIZED)
-            except:
+            except Exception as e:
                 return Response(serializer.errors, status=status.HTTP_403_FORBIDDEN)
         else:
             return Response(serializer.errors, status=status.HTTP_403_FORBIDDEN)
@@ -94,7 +102,7 @@ def lock_login(request):
 
 def record_trail(loggedin, user, terminal):
     trail = str(user.name)+' '+\
-            str(user.email)+' logged in Termial:'+\
+            str(user.email)+' logged in Terminal:'+\
             str(terminal)+'. Session active '+str(loggedin)
     user_trail(user,trail,'view')
 

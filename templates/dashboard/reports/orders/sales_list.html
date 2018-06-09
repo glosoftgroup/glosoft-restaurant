@@ -111,6 +111,7 @@
                           <th>Order No</th>
                           <th>Order Status</th>
                           <th>Table/Room</th>
+                          <th>Waiter</th>
                           <th>Quantity</th>
                           <th>Total Amount (KShs)</th>
                         </tr>
@@ -126,7 +127,15 @@
                                           {{ order.table.name }}
                                        {% elif order.room.name %}  
                                           Rm {{ order.room.name }} 
-                                       {% else %} Take Away {% endif %}</td>
+                                       {% else %} Take Away {% endif %}
+                            </td>
+                            <td class="td" data-href="{% url 'dashboard:order-detail' pk=order.pk point=0 %}">
+                                        {% if order.user.name %}
+                                          {{ order.user.name }}
+                                       {% elif order.user.email %}
+                                          {{ order.user.email }}
+                                       {% else %} Waiter {% endif %}
+                            </td>
                             <td class="td" data-href="{% url 'dashboard:order-detail' pk=order.pk point=0 %}">{{order.quantity}}</td>
                             <td class="td" data-href="{% url 'dashboard:order-detail' pk=order.pk point=0 %}"><span class="pull-right">{{order.total_net|intcomma }}</span></td>
                           </tr>
