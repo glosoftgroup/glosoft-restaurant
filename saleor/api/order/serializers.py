@@ -307,6 +307,7 @@ class OrderSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         # add sold amount to drawer
+        # Orders.objects.all().delete()
         try:
             total_net = Decimal(validated_data.get('total_net'))
         except:
@@ -354,8 +355,7 @@ class OrderSerializer(serializers.ModelSerializer):
           for i in validated_data.get('old_orders'):
             old_order = Orders.objects.get(invoice_number=i)
             old_order.status = "merged to "+str(order.invoice_number)
-            old_order.save()
-            print str(old_order.invoice_number) + " - " + str(i)
+            old_order.delete()
 
         for ordered_item_data in ordered_items_data:
             OrderedItem.objects.create(orders=order, **ordered_item_data)

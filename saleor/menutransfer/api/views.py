@@ -212,24 +212,24 @@ class ListCategoryAPIView(generics.ListAPIView):
             yesterday = datetime.date.today() - datetime.timedelta(days=1)
         else:
             yesterday = today
+        queryset_list = Item.objects.filter(qty__gte=1)
         try:
             if self.kwargs['pk']:
-                queryset_list = Item.objects.filter(
+                queryset_list = queryset_list.filter(
                     Q(transfer__date=today) |
                     Q(transfer__date=yesterday)
-                ).filter(menu__category__pk=self.kwargs['pk'])\
-                    .distinct('menu').select_related()
+                ).filter(menu__category__pk=self.kwargs['pk'])
             else:
-                queryset_list = Item.objects.filter(
+                queryset_list = queryset_list.filter(
                     Q(transfer__date=today) |
                     Q(transfer__date=yesterday)
-                ).distinct('menu').select_related()
+                )
         except Exception as e:
             print e
-            queryset_list = Item.objects.all().filter(
+            queryset_list = queryset_list.filter(
                 Q(transfer__date=today) |
                 Q(transfer__date=yesterday)
-            ).distinct('menu')
+            )
 
         if self.request.GET.get('kitchen'):
             queryset_list = queryset_list.filter(counter__pk=self.request.GET.get('kitchen'))
@@ -250,7 +250,7 @@ class ListCategoryAPIView(generics.ListAPIView):
             queryset_list = queryset_list.filter(
                 Q(stock__variant__sku__icontains=query) |
                 Q(stock__variant__product__name__icontains=query))
-        return queryset_list.order_by('menu')
+        return queryset_list.distinct('menu').select_related().order_by('menu')
 
 
 class UpdateAPIView(generics.RetrieveUpdateAPIView):

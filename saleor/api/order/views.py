@@ -44,21 +44,20 @@ def return_to_stock(ordered_items):
     for item in ordered_items:
         if item.counter:
             # return to stock
-            stock = Item.objects.get(pk=item.transfer_id)
-            if item:
-                Item.objects.increase_stock(stock, item.quantity)
-            else:
-                print 'stock not found'
-            pass
+            try:
+                stock = Item.objects.get(pk=item.transfer_id)
+                if item:
+                    Item.objects.increase_stock(stock, item.quantity)
+            except:
+                pass
         elif item.kitchen:
             # return to menu stock
-            print len(item.__dict__)
-            stock = MenuItem.objects.get(pk=item.transfer_id)
-            if item:
-                MenuItem.objects.increase_stock(stock, item.quantity)
-            else:
-                print 'stock not found'
-            pass
+            try:
+                stock = MenuItem.objects.get(pk=item.transfer_id)
+                if item:
+                    MenuItem.objects.increase_stock(stock, item.quantity)
+            except:
+                pass
 
 
 class DestroyView(generics.DestroyAPIView):
