@@ -19,7 +19,8 @@ class TransferCart extends Component {
       totalWorth: 0,
       counter: '',
       closedCouters: '',
-      openCounters: ''
+      openCounters: '',
+      allCounters: [{fake: 'counter'}]
     };
   }
   componentWillMount() {
@@ -29,7 +30,7 @@ class TransferCart extends Component {
     api.retrieve('/counter/api/list')
     .then((response) => { return response.data.results; })
     .then((response) => {
-      console.log(response);
+      var allCounters = response;
       var closedCouters = [];
       var openCounters = [];
       response.map((value, index) => {
@@ -42,7 +43,7 @@ class TransferCart extends Component {
           openCounters.push(value);
         }
       });
-      this.setState({closedCouters, openCounters});
+      this.setState({closedCouters, openCounters, allCounters});
     })
     .catch((error) => { console.log(error); });
   }
@@ -94,8 +95,14 @@ class TransferCart extends Component {
         {this.state.openCounters.length !== 0 &&
          <div className="alert alert-warning no-border text-center">
            <button type="button" className="close" data-dismiss="alert"><span>×</span><span className="sr-only">Close</span></button>
-         <span className="text-semibold">Heads up!</span> Some counters previous transfers were not closed. <a href="/counter/transfer/close/" className="alert-link"> Close them to enable transfer to those counters</a>.
+           <span className="text-semibold">Heads up!</span> Some counters previous transfers were not closed. <a href="/counter/transfer/close/" className="alert-link"> Close them to enable transfer to those counters</a>.
          </div>
+        }
+        {this.state.allCounters.length === 0 &&
+        <div className="alert alert-warning no-border text-center">
+          <button type="button" className="close" data-dismiss="alert"><span>×</span><span className="sr-only">Close</span></button>
+          <span className="text-semibold">Heads up!</span> Did you forget to add counters?<br/> <a href="/counter/" className="alert-link"> Click to add counter(s)</a>.
+        </div>
         }
         {this.props.cart.length !== 0 &&
         <div >

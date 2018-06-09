@@ -10,7 +10,6 @@ class TableListSerializer(serializers.ModelSerializer):
     text = serializers.SerializerMethodField()
     is_closed = serializers.SerializerMethodField()
     last_open = serializers.SerializerMethodField()
-    description = serializers.SerializerMethodField()
 
     class Meta:
         model = Table
@@ -29,9 +28,6 @@ class TableListSerializer(serializers.ModelSerializer):
             return obj.name
         except:
             return ''
-
-    def get_description(self, obj):
-        return 'description'
 
     def get_is_closed(self, obj):
         return obj.is_closed()
