@@ -111,8 +111,8 @@ class UserManager(BaseUserManager):
 
 class User(PermissionsMixin, AbstractBaseUser, index.Indexed):
     email = models.EmailField(pgettext_lazy('User field', 'email'), unique=True)
-    fullname = models.CharField(pgettext_lazy('User field', 'fullname'), unique=True, max_length=100, null=True, blank=True)
-    name = models.CharField(pgettext_lazy('User field', 'name'), unique=True, max_length=100, null=True, blank=True)
+    fullname = models.CharField(pgettext_lazy('User field', 'fullname'), unique=True, max_length=255, null=True, blank=True)
+    name = models.CharField(pgettext_lazy('User field', 'name'), unique=True, max_length=255, null=True, blank=True)
     addresses = models.ManyToManyField(
         Address, blank=True,
         verbose_name=pgettext_lazy('User field', 'addresses'))
@@ -125,13 +125,13 @@ class User(PermissionsMixin, AbstractBaseUser, index.Indexed):
     send_mail = models.BooleanField(
         pgettext_lazy('User field', 'send mail'),
         default=True)
-    code = models.CharField(max_length=100, default='', unique=True, blank=True, null=True,
+    code = models.CharField(max_length=255, default='', unique=True, blank=True, null=True,
         verbose_name=pgettext_lazy('User field', 'code'))
-    rest_code = models.CharField(pgettext_lazy('User field', 'rest code'), max_length=100, null=True, blank=True)
-    job_title = models.CharField(max_length=100, default='', blank=True, null=True,
+    rest_code = models.CharField(pgettext_lazy('User field', 'rest code'), max_length=255, null=True, blank=True)
+    job_title = models.CharField(max_length=255, default='', blank=True, null=True,
         verbose_name=pgettext_lazy('User field', 'job title'))
-    nid = models.CharField(max_length=100, null=True,blank=True)
-    mobile = models.CharField(max_length=100, null=True, blank=True)
+    nid = models.CharField(max_length=255, null=True,blank=True)
+    mobile = models.CharField(max_length=255, null=True, blank=True)
     image = models.ImageField(upload_to='employee', null=True, blank=True)
     date_joined = models.DateTimeField(
         pgettext_lazy('User field', 'date joined'),
