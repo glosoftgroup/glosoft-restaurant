@@ -80,7 +80,7 @@ def lock_login(request):
                     if user.has_perm('sales.make_sale'):
                         permissions.append('make_sale') 
                     if user.has_perm('sales.make_invoice'):
-                        permissions.append('set_ready')
+                        permissions.append('make_invoice')
                     if user.has_perm('sales.set_ready'):
                         permissions.append('set_ready')
                     if user.has_perm('sales.set_collected'):

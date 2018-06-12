@@ -42,7 +42,7 @@ class CustomJWTSerializer(JSONWebTokenSerializer):
                 kwargs = {'code': username}
             try:
                 us = get_user_model().objects.get(**kwargs)
-            except ObjectDoesNotExist:
+            except ObjectDoesNotExist as e:
                 msg = _('Invalid User Credentials.')
                 raise serializers.ValidationError(msg)
 
