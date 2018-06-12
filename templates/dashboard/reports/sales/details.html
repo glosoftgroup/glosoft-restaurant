@@ -56,6 +56,7 @@
                                 <tr class="bg-primary">
                                   <th>Transaction Date</th>
                                   <th>Item Name</th>
+                                  <th>Counter / Kitchen</th>
                                   <th>Unit Cost</th>
                                   <th>Quantity</th>
                                   <th>Total Sales (KShs)</th>
@@ -66,13 +67,22 @@
                                     <tr>
                                     <td>{{item.sales.created|date:"d-m-Y H:i a"}}</td>
                                     <td>{{item.product_name}}</td>
+                                    <td>
+                                        {% if item.counter %}
+                                            {{item.counter.name}}
+                                        {% elif item.kitchen %}
+                                            {{item.kitchen.name}}
+                                        {% else %}
+                                            "None"
+                                        {% endif %}
+                                    </td>
                                     <td>{{item.unit_cost}}</td>
                                     <td>{{item.quantity}}</td>
                                       <td><span class="pull-right">{{item.total_cost|intcomma}}</span></td>
                                   </tr>
                                  {% endfor %}
                                  <tr>
-                                    <td colspan="4"><span style="font-weight:bold">Total Sales</span></td>
+                                    <td colspan="5"><span style="font-weight:bold">Total Sales</span></td>
                                     <td><span class="pull-right" style="font-weight:bold">Kshs {{i.amount}}</span></td>
                                  </tr>
                                 </tbody>
@@ -103,6 +113,7 @@
                                 <tr class="bg-primary">
                                   <th>Transaction Date</th>
                                   <th>Item Name</th>
+                                  <th>Counter / Kitchen</th>
                                   <th>Unit Cost</th>
                                   <th>Quantity</th>
                                   <th>Total Sales (KShs)</th>
@@ -113,13 +124,22 @@
                                     <tr>
                                     <td>{{item.sales.created|date:"d-m-Y H:i a"}}</td>
                                     <td>{{item.product_name}}</td>
+                                    <td>
+                                        {% if item.counter %}
+                                            {{item.counter.name}}
+                                        {% elif item.kitchen %}
+                                            {{item.kitchen.name}}
+                                        {% else %}
+                                            "None"
+                                        {% endif %}
+                                    </td>
                                     <td>{{item.unit_cost}}</td>
                                     <td>{{item.quantity}}</td>
                                       <td><span class="pull-right">{{item.total_cost|intcomma}}</span></td>
                                   </tr>
                                  {% endfor %}
                                  <tr>
-                                    <td colspan="4"><span style="font-weight:bold">Total Sales</span></td>
+                                    <td colspan="5"><span style="font-weight:bold">Total Sales</span></td>
                                     <td><span class="pull-right" style="font-weight:bold">Kshs {{i.amount}}</span></td>
                                  </tr>
                                 </tbody>
