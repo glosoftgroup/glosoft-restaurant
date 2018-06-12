@@ -105,11 +105,8 @@ export class TransferTableRow extends Component {
     var expectedQty = instance.transferred_qty - sold;
 
     var deficit = 0;
-    // console.error(instance.qty);
-    // console.error(expectedQty)
     // reset qty
     var qty = expectedQty;
-    // console.error('sdfsdfsdffdsdfsdfsfsdfsdf')
     // compute sold
     this.setState({ expectedQty, qty, deficit });
     this.updateCart(qty, deficit, this.state.description, sold, expectedQty);

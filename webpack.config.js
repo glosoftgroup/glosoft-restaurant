@@ -87,6 +87,8 @@ var config = {
     transferred_items_view: './saleor/static/backend/js/transfer/items_view/index.js',
     kitchen_transferred_items_view: './saleor/static/backend/js/kitchen_transfer/items_view/index.js',
     menu_transferred_items_view: './saleor/static/backend/js/menu_transfer/items_view/index.js',
+    return_sale_list : './saleor/static/backend/js/return_sale/list/index.js',
+    return_sale : './saleor/static/backend/js/return_sale/create/index.js',
     menu: './saleor/static/backend/js/menu/list/index.js',
     vendor: [
       'babel-es6-polyfill',

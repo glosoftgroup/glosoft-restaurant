@@ -18,6 +18,7 @@ from ...product.models import (
             )
 from saleor.countertransfer.models import CounterTransferItems as Item
 from decimal import Decimal
+from django.utils.formats import localize
 
 
 User = get_user_model()
@@ -28,7 +29,6 @@ class ItemSerializer(serializers.ModelSerializer):
         model = SoldItem
         fields = (
                 'id',
-                'sale_point',
                 'sku',
                 'quantity',
                 'unit_cost',
@@ -41,8 +41,9 @@ class ItemSerializer(serializers.ModelSerializer):
 
 
 class ListSaleSerializer(serializers.ModelSerializer):
-    ordered_items = ItemSerializer(many=True)
+    solditems = ItemSerializer(many=True)
     update_url = HyperlinkedIdentityField(view_name='order-api:update-order')
+    created = serializers.SerializerMethodField()
 
     class Meta:
         model = Sales
@@ -50,22 +51,25 @@ class ListSaleSerializer(serializers.ModelSerializer):
                   'user',
                   'invoice_number',
                   'table',
-                  'sale_point',
                   'total_net',
                   'sub_total',
                   'balance',
                   'terminal',
                   'amount_paid',
                   'update_url',
-                  'ordered_items',
+                  'solditems',
                   'customer',
                   'mobile',
                   'customer_name',
                   'payment_data',
                   'status',
                   'total_tax',
-                  'discount_amount'
+                  'discount_amount',
+                  'created'
                   )
+
+    def get_created(self, obj):
+        return localize(obj.created)
 
 
 class CreateSaleSerializer(serializers.ModelSerializer):

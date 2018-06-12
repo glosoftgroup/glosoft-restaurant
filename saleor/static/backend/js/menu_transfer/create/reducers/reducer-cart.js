@@ -8,7 +8,7 @@ export default (state = initialState, action) => {
       var add = true;
       state.map(item => {
         if (item.id === action.payload.id) {
-          // incrementQty(state, item.id);
+          item.qty++;
           add = false;
           return;
         }

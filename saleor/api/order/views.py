@@ -5,6 +5,7 @@ from rest_framework import status
 from django.contrib.auth import get_user_model
 from ...orders.models import Orders, OrderedItem
 from ...table.models import Table
+from ...product.models import Stock
 from ...sale.models import (
                             Sales,
                             SoldItem,
@@ -399,6 +400,16 @@ def send_to_sale(credit):
                product_category=item.product_category
                )
         new_item.counter = item.counter
+        new_item.transfer_id = item.transfer_id
+        if item.counter:
+            try:
+                stock = Stock.objects.get(sku=item.sku)
+                new_item.minimum_price = stock.minimum_price
+                new_item.wholesale_override = stock.wholesale_override
+                new_item.low_stock_threshold = stock.low_stock_threshold
+                new_item.unit_purchase = stock.cost_price
+            except Exception as e:
+                pass
         new_item.kitchen = item.kitchen
         new_item.save()
         print new_item

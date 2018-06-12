@@ -95,7 +95,7 @@ class TransferCart extends Component {
         {this.state.openCounters.length !== 0 &&
          <div className="alert alert-warning no-border text-center">
            <button type="button" className="close" data-dismiss="alert"><span>×</span><span className="sr-only">Close</span></button>
-           <span className="text-semibold">Heads up!</span> Some counters previous transfers were not closed. <a href="/counter/transfer/close/" className="alert-link"> Close them to enable transfer to those counters</a>.
+           <span className="text-semibold">Heads up!</span> Some counter's previous transfers were not closed. <a href="/counter/transfer/close/" className="alert-link"> Close them to enable transfer to those counters</a>.
          </div>
         }
         {this.state.allCounters.length === 0 &&

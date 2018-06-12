@@ -14,7 +14,19 @@ export class Quantity extends Component {
       maxQty: 0
     };
   }
-
+  componentDidUpdate(prevProps, prevState, snapshot) {
+    this.props.cart.map(value => {
+      if (value.id === this.props.instance.id) {
+        if (value.qty !== this.state.qty) {
+          if (value.qty > this.state.maxQty) {
+            // cant exceed quantity in store
+          } else {
+            this.setState({qty: value.qty});
+          }
+        }
+      }
+    });
+  }
   componentDidMount = () => {
     this.setState({
       qty: this.props.instance.qty,
