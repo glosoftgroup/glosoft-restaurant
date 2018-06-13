@@ -331,7 +331,7 @@ def user_update(request, pk):
         image= request.FILES.get('image')
         job_title = request.POST.get('job_title')
         code = request.POST.get('code')
-        rest_code = (request.POST.get('password')).lower()
+        rest_code = (request.POST.get('user_password')).lower()
         groups = request.POST.getlist('groups[]')
 
         if password == user.password:

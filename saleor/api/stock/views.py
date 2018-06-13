@@ -13,6 +13,7 @@ from .pagination import PostLimitOffsetPagination
 from saleor.product.models import Stock as Table
 from saleor.countertransfer.models import CounterTransferItems as CounterItems
 from saleor.menutransfer.models import TransferItems as MenuItem
+from saleor.core.utils.closing_time import is_business_time
 from .serializers import (
     CreateListSerializer,
     TableListSerializer,
@@ -87,14 +88,19 @@ class SearchTransferredStockListAPIView(APIView):
 
         query = self.request.GET.get('q', '')
         today = datetime.date.today()
-        yesterday = datetime.date.today() - datetime.timedelta(days=1)
+        show_yesterday = is_business_time()
+        today = datetime.date.today()
+        if show_yesterday:
+            yesterday = datetime.date.today() - datetime.timedelta(days=1)
+        else:
+            yesterday = today
         all_counter_menu_stock = []
         """ get the counter stocks """
         try:
             counter_stock = CounterItems.objects.filter(
                     Q(transfer__date=today) |
                     Q(transfer__date=yesterday)
-                ).distinct('stock').select_related()
+                ).filter(qty__gte=1).distinct('stock').select_related()
 
             if query:
                 counter_stock = counter_stock.filter(
@@ -121,7 +127,7 @@ class SearchTransferredStockListAPIView(APIView):
             menu_stock = MenuItem.objects.filter(
                 Q(transfer__date=today) |
                 Q(transfer__date=yesterday)
-            ).distinct('menu').select_related()
+            ).filter(qty__gte=1).distinct('menu').select_related()
             print menu_stock
             if query:
                 menu_stock = menu_stock.filter(

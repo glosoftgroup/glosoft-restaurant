@@ -261,7 +261,11 @@ class SearchOrdersListAPIView(generics.ListAPIView):
                     collectedStatusBoolean = False
                 set_orders = []
                 for i in queryset:
-                    products_count = OrderedItem.objects.filter(orders=i, collected=collectedStatusBoolean, counter__pk=counter).count()
+                    if point == "counter":
+                        products_count = OrderedItem.objects.filter(orders=i, collected=collectedStatusBoolean, counter__pk=counter).count()
+                    else:
+                        products_count = OrderedItem.objects.filter(orders=i, collected=collectedStatusBoolean,
+                                                                    kitchen__pk=counter).count()
                     if products_count>=1:
                         set_orders.append(i.pk)
 
@@ -274,7 +278,12 @@ class SearchOrdersListAPIView(generics.ListAPIView):
                     readyStatusBoolean = False
                 set_orders = []
                 for i in queryset:
-                    products_count = OrderedItem.objects.filter(orders=i, ready=readyStatusBoolean, counter__pk=counter).count()
+                    if point == "counter":
+                        products_count = OrderedItem.objects.filter(orders=i, ready=readyStatusBoolean,
+                                                                    counter__pk=counter).count()
+                    else:
+                        products_count = OrderedItem.objects.filter(orders=i, ready=readyStatusBoolean,
+                                                                    kitchen__pk=counter).count()
                     if products_count>=1:
                         set_orders.append(i.pk)
 
@@ -284,13 +293,15 @@ class SearchOrdersListAPIView(generics.ListAPIView):
         if query:
             print 'query'
             queryset = queryset.filter(
-                Q(status='pending-payment') | 
+                Q(status='pending-payment') |
+                (Q(status='fully-paid') & Q(table__isnull=True) & Q(room__isnull=True)) |
                 Q(invoice_number__icontains=query) | 
                 Q(room__name__icontains=query) | 
                 Q(table__name__icontains=query) |
                 Q(user__name__icontains=query)).distinct()
         else:
-            queryset = queryset.distinct()
+            queryset = queryset.filter(Q(status='pending-payment') |
+                (Q(status='fully-paid') & Q(table__isnull=True) & Q(room__isnull=True))).distinct()
         serializer = SearchListOrderSerializer(queryset, context=serializer_context, many=True)
         return Response(serializer.data)
 
