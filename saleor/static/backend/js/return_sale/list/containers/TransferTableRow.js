@@ -21,7 +21,7 @@ export class TransferTableRow extends Component {
     };
   }
   goTo = (url) => {
-    window.location.href = url;
+    if (url !== undefined) window.location.href = url;
   }
   toggleDelete = () => {
     this.setState({showDelete: true});
@@ -31,7 +31,7 @@ export class TransferTableRow extends Component {
     }, 3000);
   }
   deleteInstance = () => {
-    api.destroy('/counter/transfer/api/delete/' + this.props.instance.id + '/')
+    api.destroy('/xx/transfer/api/delete/' + this.props.instance.id + '/')
     .then((response) => {
       window.location.reload();
     })
@@ -70,7 +70,7 @@ export class TransferTableRow extends Component {
                      <i className="icon-pencil"></i> EDIT
                   </a>
                 </li>
-                <li>
+                <li className="hidden">
                   <a onClick={this.toggleDelete} href="javascript:;">
                     <i className=" icon-trash-alt"></i> DELETE
                   </a>

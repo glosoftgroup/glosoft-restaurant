@@ -183,6 +183,12 @@ class Sales(models.Model):
         return unicode(self.invoice_number)
 
 
+class SoldItemManager(models.Manager):
+    def add_returned_item(self, instance, quantity):
+        instance.returned_quantity = models.F('returned_quantity') + quantity
+        instance.save(update_fields=['returned_quantity'])
+
+
 class SoldItem(models.Model):
     sales = models.ForeignKey(Sales, related_name='solditems', on_delete=models.CASCADE)
     order = models.IntegerField(default=Decimal(1))
@@ -193,6 +199,9 @@ class SoldItem(models.Model):
     quantity = models.IntegerField(
         pgettext_lazy('SoldItem field', 'quantity'),
         validators=[MinValueValidator(0)], default=Decimal(1))
+    returned_quantity = models.IntegerField(
+        pgettext_lazy('SoldItem field', 'returned quantity'),
+        validators=[MinValueValidator(0)], default=Decimal(0))
     product_name = models.CharField(
         pgettext_lazy('SoldItem field', 'product name'), max_length=128)
     total_cost = models.DecimalField(
@@ -213,7 +222,8 @@ class SoldItem(models.Model):
     low_stock_threshold = models.IntegerField(
         pgettext_lazy('SoldItem field', 'low stock threshold'),
         validators=[MinValueValidator(0)], null=True, blank=True, default=Decimal(10))
-
+    is_stock = models.BooleanField(pgettext_lazy('SoldItem field', 'bool determine stock/menu item'),
+                                   default=True, )
     product_category = models.CharField(
         pgettext_lazy('SoldItem field', 'product_category'), max_length=128, null=True)
     discount = models.DecimalField(
@@ -225,15 +235,22 @@ class SoldItem(models.Model):
     kitchen = models.ForeignKey(
         Kitchen, related_name='sold_item_kitchen', blank=True, null=True, default='',
         verbose_name=pgettext_lazy('OrderedItem field', 'Kitchen'))
+    objects = SoldItemManager()
 
     class Meta:
         ordering = ['order']
 
     def __unicode__(self):
-        return '%d: %s' % (self.order,self.product_name)
+        return '%d: %s' % (self.order, self.product_name)
 
     def __str__(self):
         return self.product_name
+
+    def get_quantity(self):
+        try:
+            return self.quantity - self.returned_quantity
+        except:
+            return 0
 
 
 class DrawerCash(models.Model):

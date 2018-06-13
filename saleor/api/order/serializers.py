@@ -6,44 +6,31 @@ from rest_framework.serializers import (
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.utils.timezone import now
-from ...orders.models import (
-            Orders,
-            OrderedItem,
-            )
-from ...sale.models import (
-            Terminal,
-            PaymentOption)
-from ...product.models import (
-            Stock,
-            )
-from ...counter.models import (
-            Counter,
-            )
-from ...kitchen.models import (
-            Kitchen,
-            )
+from ...orders.models import (Orders, OrderedItem)
+from ...sale.models import Terminal
 from decimal import Decimal
-from ...customer.models import Customer
 from saleor.countertransfer.models import CounterTransferItems as Item
 from saleor.menutransfer.models import TransferItems as MenuItem
 
 User = get_user_model()
 
 global item_fields
-item_fields = ( 'id',
-                'counter',
-                'kitchen',
-                'sku',
-                'transfer_id',
-                'quantity',
-                'unit_cost',
-                'total_cost',
-                'product_name',
-                'product_category',
-                'tax',
-                'discount',
-                'ready',
-                'collected')
+item_fields = (
+    'id',
+    'counter',
+    'kitchen',
+    'sku',
+    'transfer_id',
+    'quantity',
+    'unit_cost',
+    'total_cost',
+    'product_name',
+    'product_category',
+    'tax',
+    'discount',
+    'ready',
+    'collected'
+)
 
 
 class ItemSerializer(serializers.ModelSerializer):

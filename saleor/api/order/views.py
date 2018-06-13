@@ -410,9 +410,12 @@ def send_to_sale(credit):
                 new_item.unit_purchase = stock.cost_price
             except Exception as e:
                 pass
+        elif item.kitchen:
+            new_item.is_stock = False
+        else:
+            pass
         new_item.kitchen = item.kitchen
         new_item.save()
-        print new_item
 
 
 class OrderReadyOrCollectedAPIView(generics.RetrieveUpdateAPIView):

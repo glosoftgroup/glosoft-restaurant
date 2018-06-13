@@ -149,6 +149,12 @@ class Orders(models.Model):
             return OrderedItem.objects.filter(orders=self, collected=collected_status, kitchen__pk=counter_pk)
 
 
+class OrderItemManager(models.Manager):
+    def reduce_quantity(self, instance, quantity):
+        instance.quantity = models.F('quantity') - quantity
+        instance.save(update_fields=['quantity'])
+
+
 @python_2_unicode_compatible
 class OrderedItem(models.Model):
     orders = models.ForeignKey(Orders, related_name='ordered_items', on_delete=models.CASCADE, null=True)
@@ -178,6 +184,7 @@ class OrderedItem(models.Model):
         verbose_name=pgettext_lazy('OrderedItem field', 'Kitchen'))
     ready = models.BooleanField(default=False)
     collected = models.BooleanField(default=False)
+    objects = OrderItemManager()
 
     class Meta:
         ordering = ['order']

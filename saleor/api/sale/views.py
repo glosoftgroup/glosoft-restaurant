@@ -1,4 +1,4 @@
-from django.db.models import Q
+from django.db.models import Q, F
 from rest_framework.response import Response
 from rest_framework import generics
 from django.contrib.auth import get_user_model
@@ -108,13 +108,13 @@ class ListItemAPIView(generics.ListAPIView):
         return {"date": None, 'request': self.request}
 
     def get_queryset(self, *args, **kwargs):
+        queryset_list = Item.objects.filter(quantity__gt=F('returned_quantity'))
         try:
             if self.kwargs['pk']:
-                queryset_list = Item.objects.filter(sales__pk=self.kwargs['pk']).select_related()
-            else:
-                queryset_list = Item.objects.all.select_related()
+                queryset_list = queryset_list.filter(sales__pk=self.kwargs['pk']).select_related()
+
         except Exception as e:
-            queryset_list = Item.objects.all()
+            pass
 
         page_size = 'page_size'
         if self.request.GET.get(page_size):

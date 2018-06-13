@@ -6,7 +6,10 @@ from rest_framework import serializers
 from saleor.return_sale.models import ReturnSales as Table
 from saleor.return_sale.models import Item
 from saleor.product.models import Stock
-from saleor.sale.models import Sales
+from saleor.sale.models import Sales, SoldItem
+from saleor.orders.models import OrderedItem
+from saleor.countertransfer.models import CounterTransferItems as CounterItem
+from saleor.menutransfer.models import TransferItems as MenuItem
 
 global fields, item_fields, module
 module = 'return_sale'
@@ -153,10 +156,13 @@ class UpdateTransferItemSerializer(serializers.ModelSerializer):
 class TableListSerializer(serializers.ModelSerializer):
     return_items = ItemsSerializer(many=True)
     quantity = serializers.SerializerMethodField()
+    # update_url = serializers.HyperlinkedIdentityField(view_name=module + ':api-update')
+    # update_item_url = serializers.HyperlinkedIdentityField(view_name=module + ':update')
+    # view_url = serializers.HyperlinkedIdentityField(view_name=module + ':update-view')
 
     class Meta:
         model = Table
-        fields = fields + ('return_items', 'quantity',)
+        fields = fields + ('return_items', 'quantity', )  # 'view_url', 'update_item_url', 'update_url')
 
     def get_quantity(self, obj):
         return obj.total_quantity()
@@ -209,6 +215,29 @@ def carry_items(instance, items):
         # Stock.objects.decrease_stock(item['stock'], item['qty'])
 
 
+def back_to_stock(item):
+    # reduce ordered item
+    order = OrderedItem.objects.get(transfer_id=item.get('transfer_id')) if item.get('transfer_id') else False
+    print order
+    OrderedItem.objects.reduce_quantity(order, item.get('qty'))
+
+    # mark as returned in sale
+    sold_item = SoldItem.objects.get(transfer_id=item.get('transfer_id'))
+    print sold_item
+    SoldItem.objects.add_returned_item(sold_item, item.get('qty'))
+
+    # reduce order item
+    if item.get('is_stock'):
+        stock = CounterItem.objects.get(pk=item.get('transfer_id')) if item.get('transfer_id') else False
+        # return it to counter transfer
+        CounterItem.objects.increase_stock(stock, item.get('qty'))
+    else:
+        # return to menu transfer
+        stock = MenuItem.objects.get(pk=item.get('transfer_id')) if item.get('transfer_id') else False
+        # return it to counter transfer
+        MenuItem.objects.increase_stock(stock, item.get('qty'))
+
+
 def create_items(instance, items):
     """
     Create new or update existing transferred stock items
@@ -217,11 +246,13 @@ def create_items(instance, items):
     :return:
     """
     for item in items:
+        # return item to respective stock
+        back_to_stock(item)
         query = Item.objects.filter(return_sale=instance, sku=item['sku'])
         if query.exists():
             print 'updating....'
             single = query.first()
-            single.quantity = int(single.quantity) + int(item['quantity'])
+            single.quantity = int(single.quantity) + int(item['qty'])
             single.total_cost = Decimal(single.total_cost) + Decimal(item['total_cost'])
             if single.quantity > 0:
                 single.save()
@@ -235,7 +266,7 @@ def create_items(instance, items):
             single.product_category = item['product_category']
             single.product_name = item['product_name']
             single.sku = item['sku']
-            single.quantity = item['quantity']
+            single.quantity = item['qty']
             if single.quantity > 0:
                 single.save()
 
@@ -272,11 +303,11 @@ class CreateListSerializer(serializers.ModelSerializer):
 
 
 class UpdateSerializer(serializers.ModelSerializer):
-    items = serializers.JSONField(write_only=True)
+    # items = serializers.JSONField(write_only=True)
 
     class Meta:
         model = Table
-        fields = ('id', 'date', 'action', 'items', )
+        fields = ('id', 'date')
 
     def update(self, instance, validated_data):
         # action 1: carry forward 2: return to stock
