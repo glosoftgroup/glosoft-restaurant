@@ -20,6 +20,7 @@ export class Quantity extends Component {
   }
 
   componentDidMount = () => {
+    this.setState({field: ''});
     this.setState({
       field: this.props.instance.name
     });

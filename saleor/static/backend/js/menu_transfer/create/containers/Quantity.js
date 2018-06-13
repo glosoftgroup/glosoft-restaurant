@@ -13,6 +13,15 @@ export class Quantity extends Component {
       maxQty: 0
     };
   }
+  componentDidUpdate(prevProps, prevState, snapshot) {
+    this.props.cart.map(value => {
+      if (value.id === this.props.instance.id) {
+        if (value.qty !== this.state.qty) {
+          this.setState({qty: value.qty});
+        }
+      }
+    });
+  }
 
   componentDidMount = () => {
     this.setState({

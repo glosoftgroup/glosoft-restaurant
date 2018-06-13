@@ -12,15 +12,25 @@ from saleor.product.models import Stock
 
 
 class TransferManager(BaseUserManager):
+    def all_items_filter(self, start_date=None, end_date=None):
+        query = self.all()
+        if start_date and end_date is not None:
+            query = query.filter(
+                models.Q(date__gte=start_date) &
+                models.Q(date__lte=end_date)
+            )
+        else:
+            if start_date is not None:
+                query = query.filter(date__gte=start_date)
+            if end_date is not None:
+                query = query.filter(date__lte=end_date)
+        return query
+
     def all_item_closed(self, instance):
-        query = self.counter_transfer_items.filter(closed=False, transfer=instance)
-        if query.exists():
-            return False
         return True
 
     def instance_quantities(self, instance):
-        qty = self.counter_transfer_items.filter(transfer=instance).aggregate(models.Sum('qty'))['qty__sum']
-        return qty
+        return 0
 
 
 class CounterTransfer(models.Model):
