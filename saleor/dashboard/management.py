@@ -118,10 +118,14 @@ def add_view_permissions(sender, **kwargs):
     """ Make a sale permission"""
     if not ContentType.objects.filter(model='unused') \
             and not Permission.objects.filter(codename='make_sale') \
-            and not Permission.objects.filter(codename='make_invoice'):
+            and not Permission.objects.filter(codename='make_invoice') \
+            and not Permission.objects.filter(codename='set_ready') \
+            and not Permission.objects.filter(codename='set_collected'):
         url_content_type = ContentType.objects.create(app_label='sales', model='unused')
         Permission.objects.create(name='can make sales', content_type=url_content_type,codename='make_sale')
         Permission.objects.create(name='can generate invoice', content_type=url_content_type, codename='make_invoice')
+        Permission.objects.create(name='can set order ready', content_type=url_content_type, codename='set_ready')
+        Permission.objects.create(name='can set order collected', content_type=url_content_type, codename='set_collected')
 
     if not ContentType.objects.filter(model='reports') \
             and not Permission.objects.filter(codename='view_sale_reports') \

@@ -492,5 +492,9 @@ class UserSerializer(serializers.ModelSerializer):
         if obj.has_perm('sales.make_sale'):
             permissions.append('make_sale') 
         if obj.has_perm('sales.make_invoice'):
-            permissions.append('make_invoice')           
+            permissions.append('make_invoice')
+        if obj.has_perm('sales.set_ready'):
+            permissions.append('set_ready')
+        if obj.has_perm('sales.set_collected'):
+            permissions.append('set_collected')
         return permissions
