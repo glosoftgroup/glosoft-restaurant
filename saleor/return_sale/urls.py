@@ -23,13 +23,13 @@ urlpatterns = [
     url(r'^api/close/item/(?P<pk>[0-9]+)/$', CloseItemAPIView.as_view(), name='api-update-item'),
     url(r'^add/$', TemplateView.as_view(template_name=module+"/form.html"), name='add'),
     url(r'^close/$', TemplateView.as_view(template_name=module+"/close.html"), name='close'),
-    url(r'^update/(?P<pk>[0-9]+)/$', UpdateView.as_view(template_name=module+"/items.html", model=Table, fields=['id', 'name']),
+    url(r'^update/(?P<pk>[0-9]+)/$', UpdateView.as_view(template_name=module+"/items.html", model=Table, fields=['id',]),
         name='update'),
     url(r'^update/view/(?P<pk>[0-9]+)/$', UpdateView.as_view(template_name=module+"/item_view.html", model=Table, fields=['id']),
         name='update-view'),
-    url(r'^close/item/(?P<pk>[0-9]+)/$', UpdateView.as_view(template_name=module+"/item_closing.html", model=Table, fields=['id', 'name']),
+    url(r'^close/item/(?P<pk>[0-9]+)/$', UpdateView.as_view(template_name=module+"/item_closing.html", model=Table, fields=['id']),
         name='close-item'),
-    url(r'^close/item/view/(?P<pk>[0-9]+)/$', UpdateView.as_view(template_name=module+"/item_closing_view.html", model=Table, fields=['id', 'name']),
+    url(r'^close/item/view/(?P<pk>[0-9]+)/$', UpdateView.as_view(template_name=module+"/item_closing_view.html", model=Table, fields=['id']),
         name='close-item-view'),
 ]
 

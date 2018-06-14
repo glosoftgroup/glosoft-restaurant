@@ -194,6 +194,7 @@ class SoldItem(models.Model):
     order = models.IntegerField(default=Decimal(1))
     stock_id = models.IntegerField(default=Decimal(0))
     transfer_id = models.IntegerField(default=Decimal(0))
+    order_id = models.IntegerField(default=Decimal(0))
     sku = models.CharField(
         pgettext_lazy('SoldItem field', 'SKU'), max_length=32)    
     quantity = models.IntegerField(

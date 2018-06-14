@@ -17,7 +17,7 @@ class FilterBlock extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      title: 'Counter transfer list',
+      title: 'Returned Sale. Date:' + this.props.items.date + ' INVOICE NUMBER:' + this.props.items.invoice_number,
       label: 'Transfer Report',
       exportData: [],
       printCssPaths: []
@@ -58,9 +58,9 @@ class FilterBlock extends Component {
       <div className="no-print breadcrumb-line breadcrumb-line-component content-group-lg">
         <ul className="breadcrumb">
             <li>
-              <a className="text-white btn btn-primary btn-sm btn-raised legitRipple" href="/counter/transfer/add/">
+              <a className="text-white btn btn-primary btn-sm btn-raised legitRipple" href="/return/sale/add/">
               <i className="icon-add position-left"></i>
-              Transfer
+              Return
               </a>
             </li>
         </ul>
@@ -74,10 +74,10 @@ class FilterBlock extends Component {
               <FilterDate />
             </li>
             <li>
-              <PrintThis printCssPaths={this.state.printCssPaths} title={'Stock Transfer Date:' + this.props.items.date + ' Counter:' + this.props.items.counter}/>
+              <PrintThis printCssPaths={this.state.printCssPaths} title={this.state.title}/>
             </li>
             <li>
-              <CsvExport getData={this.getData} title={'Stock Transfer Date:' + this.props.items.date + ' Counter:' + this.props.items.counter} label={this.state.label} />
+              <CsvExport getData={this.getData} title={this.state.title} label={this.state.label} />
             </li>
         </ul>
       </div>

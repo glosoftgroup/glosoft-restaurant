@@ -23,8 +23,8 @@ export class Quantity extends Component {
 
   componentDidMount = () => {
     this.setState({
-      qty: this.props.instance.qty,
-      maxQty: this.props.instance.quantity + this.props.instance.qty
+      qty: this.props.instance.quantity,
+      maxQty: this.props.instance.sold_quantity
     });
     try { jGrowl; } catch (error) {};
   }
@@ -82,9 +82,9 @@ export class Quantity extends Component {
     }
     var formData = new FormData();
     formData.append('close_details', JSON.stringify([]));
-    formData.append('qty', this.state.qty);
+    formData.append('quantity', this.state.qty);
     formData.append('price', (this.props.instance.unit_price * this.state.qty));
-    api.update('/counter/transfer/api/update/item/' + this.props.instance.id + '/', formData)
+    api.update('/return/sale/api/update/item/' + this.props.instance.id + '/', formData)
     .then((response) => {
       this.setState({isOpen: false});
       this.props.fetchItems();
@@ -127,7 +127,7 @@ export class Quantity extends Component {
           )}
             className="target" tagName="span" eventToggle="onClick">
             <span data-tip="Edit quantity" className="edit-qty text-primary cursor-pointer">
-              {this.props.instance.qty}
+              {this.props.instance.quantity}
             </span>
         </Tooltip>
           }

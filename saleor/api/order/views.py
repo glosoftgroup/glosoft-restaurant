@@ -412,6 +412,8 @@ def send_to_sale(credit):
                )
         new_item.counter = item.counter
         new_item.transfer_id = item.transfer_id
+        new_item.order_id = item.id
+
         if item.counter:
             try:
                 stock = Stock.objects.get(sku=item.sku)

@@ -32,6 +32,7 @@ class ItemSerializer(serializers.ModelSerializer):
         fields = (
                 'id',
                 'transfer_id',
+                'order_id',
                 'is_stock',
                 'returned_quantity',
                 'sku',

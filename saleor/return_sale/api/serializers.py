@@ -22,6 +22,8 @@ fields = ('id',
 
 item_fields = ('id',
                'return_sale',
+               'sold_item',
+               'order_item',
                'sku',
                'quantity',
                'product_name',
@@ -32,31 +34,43 @@ item_fields = ('id',
 
 
 class ItemsSerializer(serializers.ModelSerializer):
-    sku = serializers.SerializerMethodField()
-    quantity = serializers.SerializerMethodField()
-    cost_price = serializers.SerializerMethodField()
+    # sku = serializers.SerializerMethodField()
+    max_quantity = serializers.SerializerMethodField()
+    returned_quantity = serializers.SerializerMethodField()
+    sold_quantity = serializers.SerializerMethodField()
+    order_quantity = serializers.SerializerMethodField()
+    kitchen_or_counter = serializers.SerializerMethodField()
 
     class Meta:
         model = Item
-        fields = item_fields + ('cost_price',)
+        fields = item_fields + (
+            'max_quantity', 'returned_quantity',
+            'sold_quantity', 'order_quantity',
+            'kitchen_or_counter'
+        )
 
-    def get_cost_price(self, obj):
-        try:
-            return "{:,}".format(obj.stock.cost_price.gross)
-        except:
-            return ''
+    def get_kitchen_or_counter(self, obj):
+        data = {}
+        if obj.sold_item.counter:
+            data['counter'] = obj.sold_item.counter.name
+        if obj.sold_item.kitchen:
+            data['kitchen'] = obj.sold_item.kitchen.name
+        return data
 
-    def get_sku(self, obj):
+    def get_max_quantity(self, obj):
         try:
-            return obj.stock.variant.sku
-        except:
-            return ''
+            return obj.max_quantity()
+        except Exception as e:
+           return 0
 
-    def get_quantity(self, obj):
-        try:
-            return obj.stock.quantity
-        except:
-            return 0
+    def get_returned_quantity(self, obj):
+        return obj.sold_item.returned_quantity
+
+    def get_sold_quantity(self, obj):
+        return obj.sold_item.quantity
+
+    def get_order_quantity(self, obj):
+        return obj.order_item.quantity
 
 
 def format_fields(fields_data, items_list):
@@ -122,32 +136,49 @@ class CloseTransferItemSerializer(serializers.ModelSerializer):
         return instance
 
 
-class UpdateTransferItemSerializer(serializers.ModelSerializer):
+def update_return(instance, quantity):
+    diff = int(quantity) - int(instance.quantity)
+    sold_item = instance.sold_item
+    sold_item.returned_quantity += diff
+    sold_item.save()
+    order_item = instance.order_item
+    order_item.quantity -= diff
+    order_item.save()
+    if instance.sold_item.counter:
+        item = CounterItem.objects.get(id=sold_item.transfer_id)
+        CounterItem.objects.increase_stock(item, diff)
+    if instance.sold_item.kitchen:
+        item = MenuItem.objects.get(id=sold_item.transfer_id)
+        MenuItem.objects.increase_stock(item, diff)
+
+
+class UpdateItemSerializer(serializers.ModelSerializer):
     close_details = serializers.JSONField(write_only=True)
 
     class Meta:
         model = Item
-        fields = item_fields + ('close_details',)
+        fields = ('id', 'quantity', 'close_details',)
 
     def update(self, instance, validated_data):
-        instance.description = validated_data.get('description', instance.description)
-        instance.closed = False
-        instance.price = validated_data.get('price', instance.price)
-        # if edit qty is more than current qty reduce stock else decrease
-        if int(validated_data.get('qty')) > instance.qty:
-            diff = int(validated_data.get('qty')) - int(instance.qty)
-            Stock.objects.decrease_stock(instance.stock, diff)
-            instance.qty = validated_data.get('qty', instance.qty)
-            instance.expected_qty = instance.qty
-            instance.transferred_qty = int(instance.transferred_qty) + int(diff)
-        elif int(validated_data.get('qty')) < instance.qty:
-            diff = int(instance.qty) - int(validated_data.get('qty'))
-            Stock.objects.increase_stock(instance.stock, diff)
-            instance.qty = validated_data.get('qty', instance.qty)
-            instance.expected_qty = instance.qty
-            instance.transferred_qty = int(instance.transferred_qty) - int(diff)
-        else:
-            pass
+        """
+        Update returned quantity value
+        case 1: Increase quantity of returned item =>
+        ---------------------------------------------
+              increase sold item returned quantity value
+              reduce order quantity
+              increase stock quantity value
+        case 2: reduce quantity of returned item
+        ---------------------------------------------
+              reduce sold item returened quantity
+              increase orderred item quantity
+              reduce stock of returned quantity
+        :param instance:
+        :param validated_data:
+        :return:
+        """
+        update_return(instance, validated_data.get('quantity'))
+
+        instance.quantity = validated_data.get('quantity', instance.quantity)
 
         instance.save()
         return instance
@@ -156,13 +187,13 @@ class UpdateTransferItemSerializer(serializers.ModelSerializer):
 class TableListSerializer(serializers.ModelSerializer):
     return_items = ItemsSerializer(many=True)
     quantity = serializers.SerializerMethodField()
-    # update_url = serializers.HyperlinkedIdentityField(view_name=module + ':api-update')
-    # update_item_url = serializers.HyperlinkedIdentityField(view_name=module + ':update')
-    # view_url = serializers.HyperlinkedIdentityField(view_name=module + ':update-view')
+    update_url = serializers.HyperlinkedIdentityField(view_name=module + ':api-update')
+    update_items_url = serializers.HyperlinkedIdentityField(view_name=module + ':update')
+    view_url = serializers.HyperlinkedIdentityField(view_name=module + ':update-view')
 
     class Meta:
         model = Table
-        fields = fields + ('return_items', 'quantity', )  # 'view_url', 'update_item_url', 'update_url')
+        fields = fields + ('return_items', 'quantity', 'view_url', 'update_items_url', 'update_url')
 
     def get_quantity(self, obj):
         return obj.total_quantity()
@@ -217,13 +248,11 @@ def carry_items(instance, items):
 
 def back_to_stock(item):
     # reduce ordered item
-    order = OrderedItem.objects.get(transfer_id=item.get('transfer_id')) if item.get('transfer_id') else False
-    print order
+    order = OrderedItem.objects.get(id=item.get('order_id')) if item.get('transfer_id') else False
     OrderedItem.objects.reduce_quantity(order, item.get('qty'))
 
     # mark as returned in sale
-    sold_item = SoldItem.objects.get(transfer_id=item.get('transfer_id'))
-    print sold_item
+    sold_item = SoldItem.objects.get(id=item.get('id'))
     SoldItem.objects.add_returned_item(sold_item, item.get('qty'))
 
     # reduce order item
@@ -237,6 +266,8 @@ def back_to_stock(item):
         # return it to counter transfer
         MenuItem.objects.increase_stock(stock, item.get('qty'))
 
+    return {'order_item': order, 'sold_item': sold_item}
+
 
 def create_items(instance, items):
     """
@@ -247,7 +278,7 @@ def create_items(instance, items):
     """
     for item in items:
         # return item to respective stock
-        back_to_stock(item)
+        stock_details = back_to_stock(item)
         query = Item.objects.filter(return_sale=instance, sku=item['sku'])
         if query.exists():
             print 'updating....'
@@ -258,6 +289,8 @@ def create_items(instance, items):
                 single.save()
         else:
             single = Item()
+            single.sold_item = stock_details.get('sold_item')
+            single.order_item = stock_details.get('order_item')
             single.return_sale = instance
             single.total_cost = item['total_cost']
             single.unit_cost = item['unit_cost']

@@ -10,7 +10,8 @@ from django.core.validators import MinValueValidator, RegexValidator
 from django.contrib.auth.models import (AbstractBaseUser, BaseUserManager, PermissionsMixin)
 from saleor.counter.models import Counter
 from saleor.kitchen.models import Kitchen
-from saleor.sale.models import Sales
+from saleor.sale.models import Sales, SoldItem
+from saleor.orders.models import OrderedItem
 
 
 class ReturnSales(models.Model):
@@ -52,6 +53,10 @@ class ReturnSales(models.Model):
 
 class Item(models.Model):
     return_sale = models.ForeignKey(ReturnSales, related_name='return_items', on_delete=models.CASCADE)
+    sold_item = models.ForeignKey(SoldItem, null=True, blank=True,
+                                  related_name='return_sold_items', on_delete=models.CASCADE)
+    order_item = models.ForeignKey(OrderedItem, null=True, blank=True,
+                                   related_name='return_order_items', on_delete=models.CASCADE)
     order = models.IntegerField(default=Decimal(1))
     sku = models.CharField(
         pgettext_lazy('Returned Item field', 'SKU'), max_length=32)
@@ -84,4 +89,8 @@ class Item(models.Model):
 
     def __str__(self):
         return self.product_name
+
+    def max_quantity(self):
+        sale = self.return_sale.sale.solditems.all().first().get_quantity()
+        return sale
 
