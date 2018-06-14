@@ -17,8 +17,8 @@ class FilterBlock extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      title: 'Counter transfer list',
-      label: 'Transfer Report',
+      title: 'Returned Sale list',
+      label: 'Returned Sale Report',
       exportData: [],
       printCssPaths: []
     };

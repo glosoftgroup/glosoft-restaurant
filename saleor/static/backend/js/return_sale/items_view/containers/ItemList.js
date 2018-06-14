@@ -18,8 +18,8 @@ class ItemList extends Component {
         <h6 className="text-bold text-center">
          <span className="text-bold text-primary">DATE: </span>
          {this.props.items.date} &nbsp;
-         <span className="text-bold text-primary">COUNTER: </span>
-         {this.props.items.counter}
+         <span className="text-bold text-primary">INVOICE NUMBER: </span>
+         {this.props.items.invoice_number}
         </h6>
         <ReactTooltip place="bottom"/>
         <table className="table table-hover table-xs">
@@ -29,9 +29,8 @@ class ItemList extends Component {
               <th>Category</th>
               <th>SKU</th>
               <th>Cost Price</th>
-              <th>Quantity</th>
-              <th>Sold</th>
-              <th>Price</th>
+              <th>Returned Qty</th>
+              <th>Sold Qty</th>
             </tr>
           </thead>
           <tbody>
@@ -42,7 +41,7 @@ class ItemList extends Component {
           })
           }
           <tr>
-            <td colSpan={7}>
+            <td colSpan={8}>
             {this.props.items.results.length === 0 &&
             <div className="text-center">
               {this.props.items.loading &&

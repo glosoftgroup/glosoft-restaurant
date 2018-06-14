@@ -31,7 +31,7 @@ export class TransferTableRow extends Component {
     }, 3000);
   }
   deleteInstance = () => {
-    api.destroy('/xx/transfer/api/delete/' + this.props.instance.id + '/')
+    api.destroy('/return/sale/api/delete/' + this.props.instance.id + '/')
     .then((response) => {
       window.location.reload();
     })
@@ -43,9 +43,9 @@ export class TransferTableRow extends Component {
     var instance = { ...this.props.instance };
     return (
       <tr>
-        <td>{instance.date}</td>
-        <td>{instance.invoice_number}</td>
-        <td>{instance.quantity}</td>
+        <td className="cursor-pointer" onClick={ () => this.goTo(instance.view_url)}>{instance.date}</td>
+        <td className="cursor-pointer" onClick={ () => this.goTo(instance.view_url)}>{instance.invoice_number}</td>
+        <td className="cursor-pointer" onClick={ () => this.goTo(instance.view_url)}>{instance.quantity}</td>
         <td className=" text-center">
           <ul className="icons-list">
             <li className="dropdown">
@@ -70,7 +70,7 @@ export class TransferTableRow extends Component {
                      <i className="icon-pencil"></i> EDIT
                   </a>
                 </li>
-                <li className="hidden">
+                <li>
                   <a onClick={this.toggleDelete} href="javascript:;">
                     <i className=" icon-trash-alt"></i> DELETE
                   </a>

@@ -13,11 +13,12 @@ from .serializers import (
     CreateListSerializer,
     TableListSerializer,
     UpdateSerializer,
-    UpdateTransferItemSerializer,
+    UpdateItemSerializer,
     ItemsSerializer,
     ItemsStockSerializer
      )
 from saleor.core.utils.closing_time import is_business_time
+from .serializers import update_return
 User = get_user_model()
 
 
@@ -33,9 +34,9 @@ class DestroyView(generics.DestroyAPIView):
     queryset = Table.objects.all()
 
     def perform_destroy(self, instance):
-        items = instance.counter_transfer_items.all()
+        items = instance.return_items.all()
         for item in items:
-            Stock.objects.increase_stock(item.stock, item.qty)
+            update_return(item, 0)
         # raise serializers.ValidationError('You cannot delete ')
         instance.delete()
 
@@ -44,8 +45,7 @@ class DestroyItemView(generics.DestroyAPIView):
     queryset = Item.objects.all()
 
     def perform_destroy(self, instance):
-        Stock.objects.increase_stock(instance.stock, instance.qty)
-        # raise serializers.ValidationError('You cannot delete ')
+        update_return(instance, 0)
         instance.delete()
 
 
@@ -83,7 +83,7 @@ class ListAPIView(generics.ListAPIView):
         query = self.request.GET.get('q')
         if query:
             queryset_list = queryset_list.filter(
-                Q(counter__name__icontains=query))
+                Q(invoice_number__icontains=query))
         return queryset_list.order_by('-id')
 
 
@@ -99,12 +99,13 @@ class ListItemsAPIView(generics.ListAPIView):
     def list(self, request, *args, **kwargs):
         response = super(ListItemsAPIView, self).list(request, args, kwargs)
         try:
-            instance = Item.objects.filter(transfer__pk=self.kwargs['pk']).first()
-            response.data['counter'] = instance.transfer.counter.name
-            response.data['date'] = instance.transfer.date
-            response.data['instance_id'] = instance.transfer.id
+            instance = Item.objects.filter(return_sale__pk=self.kwargs['pk']).first()
+            # response.data['counter'] = instance.transfer.counter.name
+            response.data['date'] = instance.return_sale.date
+            response.data['invoice_number'] = instance.return_sale.invoice_number
 
-        except:
+        except Exception as e:
+            print e
             pass
         return response
 
@@ -133,8 +134,8 @@ class ListItemsAPIView(generics.ListAPIView):
         query = self.request.GET.get('q')
         if query:
             queryset_list = queryset_list.filter(
-                Q(stock__variant__sku__icontains=query) |
-                Q(stock__variant__product__name__icontains=query))
+                Q(sold_item__sku__icontains=query) |
+                Q(sold_item__product_name__icontains=query))
         return queryset_list.order_by('-id')
 
 
@@ -292,7 +293,7 @@ class UpdateItemAPIView(generics.RetrieveUpdateAPIView):
         payload Json: /payload/update.json
     """
     queryset = Item.objects.all()
-    serializer_class = UpdateTransferItemSerializer
+    serializer_class = UpdateItemSerializer
 
 
 class CloseItemAPIView(generics.RetrieveUpdateAPIView):

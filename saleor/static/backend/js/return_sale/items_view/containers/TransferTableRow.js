@@ -34,7 +34,7 @@ export class TransferTableRow extends Component {
     }, 3000);
   }
   deleteInstance = () => {
-    api.destroy('/counter/transfer/api/delete/item/' + this.props.instance.id + '/')
+    api.destroy('/return/sale/api/delete/item/' + this.props.instance.id + '/')
     .then((response) => {
       this.props.fetchItems();
     })
@@ -46,13 +46,12 @@ export class TransferTableRow extends Component {
     var instance = { ...this.props.instance };
     return (
       <tr>
-        <td>{instance.productName}</td>
+        <td>{instance.product_name}</td>
         <td>{instance.product_category}</td>
         <td>{instance.sku}</td>
-        <td>{instance.cost_price}</td>
-        <td>{instance.qty}</td>
-        <td>{instance.sold}</td>
-        <td>{instance.price}</td>
+        <td>{instance.unit_cost}</td>
+        <td>{instance.quantity}</td>
+        <td>{instance.sold_quantity}</td>
     </tr>
     );
   }

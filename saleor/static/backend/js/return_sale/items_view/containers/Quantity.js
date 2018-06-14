@@ -6,8 +6,9 @@ import ReactTooltip from 'react-tooltip';
 import Tooltip from 'react-tooltip-lite';
 import api from '../api/Api';
 import { fetchItems } from '../actions/action-items';
-import { ToastContainer, toast } from 'react-toastify';
+import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import jGrowl from 'jgrowl';
 
 export class Quantity extends Component {
   constructor(props) {
@@ -22,9 +23,10 @@ export class Quantity extends Component {
 
   componentDidMount = () => {
     this.setState({
-      qty: this.props.instance.qty,
-      maxQty: this.props.instance.quantity + this.props.instance.qty
+      qty: this.props.instance.quantity,
+      maxQty: this.props.instance.sold_quantity
     });
+    try { jGrowl; } catch (error) {};
   }
   isNumeric = (n) => {
     return !isNaN(parseFloat(n)) && isFinite(n);
@@ -39,10 +41,16 @@ export class Quantity extends Component {
         [e.target.name]: value
       });
     } else if (!this.isNumeric(value)) {
-      toast.error('Quantity must be a digit!');
+      $.jGrowl('Quantity must be a digit!', {
+        header: 'Quantity field error',
+        theme: 'bg-danger'
+      });
       return;
     } else if (value < 1) {
-      toast.error('Quantity must more than one!');
+      $.jGrowl('Quantity must be more than one!', {
+        header: 'Quantity field error',
+        theme: 'bg-danger'
+      });
       return;
     } else {
       this.setState({
@@ -58,18 +66,25 @@ export class Quantity extends Component {
     if (this.state.qty < this.props.instance.qty) {
       console.warn('reduce qty');
     } else if (this.state.qty > this.state.maxQty) {
-      toast.error('Transfer Quantity cannot be more than ' + this.state.maxQty + '!');
+      var msg = 'Transfer Quantity for ' + this.props.instance.sku + ' cannot be more than ' + this.state.maxQty + '!';
+      $.jGrowl(msg, {
+        header: 'Stock quantity less than edit quantity',
+        theme: 'bg-danger'
+      });
       return;
     }
     if (!this.isNumeric(this.state.qty)) {
-      toast.error('Quantity must be a digit!');
+      $.jGrowl(msg, {
+        header: 'Quantity must be a digit!',
+        theme: 'bg-danger'
+      });
       return;
     }
     var formData = new FormData();
     formData.append('close_details', JSON.stringify([]));
-    formData.append('qty', this.state.qty);
+    formData.append('quantity', this.state.qty);
     formData.append('price', (this.props.instance.unit_price * this.state.qty));
-    api.update('/counter/transfer/api/update/item/' + this.props.instance.id + '/', formData)
+    api.update('/return/sale/api/update/item/' + this.props.instance.id + '/', formData)
     .then((response) => {
       this.setState({isOpen: false});
       this.props.fetchItems();
@@ -112,7 +127,7 @@ export class Quantity extends Component {
           )}
             className="target" tagName="span" eventToggle="onClick">
             <span data-tip="Edit quantity" className="edit-qty text-primary cursor-pointer">
-              {this.props.instance.qty}
+              {this.props.instance.quantity}
             </span>
         </Tooltip>
           }
