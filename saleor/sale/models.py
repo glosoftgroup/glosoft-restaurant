@@ -1,35 +1,281 @@
-from django.conf.urls import url
-from django.views.generic import TemplateView
-from django.views.generic.edit import UpdateView
+from __future__ import unicode_literals
 
-from .api.views import *
-from .models import ReturnSales as Table
+from decimal import Decimal
+from django.conf import settings
+from django.core.validators import MinValueValidator
+from django.db import models
+from django.utils.encoding import python_2_unicode_compatible
+from django.utils.timezone import now
+from django.utils.translation import pgettext_lazy
+from jsonfield import JSONField
+from ..userprofile.models import Address
+from ..customer.models import Customer
+from ..site.models import SiteSettings
+from ..salepoints.models import SalePoint
+from ..counter.models import Counter
+from ..kitchen.models import Kitchen
+from ..table.models import Table
+from ..room.models import Room
 
-global module;
-module = 'return_sale'
+from . import OrderStatus
+from . import TransactionStatus
 
-urlpatterns = [
-    url(r'^$', TemplateView.as_view(template_name=module+"/list.html"), name="index"),
-    url(r'^api/create/$', CreateAPIView.as_view(), name='api-create'),
-    url(r'^api/delete/(?P<pk>[0-9]+)/$', DestroyView.as_view(), name='api-delete'),
-    url(r'^api/delete/item/(?P<pk>[0-9]+)/$', DestroyItemView.as_view(), name='api-delete-item'),
-    url(r'^api/list/$', ListAPIView.as_view(), name='api-list'),
-    url(r'^api/list/items/(?P<pk>[0-9]+)/$', ListItemsAPIView.as_view(), name='api-list-items'),
-    url(r'^api/list/stock/$', ListStockAPIView.as_view(), name='api-list-all-stock'),
-    url(r'^api/list/stock/(?P<pk>[0-9]+)/$', ListStockAPIView.as_view(), name='api-list-stock'),
-    url(r'^api/list/category/(?P<pk>[0-9]+)/$', ListCategoryAPIView.as_view(), name='api-list-category'),
-    url(r'^api/update/(?P<pk>[0-9]+)/$', UpdateAPIView.as_view(), name='api-update'),
-    url(r'^api/update/item/(?P<pk>[0-9]+)/$', UpdateItemAPIView.as_view(), name='api-update-item'),
-    url(r'^api/close/item/(?P<pk>[0-9]+)/$', CloseItemAPIView.as_view(), name='api-update-item'),
-    url(r'^add/$', TemplateView.as_view(template_name=module+"/form.html"), name='add'),
-    url(r'^close/$', TemplateView.as_view(template_name=module+"/close.html"), name='close'),
-    url(r'^update/(?P<pk>[0-9]+)/$', UpdateView.as_view(template_name=module+"/items.html", model=Table, fields=['id', 'name']),
-        name='update'),
-    url(r'^update/view/(?P<pk>[0-9]+)/$', UpdateView.as_view(template_name=module+"/item_view.html", model=Table, fields=['id']),
-        name='update-view'),
-    url(r'^close/item/(?P<pk>[0-9]+)/$', UpdateView.as_view(template_name=module+"/item_closing.html", model=Table, fields=['id', 'name']),
-        name='close-item'),
-    url(r'^close/item/view/(?P<pk>[0-9]+)/$', UpdateView.as_view(template_name=module+"/item_closing_view.html", model=Table, fields=['id', 'name']),
-        name='close-item-view'),
-]
+
+class PaymentOption(models.Model):
+    name = models.CharField(
+        pgettext_lazy('Payment option field', 'payment option name'),
+        max_length=52, unique=True,)    
+    description = models.TextField(
+        pgettext_lazy('Payment option field', 'description'), blank=True)
+    loyalty_point_equiv = models.IntegerField(pgettext_lazy('Site field', 'loyalty points equivalency'),
+                                              validators=[MinValueValidator(0)], default=Decimal(0))
+    
+    class Meta:     
+        verbose_name = pgettext_lazy('Payment option model', 'Payment')
+        verbose_name_plural = pgettext_lazy('Payment options model', 'Payments')
+    
+    def __str__(self):
+        return str(self.name)
+
+
+class Terminal(models.Model):
+    terminal_name = models.CharField(
+        pgettext_lazy('Terminal field', 'terminal name'),
+        max_length=52,) 
+    terminal_number = models.IntegerField(default=Decimal(0))
+    created = models.DateTimeField(
+        pgettext_lazy('Terminal field', 'created'),
+        default=now, editable=False)
+    amount = models.IntegerField(default=Decimal(0))
+
+    class Meta:     
+        verbose_name = pgettext_lazy('Terminal model', 'Terminal')
+        verbose_name_plural = pgettext_lazy('Terminals model', 'Terminals')
+        
+    def __str__(self):
+        return str(self.terminal_name)+' #'+str(self.terminal_number)
+
+    def get_transations(self):
+        return len(self.terminals.all())
+
+    def get_sales(self):
+        return len(self.terminal_sales.all())
+
+    def get_todaySales(self):
+        return len(self.terminal_sales.filter(created=now()))
+
+    def get_loyalty_points(self):
+        points = SiteSettings.objects.get(pk=1)
+        return points.loyalty_point_equiv
+
+
+@python_2_unicode_compatible
+class TerminalHistoryEntry(models.Model):
+    date = models.DateTimeField(
+        pgettext_lazy('Terminal history entry field', 'last history change'),
+        default=now, editable=False)
+    terminal = models.ForeignKey(
+        Terminal, related_name='history',
+        verbose_name=pgettext_lazy('Terminal history entry field', 'order'))
+    
+    comment = models.CharField(
+        pgettext_lazy('Terminal history entry field', 'comment'),
+        max_length=100, default='', blank=True)
+    crud = models.CharField(
+        pgettext_lazy('Terminal history entry field', 'crud'),
+        max_length=30, default='', blank=True)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, blank=True, null=True,
+        verbose_name=pgettext_lazy('Terminal history entry field', 'user'))
+
+    class Meta:
+        ordering = ('date', )
+        verbose_name = pgettext_lazy(
+            'Terminal history entry model', 'Terminal history entry')
+        verbose_name_plural = pgettext_lazy(
+            'Terminal history entry model', 'Terminal history entries')
+
+    def __str__(self):
+        return pgettext_lazy(
+            'Terminal history entry str',
+            'TerminalHistoryEntry for terminal #%d') % self.terminal.pk
+
+
+@python_2_unicode_compatible
+class Sales(models.Model):
+    status = models.CharField(
+        pgettext_lazy('Sales field', 'sales status'),
+        max_length=32, choices=OrderStatus.CHOICES, default=OrderStatus.NEW)
+    created = models.DateTimeField(
+        pgettext_lazy('Sales field', 'created'),
+        default=now, editable=False)    
+    last_status_change = models.DateTimeField(
+        pgettext_lazy('Sales field', 'last status change'),
+        default=now, editable=False)
+    customer = models.ForeignKey(
+        Customer, blank=True, null=True, related_name='customers',
+        verbose_name=pgettext_lazy('Sales field', 'customer'))
+
+    mobile = models.CharField(max_length=20, blank=True, null=True)
+    customer_name = models.CharField(max_length=100, null=True, blank=True)
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, blank=True, null=True, related_name='users',
+        verbose_name=pgettext_lazy('Sales field', 'user'))
+    language_code = models.CharField(max_length=35, default=settings.LANGUAGE_CODE)
+    billing_address = models.ForeignKey(
+        Address, related_name='+', editable=False,blank=True, null=True,
+        verbose_name=pgettext_lazy('Sales field', 'billing address'))
+    user_email = models.EmailField(
+        pgettext_lazy('Sales field', 'user email'),
+        blank=True, default='', editable=False)
+    terminal = models.ForeignKey(
+        Terminal, related_name='terminal_sales',blank=True, default='',
+        verbose_name=pgettext_lazy('Sales field', 'order'))
+    invoice_number = models.CharField(
+        pgettext_lazy('Sales field', 'invoice_number'),unique=True, null=True, max_length=36,)
+    
+    total_net = models.DecimalField(
+        pgettext_lazy('Sales field', 'total net'), default=Decimal(0), max_digits=100, decimal_places=2)
+    total_tax = models.DecimalField(
+        pgettext_lazy('Sales field', 'total tax'), default=Decimal(0), max_digits=100, decimal_places=2)    
+    sub_total = models.DecimalField(
+        pgettext_lazy('Sales field', 'sub total'), default=Decimal(0), max_digits=100, decimal_places=2)
+    
+    total_tax = models.DecimalField(
+        pgettext_lazy('Sales field', 'total tax'), default=Decimal(0), max_digits=100, decimal_places=2)
+    amount_paid = models.DecimalField(
+        pgettext_lazy('Sales field', 'amount paid'), default=Decimal(0), max_digits=100, decimal_places=2)
+    
+    balance = models.DecimalField(
+        pgettext_lazy('Sales field', 'balance'), default=Decimal(0), max_digits=100, decimal_places=2)
+    
+    discount_amount = models.DecimalField(
+        pgettext_lazy('Sales field', 'total discount'), default=Decimal(0), max_digits=100, decimal_places=2)
+    
+    discount_name = models.CharField(
+        verbose_name=pgettext_lazy('Sales field', 'discount name'),
+        max_length=255, default='', blank=True)
+    carry = models.CharField(
+        verbose_name=pgettext_lazy('Sales field', 'carry name'),
+        max_length=255, default='', blank=True)
+
+    payment_options = models.ManyToManyField(
+        'PaymentOption', related_name='payment_option', blank=True,
+        verbose_name=pgettext_lazy('Sales field',
+                                   'sales options'))
+    payment_data = JSONField(null=True, blank=True)
+    table = models.ForeignKey(
+        Table, related_name='table_sales', blank=True, null=True, default='', on_delete=models.SET_NULL,
+        verbose_name=pgettext_lazy('Sale field', 'table'))
+    room = models.ForeignKey(
+        Room, verbose_name=pgettext_lazy('Orders field', 'rooms'), default='', blank=True, null=True, on_delete=models.SET_NULL)
+
+    class Meta:
+        ordering = ('-last_status_change',)
+        verbose_name = pgettext_lazy('Sales model', 'Sales')
+        verbose_name_plural = pgettext_lazy('Sales model', 'Sales')
+        
+    def __str__(self):
+        return self.invoice_number
+
+    def __unicode__(self):
+        return unicode(self.invoice_number)
+
+
+class SoldItemManager(models.Manager):
+    def add_returned_item(self, instance, quantity):
+        instance.returned_quantity = models.F('returned_quantity') + quantity
+        instance.save(update_fields=['returned_quantity'])
+
+
+class SoldItem(models.Model):
+    sales = models.ForeignKey(Sales, related_name='solditems', on_delete=models.CASCADE)
+    order = models.IntegerField(default=Decimal(1))
+    stock_id = models.IntegerField(default=Decimal(0))
+    transfer_id = models.IntegerField(default=Decimal(0))
+    sku = models.CharField(
+        pgettext_lazy('SoldItem field', 'SKU'), max_length=32)    
+    quantity = models.IntegerField(
+        pgettext_lazy('SoldItem field', 'quantity'),
+        validators=[MinValueValidator(0)], default=Decimal(1))
+    returned_quantity = models.IntegerField(
+        pgettext_lazy('SoldItem field', 'returned quantity'),
+        validators=[MinValueValidator(0)], default=Decimal(0))
+    product_name = models.CharField(
+        pgettext_lazy('SoldItem field', 'product name'), max_length=128)
+    total_cost = models.DecimalField(
+        pgettext_lazy('SoldItem field', 'total cost'), default=Decimal(0), max_digits=100, decimal_places=2)
+    unit_cost = models.DecimalField(
+        pgettext_lazy('SoldItem field', 'unit cost'), default=Decimal(0), max_digits=100, decimal_places=2)
+
+    minimum_price = models.DecimalField(
+        pgettext_lazy('SoldItem field', 'minimum price'), default=Decimal(0), max_digits=100, decimal_places=2)
+    wholesale_override = models.DecimalField(
+        pgettext_lazy('SoldItem field', 'wholesale price'), default=Decimal(0), max_digits=100, decimal_places=2)
+
+    unit_purchase = models.DecimalField(
+        pgettext_lazy('SoldItem field', 'unit purchase'), default=Decimal(0), max_digits=100, decimal_places=2)
+    total_purchase = models.DecimalField(
+        pgettext_lazy('SoldItem field', 'total purchase'), default=Decimal(0), max_digits=100, decimal_places=2)
+
+    low_stock_threshold = models.IntegerField(
+        pgettext_lazy('SoldItem field', 'low stock threshold'),
+        validators=[MinValueValidator(0)], null=True, blank=True, default=Decimal(10))
+    is_stock = models.BooleanField(pgettext_lazy('SoldItem field', 'bool determine stock/menu item'),
+                                   default=True, )
+    product_category = models.CharField(
+        pgettext_lazy('SoldItem field', 'product_category'), max_length=128, null=True)
+    discount = models.DecimalField(
+        pgettext_lazy('SoldItem field', 'discount'), default=Decimal(0), max_digits=100, decimal_places=2)
+    tax = models.IntegerField(default=Decimal(0))
+    counter = models.ForeignKey(
+        Counter, related_name='sold_item_counter', blank=True, null=True, default='',
+        verbose_name=pgettext_lazy('OrderedItem field', 'Counter'))
+    kitchen = models.ForeignKey(
+        Kitchen, related_name='sold_item_kitchen', blank=True, null=True, default='',
+        verbose_name=pgettext_lazy('OrderedItem field', 'Kitchen'))
+    objects = SoldItemManager()
+
+    class Meta:
+        ordering = ['order']
+
+    def __unicode__(self):
+        return '%d: %s' % (self.order, self.product_name)
+
+    def __str__(self):
+        return self.product_name
+
+    def get_quantity(self):
+        try:
+            return self.quantity - self.returned_quantity
+        except:
+            return 0
+
+
+class DrawerCash(models.Model):
+    trans_type = models.CharField(
+        pgettext_lazy('DrawerCash field', 'drawer trans type'),
+        max_length=32, choices=TransactionStatus.CHOICES, default=TransactionStatus.DEPOSIT)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, blank=True, null=True, related_name='cashier',
+        verbose_name=pgettext_lazy('DrawerCash field', 'user'))
+    manager = models.ForeignKey(
+        settings.AUTH_USER_MODEL, blank=True, null=True, related_name='managers',
+        verbose_name=pgettext_lazy('DrawerCash field', 'manager'))  
+    terminal = models.ForeignKey(Terminal, related_name='terminals',
+                                null=True, blank=True,)
+    amount = models.DecimalField(
+        pgettext_lazy('DrawerCash field', 'total cost'), default=Decimal(0), max_digits=100, decimal_places=2)
+    created = models.DateTimeField(
+        pgettext_lazy('DrawerCash field', 'created'),
+        default=now, editable=False)
+    note = models.CharField(max_length=1000, null=True, blank=True)
+
+    class Meta:     
+        verbose_name = pgettext_lazy('DrawerCash model', 'DrawerCash')
+        verbose_name_plural = pgettext_lazy('DrawerCash model', 'DrawerCash')
+        
+    def __str__(self):
+        return str(self.user)+' '+str(self.amount)
 
