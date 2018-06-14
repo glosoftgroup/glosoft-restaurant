@@ -25,10 +25,15 @@ User = get_user_model()
 
 
 class ItemSerializer(serializers.ModelSerializer):
+    quantity = serializers.SerializerMethodField()
+
     class Meta:
         model = SoldItem
         fields = (
                 'id',
+                'transfer_id',
+                'is_stock',
+                'returned_quantity',
                 'sku',
                 'quantity',
                 'unit_cost',
@@ -38,6 +43,9 @@ class ItemSerializer(serializers.ModelSerializer):
                 'tax',
                 'discount'
                  )
+
+    def get_quantity(self, obj):
+        return obj.get_quantity()
 
 
 class ListSaleSerializer(serializers.ModelSerializer):

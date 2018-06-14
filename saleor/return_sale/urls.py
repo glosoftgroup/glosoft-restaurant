@@ -25,7 +25,7 @@ urlpatterns = [
     url(r'^close/$', TemplateView.as_view(template_name=module+"/close.html"), name='close'),
     url(r'^update/(?P<pk>[0-9]+)/$', UpdateView.as_view(template_name=module+"/items.html", model=Table, fields=['id', 'name']),
         name='update'),
-    url(r'^update/view/(?P<pk>[0-9]+)/$', UpdateView.as_view(template_name=module+"/item_view.html", model=Table, fields=['id', 'name']),
+    url(r'^update/view/(?P<pk>[0-9]+)/$', UpdateView.as_view(template_name=module+"/item_view.html", model=Table, fields=['id']),
         name='update-view'),
     url(r'^close/item/(?P<pk>[0-9]+)/$', UpdateView.as_view(template_name=module+"/item_closing.html", model=Table, fields=['id', 'name']),
         name='close-item'),
