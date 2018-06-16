@@ -263,9 +263,11 @@ class SearchOrdersListAPIView(generics.ListAPIView):
                 for i in queryset:
                     if point == "counter":
                         products_count = OrderedItem.objects.filter(orders=i, collected=collectedStatusBoolean, counter__pk=counter).count()
-                    else:
+                    elif point == "kitchen":
                         products_count = OrderedItem.objects.filter(orders=i, collected=collectedStatusBoolean,
                                                                     kitchen__pk=counter).count()
+                    else:
+                        products_count = OrderedItem.objects.filter(orders=i, collected=collectedStatusBoolean).count()
                     if products_count>=1:
                         set_orders.append(i.pk)
 
@@ -281,9 +283,11 @@ class SearchOrdersListAPIView(generics.ListAPIView):
                     if point == "counter":
                         products_count = OrderedItem.objects.filter(orders=i, ready=readyStatusBoolean,
                                                                     counter__pk=counter).count()
-                    else:
+                    elif point == "kitchen":
                         products_count = OrderedItem.objects.filter(orders=i, ready=readyStatusBoolean,
                                                                     kitchen__pk=counter).count()
+                    else:
+                        products_count = OrderedItem.objects.filter(orders=i, ready=readyStatusBoolean).count()
                     if products_count>=1:
                         set_orders.append(i.pk)
 
@@ -300,8 +304,8 @@ class SearchOrdersListAPIView(generics.ListAPIView):
                 Q(table__name__icontains=query) |
                 Q(user__name__icontains=query)).distinct()
         else:
-            queryset = queryset.filter(Q(status='pending-payment') |
-                (Q(status='fully-paid') & Q(table__isnull=True) & Q(room__isnull=True))).distinct()
+            queryset = queryset.distinct()
+
         serializer = SearchListOrderSerializer(queryset, context=serializer_context, many=True)
         return Response(serializer.data)
 
