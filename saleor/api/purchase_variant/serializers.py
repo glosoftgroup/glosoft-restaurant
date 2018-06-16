@@ -60,6 +60,12 @@ class HistorySerializer(serializers.ModelSerializer):
 
 
 class TableCreateSerializer(serializers.ModelSerializer):
+    """
+    Create stock purchase:
+    item: JSON: purchased stock items
+    history: JSON: Payment history for purchase instance
+           : include payment options, transaction number & amount values
+    """
     item = JSONField()
     history = JSONField()
 

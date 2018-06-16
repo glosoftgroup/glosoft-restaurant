@@ -56,6 +56,7 @@ from .kitchentransfer.urls import urlpatterns as kitchentransfer_urls
 from .countertransfer.urls import urlpatterns as countertransfer_urls
 from .menutransfer.urls import urlpatterns as menutransfer_urls
 from .return_sale.urls import urlpatterns as return_sale_urls
+from .return_purchase.urls import urlpatterns as return_purchase_urls
 import notifications.urls
 from .api.login import ObtainJSONWebToken
 from . import decorators
@@ -112,6 +113,7 @@ urlpatterns = [
     url(r'^kitchen/transfer/', include(kitchentransfer_urls, namespace='kitchentransfer')),
     url(r'^menu/transfer/', include(menutransfer_urls, namespace='menutransfer')),
     url(r'^return/sale/', include(return_sale_urls, namespace='return_sale')),
+    url(r'^return/purchase/', include(return_purchase_urls, namespace='return_purchase')),
     url(r'^sitemap\.xml$', sitemap, {'sitemaps': sitemaps},
         name='django.contrib.sitemaps.views.sitemap'),
     url(r'^sale/points/', include(salepoints_urls, namespace='salepoints')),

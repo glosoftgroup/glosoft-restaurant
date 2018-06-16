@@ -227,6 +227,7 @@ INSTALLED_APPS = [
     'saleor.menu',
     'saleor.menucategory',
     'saleor.return_sale',
+    'saleor.return_purchase',
 
     # External apps
     'versatileimagefield',

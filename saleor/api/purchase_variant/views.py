@@ -13,9 +13,9 @@ from .serializers import (
 
 
 class PurchaseCreateAPIView(generics.CreateAPIView):
-    '''
-        create a fully paid product variant purchases
-    '''
+    """
+    create a fully paid product variant purchases
+    """
     queryset = Table.objects.all()
     serializer_class = TableCreateSerializer
 

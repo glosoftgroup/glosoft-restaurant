@@ -233,7 +233,6 @@ class PurchaseProductManager(models.Manager):
         return total
 
 
-
 @python_2_unicode_compatible
 class PurchaseProduct(models.Model):
     variant = models.ForeignKey(
@@ -396,6 +395,7 @@ class PurchaseOrder(models.Model):
     def __str__(self):
         return str(self.lfo_number)+' '+str(self.product)
 
+
 class PurchaseItems(models.Model):
     purchase_order = models.ForeignKey(PurchaseOrder,related_name='purchaseitems',on_delete=models.CASCADE)
     order = models.IntegerField(default=Decimal(1))
@@ -415,7 +415,7 @@ class PurchaseItems(models.Model):
         return self.purchase_order
 
     def __unicode__(self):
-        return '%s: %s' % (self.sku,self.product_name)
+        return '%s: %s' % (self.sku, self.product_name)
 
 
 
