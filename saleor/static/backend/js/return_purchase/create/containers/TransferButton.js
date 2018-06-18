@@ -54,11 +54,11 @@ export class TransferButton extends Component {
       return;
     }
     formData.append('invoice_number', this.props.sale.invoice_number);
-    formData.append('counter_transfer_items', JSON.stringify(this.props.cart));
+    formData.append('return_purchase_items', JSON.stringify(this.props.cart));
 
-    api.create('/return/sale/api/create/', formData)
+    api.create('/return/purchase/api/create/', formData)
     .then((data) => {
-      window.location.href = '/return/sale/';
+      window.location.href = '/return/purchase/';
     })
     .catch((error) => {
       console.log(error);
@@ -68,12 +68,12 @@ export class TransferButton extends Component {
   render() {
     return (
         <div onClick={this.handleSubmit} className="btn bg-slate-800 btn-raised legitRipple">
-            <ToastContainer />
-            <i className="icon-circle-right2 icon-3x cursor-pointer"></i>
-            <br />
-            <span className="text-bold text-large">
-                Transfer
-            </span>
+          <ToastContainer />
+          <i className="icon-circle-right2 icon-3x cursor-pointer"></i>
+          <br />
+          <span className="text-bold text-large">
+            Return
+          </span>
         </div>
     );
   }

@@ -95,7 +95,7 @@ class SaleSearch extends Component {
             <li>
               <div className="form-grou search-form-group mr-15">
                   <div className="has-feedback has-feedback-right">
-                      <input value={this.state.search} name="search" onChange={this.handleChange} className="form-control" placeholder="Product name or SKU" type="search" />
+                      <input value={this.state.search} name="search" onChange={this.handleChange} className="form-control" placeholder="Invoice number or Supplier name" type="search" />
                       <div className="form-control-feedback">
                           <i className="icon-search4 text-size-large text-muted"></i>
                       </div>

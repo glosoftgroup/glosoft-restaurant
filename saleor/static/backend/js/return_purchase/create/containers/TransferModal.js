@@ -29,12 +29,12 @@ class TransferModal extends React.Component {
     return (
       <div>
         <Button bsStyle="primary" bsSize="large" onClick={this.handleShow}>
-          Select Sale
+          Select Purchase
         </Button>
 
         <Modal bsSize="large" show={this.state.show} onHide={this.handleClose}>
           <Modal.Header closeButton className="bg-slate-800">
-            <Modal.Title className="text-center">Select Sale</Modal.Title>
+            <Modal.Title className="text-center">Select Purchase</Modal.Title>
           </Modal.Header>
           <Modal.Body>
             <div className="col-md-12">

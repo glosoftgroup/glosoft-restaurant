@@ -316,14 +316,26 @@ class PurchaseProduct(models.Model):
         return get_supplier_credit_total(self.supplier)
 
 
+class PurchasedItemManager(models.Manager):
+    def add_returned_item(self, instance, quantity):
+        instance.returned_quantity = models.F('returned_quantity') + quantity
+        instance.save(update_fields=['returned_quantity'])
+
+
 class PurchasedItem(models.Model):
     purchase = models.ForeignKey(PurchaseVariant, related_name='purchased_item', on_delete=models.CASCADE)
+    stock = models.ForeignKey(Stock,
+                              related_name='purchased_item_stock',
+                              on_delete=models.SET_NULL, null=True)
     order = models.IntegerField(default=Decimal(1))
     sku = models.CharField(
         pgettext_lazy('PurchasedItem field', 'SKU'), max_length=32)
     quantity = models.IntegerField(
         pgettext_lazy('PurchasedItem field', 'quantity'),
         validators=[MinValueValidator(0)], default=Decimal(1))
+    returned_quantity = models.IntegerField(
+        pgettext_lazy('PurchasedItem field', 'returned quantity'),
+        validators=[MinValueValidator(0)], default=Decimal(0))
     product_name = models.CharField(
         pgettext_lazy('PurchasedItem field', 'product name'), max_length=128)
     total_cost = models.DecimalField(
@@ -336,10 +348,25 @@ class PurchasedItem(models.Model):
         pgettext_lazy('PurchasedItem field', 'unit purchase'), default=Decimal(0), max_digits=100, decimal_places=2)
     total_purchase = models.DecimalField(
         pgettext_lazy('PurchasedItem field', 'total purchase'), default=Decimal(0), max_digits=100, decimal_places=2)
-
+    low_stock_threshold = models.IntegerField(
+        pgettext_lazy('PurchasedItem item field', 'low stock threshold'),
+        validators=[MinValueValidator(0)], null=True, blank=True, default=Decimal(10))
+    price_override = PriceField(
+        pgettext_lazy('PurchasedItem item field', 'price override'),
+        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
+        blank=True, null=True)
+    minimum_price = PriceField(
+        pgettext_lazy('PurchasedItem item field', 'minimum price'),
+        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
+        blank=True, null=True)
+    wholesale_override = PriceField(
+        pgettext_lazy('PurchasedItem item field', 'wholesale override'),
+        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
+        blank=True, null=True)
     created = models.DateTimeField(
         pgettext_lazy('PurchasedItem field', 'created'),
         default=now, editable=False)
+    objects = PurchasedItemManager()
 
     class Meta:
         # unique_together = ('sales')
@@ -350,6 +377,15 @@ class PurchasedItem(models.Model):
 
     def __str__(self):
         return self.product_name
+
+    def returnable_quantity(self):
+        return self.quantity - self.returned_quantity
+
+    def get_quantity(self):
+        try:
+            return self.stock.quantity
+        except:
+            return 0
 
 
 @python_2_unicode_compatible
@@ -397,6 +433,7 @@ class PurchaseOrder(models.Model):
 
 
 class PurchaseItems(models.Model):
+    """ TODO: DELETE THIS MODEL """
     purchase_order = models.ForeignKey(PurchaseOrder,related_name='purchaseitems',on_delete=models.CASCADE)
     order = models.IntegerField(default=Decimal(1))
     sku = models.CharField(

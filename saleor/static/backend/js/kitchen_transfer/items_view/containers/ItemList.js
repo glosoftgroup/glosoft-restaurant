@@ -32,7 +32,6 @@ class ItemList extends Component {
               <th>Quantity</th>
               <th>Sold</th>
               <th>Price</th>
-              <th>Added to Menu</th>
             </tr>
           </thead>
           <tbody>

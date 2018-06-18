@@ -117,7 +117,7 @@ class ListItemsAPIView(generics.ListAPIView):
     def get_queryset(self, *args, **kwargs):
         try:
             if self.kwargs['pk']:
-                queryset_list = Item.objects.filter(transfer__pk=self.kwargs['pk']).select_related()
+                queryset_list = Item.objects.filter(return_sale__pk=self.kwargs['pk']).select_related()
             else:
                 queryset_list = Item.objects.all.select_related()
         except Exception as e:

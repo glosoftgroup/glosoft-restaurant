@@ -4,17 +4,25 @@ import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import { selectSale } from '../actions/action-selected-sale';
 import { fetchItems } from '../actions/action-items';
+import { clearCart } from '../actions/action-cart';
 
 class SalesList extends Component {
   selectSale = (obj) => {
     var payload = { ...obj };
     this.props.fetchItems({}, obj.id);
+    this.props.clearCart();
     this.props.selectSale(payload);
     this.props.closeModal();
   }
   render() {
     return (
       <div className="table-responsive">
+      {this.props.cart.length > 0 &&
+       <div className="alert alert-warning no-border text-center">
+          <button type="button" className="close" data-dismiss="alert"><span>×</span><span className="sr-only">Close</span></button>
+          <span>Selecting another sale will clear your cart items.</span>
+        </div>
+       }
         <table className="table table-xs table-hover">
             <thead>
                 <tr className="bg-primary">
@@ -65,19 +73,22 @@ class SalesList extends Component {
 
 SalesList.propTypes = {
   items: PropTypes.array.isRequired,
+  cart: PropTypes.array.isRequired,
   selectSale: PropTypes.func,
   closeModal: PropTypes.func,
-  fetchItems: PropTypes.func
+  fetchItems: PropTypes.func,
+  clearCart: PropTypes.func
 };
 function mapStateToProps(state) {
   return {
-    items: state.sales
+    items: state.sales,
+    cart: state.cart
   };
 }
 
 function matchDispatchToProps(dispatch) {
   return bindActionCreators({
-    selectSale, fetchItems
+    selectSale, fetchItems, clearCart
   }, dispatch);
 }
 export default connect(mapStateToProps, matchDispatchToProps)(SalesList);

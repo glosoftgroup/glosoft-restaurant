@@ -43,10 +43,10 @@ export class TransferTableRow extends Component {
     var instance = { ...this.props.instance };
     return (
       <tr className="cursor-pointer">
-        <td>{instance.date}</td>
-        <td>{instance.counter.name}</td>
-        <td>{instance.quantity}</td>
-        <td data-tip="Edit quantity">{instance.worth}</td>
+        <td className="cursor-pointer" onClick={ () => this.goTo(instance.closing_items_view_url)}>{instance.date}</td>
+        <td className="cursor-pointer" onClick={ () => this.goTo(instance.closing_items_view_url)}>{instance.counter.name}</td>
+        <td className="cursor-pointer" onClick={ () => this.goTo(instance.closing_items_view_url)}>{instance.quantity}</td>
+        <td className="cursor-pointer" onClick={ () => this.goTo(instance.closing_items_view_url)} data-tip="Edit quantity">{instance.worth}</td>
         <td>
           {instance.all_item_closed &&
             <span className="text-success">closed</span>

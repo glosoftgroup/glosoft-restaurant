@@ -20,7 +20,7 @@ export const fetchItems = (params = {}) => {
         url = url.slice(0, -1);
       }
     }
-    api.retrieve('/api/sale/list?' + url)
+    api.retrieve('/api/purchase/variant?' + url)
     .then(data => {
       data.loading = false;
       dispatch(setSales(data.data));

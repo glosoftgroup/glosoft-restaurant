@@ -22,7 +22,7 @@ export const fetchItems = (params = {}, pk = null) => {
       }
     }
     if (pk) {
-      api.retrieve(`/api/sale/list/item/${pk}/?${url}`)
+      api.retrieve(`/api/purchase/variantitem/${pk}/?${url}`)
       .then(data => {
         data.loading = false;
         dispatch(setItems(data.data));

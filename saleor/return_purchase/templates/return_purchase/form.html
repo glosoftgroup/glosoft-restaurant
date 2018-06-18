@@ -18,10 +18,10 @@
  {% endblock %}
 
 
-{% block menu_return_sale_class %}active{% endblock %}
+{% block menu_return_purchase_class %}active{% endblock %}
 
 {% block custom_css %}
-{% render_bundle 'return_sale' 'css' %}
+{% render_bundle 'return_purchase' 'css' %}
 
 {% endblock %}
 {% block content %}
@@ -40,5 +40,5 @@
 
 {% block custom_js %}
 {% render_bundle 'vendor' 'js' %}
-{% render_bundle 'return_sale' 'js' %}
+{% render_bundle 'return_purchase' 'js' %}
 {% endblock %}

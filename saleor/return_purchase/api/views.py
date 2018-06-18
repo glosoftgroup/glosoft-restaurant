@@ -7,7 +7,7 @@ from rest_framework import pagination
 from .pagination import PostLimitOffsetPagination
 from saleor.return_purchase.models import ReturnPurchase as Table
 from saleor.product.models import Stock
-from saleor.return_sale.models import Item
+from saleor.return_purchase.models import Item
 from .serializers import (
     CloseTransferItemSerializer,
     CreateListSerializer,

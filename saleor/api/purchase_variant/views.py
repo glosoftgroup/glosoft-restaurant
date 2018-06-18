@@ -1,14 +1,16 @@
 from rest_framework import generics
-from django.db.models import Q
+from django.db.models import Q, F
 from rest_framework import pagination
 
 from .pagination import PostLimitOffsetPagination
 from ...purchase.models import PurchaseVariant as Table
+from ...purchase.models import PurchasedItem as Item
 from ...purchase.models import PurchaseVariantHistoryEntry as History
 from .serializers import (
     TableCreateSerializer,
     TableListSerializer,
-    HistorySerializer
+    HistorySerializer,
+    ItemSerializer
 )
 
 
@@ -94,7 +96,43 @@ class PurchaseListAPIView(generics.ListAPIView):
         query = self.request.GET.get('q')
         if query:
             queryset_list = queryset_list.filter(
+                Q(supplier__name__icontains=query) |
                 Q(invoice_number__icontains=query)
+                ).distinct()
+        return queryset_list.order_by('-id')
+
+
+class PurchaseItemListAPIView(generics.ListAPIView):
+    serializer_class = ItemSerializer
+    pagination_class = PostLimitOffsetPagination
+
+    def get_queryset(self, *args, **kwargs):
+        queryset_list = Item.objects.filter(quantity__gt=F('returned_quantity'))
+        try:
+            if self.kwargs['pk']:
+                pk = self.kwargs['pk']
+                queryset_list = queryset_list.filter(purchase__pk=pk).select_related()
+            if self.request.GET.get('date'):
+                queryset_list = queryset_list.filter(purchase__pk=pk).filter(created__icontains=self.request.GET.get('date'))
+
+        except Exception as e:
+            pass
+        page_size = 'page_size'
+        if self.request.GET.get(page_size):
+            pagination.PageNumberPagination.page_size = self.request.GET.get(page_size)
+        else:
+            pagination.PageNumberPagination.page_size = 10
+        if self.request.GET.get('status'):
+            if str(self.request.GET.get('status')) == 'all':
+                pass
+            else:
+                queryset_list = queryset_list.filter(status=str(self.request.GET.get('status')))
+
+        query = self.request.GET.get('q')
+        if query:
+            queryset_list = queryset_list.filter(
+                Q(product_name__icontains=query) |
+                Q(sku__icontains=query)
                 ).distinct()
         return queryset_list.order_by('-id')
 

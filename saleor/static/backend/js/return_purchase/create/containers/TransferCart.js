@@ -80,7 +80,7 @@ class TransferCart extends Component {
                     <thead>
                       <tr>
                         <th>Quantity</th>
-                        <th>Total Sale Price</th>
+                        <th>Price</th>
                       </tr>
                     </thead>
                     <tbody>
