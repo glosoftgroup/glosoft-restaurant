@@ -155,7 +155,7 @@
 
                 <li>
                   <a href="{% url 'dashboard:index' %}">
-                    <i class="icon-home4"></i> 
+                    <i class="icon-home4"></i>
                     <span>Dashboard</span>
                   </a>
                 </li>
@@ -542,20 +542,39 @@
                    {% if perms.accounts.view_expenses %}
                 <li><a href="#"><i class="icon-coins"></i> <span>Accounting</span></a>
                   <ul>
-                    <li class="{% block menu_personal_expenses_class %}{% endblock %}">
-                        <a href="{% url 'accounts:personal_expenses' %}">
-                        <i class="icon-align-center-vertical"></i>Business Expenses
-                        </a>
-                    </li>
-                      <li class="{% block menu_expenses_class %}{% endblock %}">
-                        <a href="{% url 'accounts:expenses' %}">
-                        <i class="icon-price-tags"></i>Petty Cash Expenses
-                        </a>
-                    </li>
-                      <li class="{% block menu_petty_cash_class %}{% endblock %}">
-                        <a href="{% url 'accounts:petty_cash' %}">
-                        <i class="icon-notebook"></i>Petty Cash
-                        </a>
+                      <li>
+                        <a href="javascript:;">Expenses</a>
+                        <ul>
+                            <li class="{% block menu_personal_expenses_class %}{% endblock %}">
+                                <a href="{% url 'accounts:personal_expenses' %}">
+                                <i class="icon-align-center-vertical"></i>Business Expenses
+                                </a>
+                            </li>
+
+                            <li class="{% block menu_expenses_class %}{% endblock %}">
+                                <a href="{% url 'accounts:expenses' %}">
+                                <i class="icon-price-tags"></i>Petty Cash Expenses
+                                </a>
+                            </li>
+                        </ul>
+                      <li>
+
+                    <li>
+                        <a href="javascript:;">Petty Cash</a>
+                        <ul>
+                            <li class="{% block menu_petty_cash_class %}{% endblock %}">
+                                <a href="{% url 'accounts:petty_cash' %}">
+                                <i class="icon-notebook"></i>Petty Cash
+                                </a>
+                            </li>
+
+                            <li class="{% block menu_petty_cash_history_class %}{% endblock %}">
+                                <a href="{% url 'accounts:petty_cash_list' %}">
+                                    <i class="icon-notebook"></i>
+                                    Report
+                                </a>
+                            </li>
+                        </ul>
                     </li>
 
                     </ul>
