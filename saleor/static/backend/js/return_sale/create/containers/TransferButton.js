@@ -72,7 +72,7 @@ export class TransferButton extends Component {
             <i className="icon-circle-right2 icon-3x cursor-pointer"></i>
             <br />
             <span className="text-bold text-large">
-                Transfer
+            Return
             </span>
         </div>
     );

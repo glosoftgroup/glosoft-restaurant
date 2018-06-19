@@ -114,7 +114,7 @@ export class TransferTableRow extends Component {
           <span className="text-size-small text-success">Closed</span>
         }
         {!instance.closed &&
-          <span className="text-size-small text-">Open</span>
+          <span className="text-size-small text-primary">Open</span>
         }
         </td>
         <td>

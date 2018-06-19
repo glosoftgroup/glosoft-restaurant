@@ -53,14 +53,6 @@ export class TransferTableRow extends Component {
         <td>{instance.qty}</td>
         <td>{instance.sold}</td>
         <td>{instance.price}</td>
-        <th>
-        {instance.menu_category !== 0 &&
-          <span>Yes</span>
-        }
-        {instance.menu_category === 0 &&
-          <span>No</span>
-        }
-        </th>
     </tr>
     );
   }
