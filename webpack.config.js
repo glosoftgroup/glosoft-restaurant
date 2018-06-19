@@ -92,6 +92,7 @@ var config = {
     return_sale_item_view : './saleor/static/backend/js/return_sale/items_view/index.js',
     return_sale : './saleor/static/backend/js/return_sale/create/index.js',
     menu: './saleor/static/backend/js/menu/list/index.js',
+    petty_cash: './saleor/static/backend/js/petty_cash/list/index.js',
     vendor: [
       'babel-es6-polyfill',
       'bootstrap',
