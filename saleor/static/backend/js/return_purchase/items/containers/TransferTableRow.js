@@ -1,6 +1,10 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
 import api from '../api/Api';
+import Quantity from './Quantity';
+import { fetchItems } from '../actions/action-items';
 
 export class TransferTableRow extends Component {
   /*
@@ -21,7 +25,7 @@ export class TransferTableRow extends Component {
     };
   }
   goTo = (url) => {
-    if (url !== undefined) window.location.href = url;
+    window.location.href = url;
   }
   toggleDelete = () => {
     this.setState({showDelete: true});
@@ -31,9 +35,9 @@ export class TransferTableRow extends Component {
     }, 3000);
   }
   deleteInstance = () => {
-    api.destroy('/return/purchase/api/delete/' + this.props.instance.id + '/')
+    api.destroy('/return/purchase/api/delete/item/' + this.props.instance.id + '/')
     .then((response) => {
-      window.location.reload();
+      this.props.fetchItems();
     })
     .catch((error) => {
       console.error(error);
@@ -43,11 +47,13 @@ export class TransferTableRow extends Component {
     var instance = { ...this.props.instance };
     return (
       <tr>
-        <td className="cursor-pointer" onClick={ () => this.goTo(instance.view_url)}>{instance.date}</td>
-        <td className="cursor-pointer" onClick={ () => this.goTo(instance.view_url)}>{instance.invoice_number}</td>
-        <td className="cursor-pointer" onClick={ () => this.goTo(instance.view_url)}>{instance.quantity}</td>
-        <td className=" text-center">
-          <ul className="icons-list">
+        <td>{instance.product_name}</td>
+        <td>{instance.sku}</td>
+        <td>{instance.unit_cost}</td>
+        <td><Quantity instance={instance} /></td>
+        <td>{instance.sold_quantity}</td>
+        <td className="text-center">
+          <ul className="no-print icons-list">
             <li className="dropdown">
               { this.state.showDelete &&
                 <button onClick={this.deleteInstance} type="button" aria-expanded="true" className="animated fadeIn btn btn-md bg-danger btn-primary dropdown-toggle legitRipple">
@@ -55,21 +61,11 @@ export class TransferTableRow extends Component {
               </button>
               }
               {!this.state.showDelete &&
-                <button type="button" data-toggle="dropdown" aria-expanded="true" className="no-print animated fadeIn btn btn-md btn-primary dropdown-toggle legitRipple">
-                Actions <span className="no-print  caret"></span>
+                <button type="button" data-toggle="dropdown" aria-expanded="true" className="animated fadeIn btn btn-md btn-primary dropdown-toggle legitRipple">
+                Actions <span className="caret"></span>
                 </button>
               }
               <ul className="dropdown-menu dropdown-menu-right">
-                <li>
-                  <a onClick={ () => this.goTo(instance.view_url)} href="javascript:;">
-                     <i className="icon-eye"></i> View
-                  </a>
-                </li>
-                <li>
-                  <a onClick={ () => this.goTo(instance.update_items_url)} href="javascript:;">
-                     <i className="icon-pencil"></i> EDIT
-                  </a>
-                </li>
                 <li>
                   <a onClick={this.toggleDelete} href="javascript:;">
                     <i className=" icon-trash-alt"></i> DELETE
@@ -85,6 +81,16 @@ export class TransferTableRow extends Component {
 }
 
 TransferTableRow.propTypes = {
-  instance: PropTypes.object.isRequired
+  instance: PropTypes.object.isRequired,
+  fetchItems: PropTypes.func.isRequired
 };
-export default TransferTableRow;
+
+function mapStateToProps(state) {
+  return {};
+}
+
+function matchDispatchToProps(dispatch) {
+  return bindActionCreators({fetchItems}, dispatch);
+}
+
+export default connect(mapStateToProps, matchDispatchToProps)(TransferTableRow);

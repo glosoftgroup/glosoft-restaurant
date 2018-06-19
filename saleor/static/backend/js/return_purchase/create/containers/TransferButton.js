@@ -61,7 +61,12 @@ export class TransferButton extends Component {
       window.location.href = '/return/purchase/';
     })
     .catch((error) => {
-      console.log(error);
+      console.error(error);
+      $.jGrowl('Purchased items stock details might have been deleted', {
+        header: 'Server Error!',
+        theme: 'bg-danger'
+      });
+      return;
     });
   }
 

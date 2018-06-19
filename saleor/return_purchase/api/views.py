@@ -34,7 +34,7 @@ class DestroyView(generics.DestroyAPIView):
     queryset = Table.objects.all()
 
     def perform_destroy(self, instance):
-        items = instance.return_items.all()
+        items = instance.return_purchase_items.all()
         for item in items:
             update_return(item, 0)
         # raise serializers.ValidationError('You cannot delete ')
@@ -90,7 +90,7 @@ class ListAPIView(generics.ListAPIView):
 class ListItemsAPIView(generics.ListAPIView):
     """
         list details
-        GET /api/setting/
+        GET /api/*/
     """
     serializer_class = ItemsSerializer
     permission_classes = (IsAuthenticatedOrReadOnly,)
@@ -99,13 +99,12 @@ class ListItemsAPIView(generics.ListAPIView):
     def list(self, request, *args, **kwargs):
         response = super(ListItemsAPIView, self).list(request, args, kwargs)
         try:
-            instance = Item.objects.filter(return_sale__pk=self.kwargs['pk']).first()
+            instance = Item.objects.filter(return_purchase__pk=self.kwargs['pk']).first()
             # response.data['counter'] = instance.transfer.counter.name
-            response.data['date'] = instance.return_sale.date
-            response.data['invoice_number'] = instance.return_sale.invoice_number
+            response.data['date'] = instance.return_purchase.date
+            response.data['invoice_number'] = instance.return_purchase.invoice_number
 
         except Exception as e:
-            print e
             pass
         return response
 
@@ -117,7 +116,7 @@ class ListItemsAPIView(generics.ListAPIView):
     def get_queryset(self, *args, **kwargs):
         try:
             if self.kwargs['pk']:
-                queryset_list = Item.objects.filter(transfer__pk=self.kwargs['pk']).select_related()
+                queryset_list = Item.objects.filter(return_purchase__pk=self.kwargs['pk']).select_related()
             else:
                 queryset_list = Item.objects.all.select_related()
         except Exception as e:
@@ -134,8 +133,8 @@ class ListItemsAPIView(generics.ListAPIView):
         query = self.request.GET.get('q')
         if query:
             queryset_list = queryset_list.filter(
-                Q(sold_item__sku__icontains=query) |
-                Q(sold_item__product_name__icontains=query))
+                Q(sku__icontains=query) |
+                Q(product_name__icontains=query))
         return queryset_list.order_by('-id')
 
 
