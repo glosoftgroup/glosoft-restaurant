@@ -30,26 +30,25 @@ item_fields = ('id',
 
 
 class ItemsSerializer(serializers.ModelSerializer):
-    # sku = serializers.SerializerMethodField()
+    max_quantity = serializers.SerializerMethodField()
+    returned_quantity = serializers.SerializerMethodField()
+    sold_quantity = serializers.SerializerMethodField()
 
     class Meta:
         model = Item
-        fields = item_fields
+        fields = item_fields + ('max_quantity', 'returned_quantity', 'sold_quantity')
 
     def get_max_quantity(self, obj):
-        try:
-            return obj.max_quantity()
-        except Exception as e:
-           return 0
+        return obj.purchase_item.returnable_quantity() \
+            if obj.purchase_item.returnable_quantity() < \
+               obj.purchase_item.get_quantity() \
+            else obj.purchase_item.get_quantity()
 
     def get_returned_quantity(self, obj):
-        return obj.sold_item.returned_quantity
+        return obj.purchase_item.returned_quantity
 
     def get_sold_quantity(self, obj):
-        return obj.sold_item.quantity
-
-    def get_order_quantity(self, obj):
-        return obj.order_item.quantity
+        return obj.purchase_item.quantity
 
 
 def format_fields(fields_data, items_list):
@@ -117,18 +116,11 @@ class CloseTransferItemSerializer(serializers.ModelSerializer):
 
 def update_return(instance, quantity):
     diff = int(quantity) - int(instance.quantity)
-    sold_item = instance.sold_item
-    sold_item.returned_quantity += diff
-    sold_item.save()
-    order_item = instance.order_item
-    order_item.quantity -= diff
-    order_item.save()
-    if instance.sold_item.counter:
-        item = CounterItem.objects.get(id=sold_item.transfer_id)
-        CounterItem.objects.increase_stock(item, diff)
-    if instance.sold_item.kitchen:
-        item = MenuItem.objects.get(id=sold_item.transfer_id)
-        MenuItem.objects.increase_stock(item, diff)
+    purchase_item = instance.purchase_item
+    purchase_item.returned_quantity += diff
+    purchase_item.save()
+    stock = instance.purchase_item.stock
+    Stock.objects.decrease_stock(stock, diff)
 
 
 class UpdateItemSerializer(serializers.ModelSerializer):
@@ -143,14 +135,13 @@ class UpdateItemSerializer(serializers.ModelSerializer):
         Update returned quantity value
         case 1: Increase quantity of returned item =>
         ---------------------------------------------
-              increase sold item returned quantity value
+              increase purchase item returned quantity value
               reduce order quantity
-              increase stock quantity value
+              reduce stock quantity value
         case 2: reduce quantity of returned item
         ---------------------------------------------
-              reduce sold item returened quantity
-              increase orderred item quantity
-              reduce stock of returned quantity
+              reduce purchased item returned quantity
+              increase stock of returned quantity
         :param instance:
         :param validated_data:
         :return:

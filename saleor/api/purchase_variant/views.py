@@ -108,6 +108,9 @@ class PurchaseItemListAPIView(generics.ListAPIView):
 
     def get_queryset(self, *args, **kwargs):
         queryset_list = Item.objects.filter(quantity__gt=F('returned_quantity'))
+        print queryset_list.first().quantity
+        print queryset_list.last().__dict__
+        print '*'*123
         try:
             if self.kwargs['pk']:
                 pk = self.kwargs['pk']
@@ -116,6 +119,7 @@ class PurchaseItemListAPIView(generics.ListAPIView):
                 queryset_list = queryset_list.filter(purchase__pk=pk).filter(created__icontains=self.request.GET.get('date'))
 
         except Exception as e:
+            print(e)
             pass
         page_size = 'page_size'
         if self.request.GET.get(page_size):

@@ -17,8 +17,8 @@ class FilterBlock extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      title: 'Returned Sale list',
-      label: 'Returned Sale Report',
+      title: 'Returned Purchase List',
+      label: 'Returned Purchase Report',
       exportData: [],
       printCssPaths: []
     };
@@ -62,7 +62,7 @@ class FilterBlock extends Component {
             <li>
               <a className="text-white btn btn-primary btn-sm btn-raised legitRipple" href="/return/purchase/add/">
               <i className="icon-add position-left"></i>
-              Return
+              Return Purchase
               </a>
             </li>
         </ul>

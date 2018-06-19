@@ -1,11 +1,11 @@
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
 import FilterSearch from './FilterSearch';
 import FilterDate from './FilterDate';
 import PrintThis from '../../../common/components/PrintThis';
 import CsvExport from '../../../common/components/CsvExport';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
+import PropTypes from 'prop-types';
 
 class FilterBlock extends Component {
   /*
@@ -17,8 +17,8 @@ class FilterBlock extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      title: 'Returned Sale list',
-      label: 'Returned Sale Report',
+      title: 'Returned Purchase. Date:' + this.props.items.date + ' INVOICE NUMBER:' + this.props.items.invoice_number,
+      label: 'Transfer Report',
       exportData: [],
       printCssPaths: []
     };
@@ -45,11 +45,9 @@ class FilterBlock extends Component {
       delete obj['delete_url'];
       delete obj['closing_items_url'];
       delete obj['counter_transfer_items'];
-      delete obj['closing_items_view_url'];
-      delete obj['view_url'];
       delete obj['text'];
-      obj['counter'] = obj.counter.name;
-      obj['closed'] = obj.all_item_closed;
+      delete obj['counter'];
+      delete obj['closed'];
       delete obj['all_item_closed'];
       items.push(obj);
     });
@@ -60,9 +58,9 @@ class FilterBlock extends Component {
       <div className="no-print breadcrumb-line breadcrumb-line-component content-group-lg">
         <ul className="breadcrumb">
             <li>
-              <a className="text-white btn btn-primary btn-sm btn-raised legitRipple" href="/return/sale/add/">
+              <a className="text-white btn btn-primary btn-sm btn-raised legitRipple" href="/return/purchase/add/">
               <i className="icon-add position-left"></i>
-              Return Sales
+              Return Purchase
               </a>
             </li>
         </ul>
@@ -71,12 +69,12 @@ class FilterBlock extends Component {
             <li>
               <FilterSearch />
             </li>
-            <li><a href="javascript:;" className="text-bold"> Date:</a></li>
-            <li>
+            <li><a href="javascript:;" className="hidden text-bold"> Date:</a></li>
+            <li className="hidden">
               <FilterDate />
             </li>
             <li>
-              <PrintThis printCssPaths={this.state.printCssPaths} title={this.state.title} />
+              <PrintThis printCssPaths={this.state.printCssPaths} title={this.state.title}/>
             </li>
             <li>
               <CsvExport getData={this.getData} title={this.state.title} label={this.state.label} />
@@ -86,6 +84,7 @@ class FilterBlock extends Component {
     );
   }
 }
+
 FilterBlock.propTypes = {
   items: PropTypes.array.isRequired
 };
