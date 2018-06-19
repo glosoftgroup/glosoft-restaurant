@@ -9,14 +9,14 @@
 
  {% block breadcrumbs %}
      <li ><a href="/return/sale/">Returns Management</a></li>
-     <li class=""><a href="/return/sale/"> Return Sales</a></li>
+     <li class=""><a href="/return/purchase/"> Return Purchase</a></li>
      <li class="active"><a >Returned Items</a></li>
  {% endblock %}
 
 
  {% block menu_return_sale_class %}active{% endblock %}
  {% block custom_css %}
- {% render_bundle 'return_sale_item_view' 'css' %}
+ {% render_bundle 'return_purchase_item_view' 'css' %}
 <style>
           .theme_xbox .pace_activity, .theme_xbox .pace_activity::after, .theme_xbox .pace_activity::before, .theme_xbox_sm .pace_activity, .theme_xbox_sm .pace_activity::after, .theme_xbox_sm .pace_activity::before, .theme_xbox_xs .pace_activity, .theme_xbox_xs .pace_activity::after, .theme_xbox_xs .pace_activity::before {
         border-radius: 50%;
@@ -68,5 +68,5 @@
 <!--<script src="https://../popper.js/1.12.3/umd/popper.min.js"></script>-->
 <!--<script src="https://../bootstrap/4.0.0-beta.2/js/bootstrap.min.js"></script>-->
 {% render_bundle 'vendor' 'js' %}
-{% render_bundle 'return_sale_item_view' 'js' %}
+{% render_bundle 'return_purchase_item_view' 'js' %}
 {% endblock %}

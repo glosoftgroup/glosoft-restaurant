@@ -60,7 +60,7 @@ class FilterBlock extends Component {
             <li>
               <a className="text-white btn btn-primary btn-sm btn-raised legitRipple" href="/return/sale/add/">
               <i className="icon-add position-left"></i>
-              Return
+              Return Sales
               </a>
             </li>
         </ul>

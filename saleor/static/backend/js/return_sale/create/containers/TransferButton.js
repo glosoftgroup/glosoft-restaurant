@@ -62,6 +62,12 @@ export class TransferButton extends Component {
     })
     .catch((error) => {
       console.log(error);
+      console.error(error);
+      $.jGrowl('Stock Transfer items might have been deleted', {
+        header: 'Server Error!',
+        theme: 'bg-danger'
+      });
+      return;
     });
   }
 
