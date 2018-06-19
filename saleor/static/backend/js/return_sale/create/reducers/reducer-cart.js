@@ -1,4 +1,4 @@
-import { ADD_ITEM, DELETE_ITEM, UPDATE_ITEM } from '../actions/action-cart';
+import { CLEAR_CART, ADD_ITEM, DELETE_ITEM, UPDATE_ITEM } from '../actions/action-cart';
 
 const initialState = [];
 
@@ -21,6 +21,8 @@ export default (state = initialState, action) => {
       } else {
         return state;
       }
+    case CLEAR_CART:
+      return initialState;
     case DELETE_ITEM:
       return state.filter(item => item.id !== action.itemId);
     case UPDATE_ITEM:
@@ -32,12 +34,3 @@ export default (state = initialState, action) => {
       return state;
   }
 };
-
-// const incrementQty = (state, id) => {
-//   return state.map(item => {
-//     if (item.id === id) {
-//       item.qty += 1;
-//       return item;
-//     }
-//   });
-// };

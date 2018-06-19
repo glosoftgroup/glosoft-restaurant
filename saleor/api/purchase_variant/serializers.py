@@ -28,18 +28,47 @@ error_logger = logging.getLogger('error_logger')
 
 
 class ItemSerializer(serializers.ModelSerializer):
+    quantity = serializers.SerializerMethodField()
+    max_quantity = serializers.SerializerMethodField()
+    stock_quantity = serializers.SerializerMethodField()
+    stock_id = serializers.SerializerMethodField()
+
     class Meta:
         model = Item
         fields = (
+                'id',
                 'order',
                 'sku',
                 'quantity',
+                'max_quantity',
+                'stock_quantity',
+                'stock_id',
                 'unit_cost',
                 'total_cost',
                 'unit_purchase',
                 'total_purchase',
                 'product_name',
                  )
+
+    def get_quantity(self, obj):
+        quantity = obj.returnable_quantity() if obj.returnable_quantity() < obj.get_quantity() else obj.get_quantity()
+        return quantity
+
+    def get_stock_id(self, obj):
+        try:
+            return obj.stock.id
+        except:
+            return 0
+
+    def get_stock_quantity(self, obj):
+        try:
+            return obj.stock.quantity
+        except:
+            return 0
+
+    def get_max_quantity(self, obj):
+        quantity = obj.quantity if obj.quantity < obj.get_quantity() else obj.get_quantity()
+        return quantity
 
 
 class HistorySerializer(serializers.ModelSerializer):
@@ -60,6 +89,12 @@ class HistorySerializer(serializers.ModelSerializer):
 
 
 class TableCreateSerializer(serializers.ModelSerializer):
+    """
+    Create stock purchase:
+    item: JSON: purchased stock items
+    history: JSON: Payment history for purchase instance
+           : include payment options, transaction number & amount values
+    """
     item = JSONField()
     history = JSONField()
 
@@ -150,46 +185,38 @@ class TableCreateSerializer(serializers.ModelSerializer):
                 stock.low_stock_threshold = item['low_stock_threshold']
 
             stock.save()
+            return stock
 
         for item in items:
             new_created = False
-            # create purchased items
-            single_item = Item()
-            single_item.purchase = instance
-            single_item.total_cost = item['total_cost']
-            single_item.unit_cost = item['cost_price']
-            single_item.product_name = item['product_name']
-            single_item.sku = item['sku']
-            single_item.quantity = item['qty']
-            single_item.order = 1
-            single_item.save()
+
+            variant = ProductVariant.objects.get(sku=item.get('sku'))
 
             try:
                 stock = Stock.objects.filter(variant__sku=item['sku']).last()
                 if stock.cost_price.gross != item['cost_price']:
                     if not new_created:
                         # ('create a new  variant')
-                        variant = ProductVariant.objects.get(sku=item['sku'])
-                        create_variant_stock(item, variant)
+                        new_stock = create_variant_stock(item, variant)
                         new_created = True
                 if stock.price_override.gross != item['price_override']:
                     # each stock should have similar price
-                    variant = ProductVariant.objects.get(sku=item['sku'])
                     update_all_stock_price_override(variant, item['price_override'])
                     if not new_created:
                         # ('create a new  variant')
-                        create_variant_stock(item, variant)
+                        new_stock = create_variant_stock(item, variant)
                         new_created = True
                 else:
                     print('do not create new variant')
                 if not new_created:
                     Stock.objects.increase_stock(stock, item['qty'])
+                    new_stock = stock
             except Exception as e:
                 print(e)
                 # create new stock
                 if not new_created:
                     stock = Stock()
-                    stock.variant = ProductVariant.objects.get(sku=item['sku'])
+                    stock.variant = variant
                     stock.quantity = item['qty']
                     stock.cost_price = item['cost_price']
                     stock.price_override = item['price_override']
@@ -205,8 +232,24 @@ class TableCreateSerializer(serializers.ModelSerializer):
                         stock.low_stock_threshold = item['low_stock_threshold']
                     stock.save()
                     update_all_stock_price_override(stock.variant, item['price_override'])
+                    new_stock = stock
 
                 error_logger.error(e)
+            # create purchased items
+            single_item = Item()
+            single_item.stock = new_stock
+            single_item.purchase = instance
+            single_item.total_cost = item['total_cost']
+            single_item.unit_cost = item['cost_price']
+            single_item.wholesale_price = item.get('wholesale_price')
+            single_item.minimum_price = item.get('minimum_price')
+            single_item.low_stock_threshold = item.get('low_stock_threshold')
+            single_item.price_override = item.get('price_override')
+            single_item.product_name = item['product_name']
+            single_item.sku = item['sku']
+            single_item.quantity = item['qty']
+            single_item.order = 1
+            single_item.save()
         return instance
 
 

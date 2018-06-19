@@ -4,12 +4,14 @@ from .views import (
     PurchaseCreateAPIView,
     PurchaseListAPIView,
     PurchaseSupplierListAPIView,
-    PurchaseHistoryListAPIView
+    PurchaseHistoryListAPIView,
+    PurchaseItemListAPIView
     )
 
 
 urlpatterns = [
     url(r'^$', PurchaseListAPIView.as_view(), name='list-variant-purchase'),
+    url(r'^item/(?P<pk>[0-9]+)/$', PurchaseItemListAPIView.as_view(), name='list-item-purchase'),
     url(r'^supplier/$', PurchaseSupplierListAPIView.as_view(), name='list-supplier-purchase'),
     url(r'^list/(?P<pk>[0-9]+)/$', PurchaseListAPIView.as_view(), name='api-list-purchase'),
     url(r'^history/(?P<pk>[0-9]+)/$', PurchaseHistoryListAPIView.as_view(), name='api-list-history'),
