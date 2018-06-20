@@ -39,10 +39,14 @@ class ItemsSerializer(serializers.ModelSerializer):
         fields = item_fields + ('max_quantity', 'returned_quantity', 'sold_quantity')
 
     def get_max_quantity(self, obj):
-        return obj.purchase_item.returnable_quantity() \
-            if obj.purchase_item.returnable_quantity() < \
-               obj.purchase_item.get_quantity() \
-            else obj.purchase_item.get_quantity()
+        # return obj.purchase_item.returnable_quantity() \
+        #     if obj.purchase_item.returnable_quantity() < \
+        #        obj.purchase_item.get_quantity() \
+        #     else obj.purchase_item.get_quantity()
+        try:
+            return obj.purchase_item.stock.quantity
+        except:
+            return 0
 
     def get_returned_quantity(self, obj):
         return obj.purchase_item.returned_quantity
@@ -119,7 +123,20 @@ def update_return(instance, quantity):
     purchase_item = instance.purchase_item
     purchase_item.returned_quantity += diff
     purchase_item.save()
-    stock = instance.purchase_item.stock
+    try:
+        stock = instance.purchase_item.stock
+    except Exception as e:
+        stock = None
+    if not stock:
+        stock = Stock()
+        stock.variant = instance.purchase_item.variant
+        stock.price_override = instance.purchase_item.price_override
+        stock.quantity = 0
+        stock.low_stock_threshold = instance.purchase_item.low_stock_threshold
+        stock.wholesale_override = instance.purchase_item.wholesale_override
+        stock.minimum_price = instance.purchase_item.minimum_price
+        stock.cost_price = instance.purchase_item.unit_cost
+        stock.save()
     Stock.objects.decrease_stock(stock, diff)
 
 
@@ -181,16 +198,13 @@ def carry_items(instance, items):
         try:
             item.stock = Stock.objects.get(pk=item.stock.pk)
         except Exception as e:
-            print e
             pass
         query = Item.objects.filter(transfer=instance, stock=item.stock)
         if query.exists():
-            print 'updating....'
             single = query.first()
             single.qty = int(single.qty) + int(item.qty)
             single.transferred_qty = int(single.transferred_qty) + int(item.qty)
             single.expected_qty = single.qty
-            print single.transferred_qty
             single.price = Decimal(single.price) + Decimal(item.price)
             if single.qty > 0:
                 single.save()
@@ -239,7 +253,6 @@ def create_items(instance, items):
         stock_details = back_to_stock(item)
         query = Item.objects.filter(return_purchase=instance, purchase_item=stock_details.get('purchase_item'))
         if query.exists():
-            print 'updating....'
             single = query.first()
             single.quantity = int(single.quantity) + int(item['qty'])
             single.total_cost = Decimal(single.total_cost) + Decimal(item['total_cost'])

@@ -327,6 +327,9 @@ class PurchasedItem(models.Model):
     stock = models.ForeignKey(Stock,
                               related_name='purchased_item_stock',
                               on_delete=models.SET_NULL, null=True)
+    variant = models.ForeignKey(ProductVariant,
+                                related_name='purchased_item_variant',
+                                on_delete=models.SET_NULL, null=True)
     order = models.IntegerField(default=Decimal(1))
     sku = models.CharField(
         pgettext_lazy('PurchasedItem field', 'SKU'), max_length=32)
@@ -377,6 +380,11 @@ class PurchasedItem(models.Model):
 
     def __str__(self):
         return self.product_name
+
+    def save(self, *args, **kwargs):
+        if self.stock:
+            self.variant = self.stock.variant
+        super(PurchasedItem, self).save(*args, **kwargs)
 
     def returnable_quantity(self):
         return self.quantity - self.returned_quantity
