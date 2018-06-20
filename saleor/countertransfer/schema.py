@@ -2,8 +2,11 @@ import graphene
 
 from graphene_django.types import DjangoObjectType
 
+from saleor.graphql.utils import get_paginator
+
 from .models import CounterTransfer as Transfer
 from .models import CounterTransferItems as Items
+from saleor.counter.models import Counter
 
 
 class TransferType(DjangoObjectType):
@@ -11,48 +14,68 @@ class TransferType(DjangoObjectType):
         model = Transfer
 
 
-class ItemsType(DjangoObjectType):
+class ItemType(DjangoObjectType):
     class Meta:
         model = Items
 
 
+class CounterType(DjangoObjectType):
+    class Meta:
+        model = Counter
+
+
+# PaginatedType for that object type:
+class ItemsPaginatedType(graphene.ObjectType):
+    page = graphene.Int()
+    pages = graphene.Int()
+    total = graphene.Int()
+    has_next = graphene.Boolean()
+    has_prev = graphene.Boolean()
+    objects = graphene.List(ItemType)
+
+
+class TransferPaginatedType(graphene.ObjectType):
+    page = graphene.Int()
+    pages = graphene.Int()
+    total = graphene.Int()
+    has_next = graphene.Boolean()
+    has_prev = graphene.Boolean()
+    objects = graphene.List(TransferType)
+
+
+class CounterPaginatedType(graphene.ObjectType):
+    page = graphene.Int()
+    pages = graphene.Int()
+    total = graphene.Int()
+    has_next = graphene.Boolean()
+    has_prev = graphene.Boolean()
+    objects = graphene.List(CounterType)
+
+
 class Query(object):
-    counter_transfer = graphene.Field(TransferType,
-                              id=graphene.Int(),
-                              name=graphene.String())
-    all_counter_transfer = graphene.List(TransferType)
+    """ Counter """
+    all_counters = graphene.Field(CounterPaginatedType, page=graphene.Int())
 
-    transfer_items = graphene.Field(ItemsType,
-                                id=graphene.Int(),
-                                name=graphene.String())
-    all_transfer_items = graphene.List(ItemsType)
+    def resolve_all_counters(self, info, page, **kwargs):
+        page_size = 10
+        page = page
+        qs = Counter.objects.all()
+        return get_paginator(qs, page_size, page, CounterPaginatedType)
 
-    def resolve_all_counter_transfer(self, info, **kwargs):
-        return Transfer.objects.all()
+    """ Counter Transfer """
+    all_counter_transfer = graphene.Field(TransferPaginatedType, page=graphene.Int())
 
-    def resolve_all_transfer_items(self, info, **kwargs):
-        return Items.objects.all()
+    def resolve_all_counter_transfer(self, info, page, **kwargs):
+        page_size = 10
+        page = page
+        qs = Transfer.objects.all()
+        return get_paginator(qs, page_size, page, TransferPaginatedType)
 
-    def resolve_counter_transfer(self, info, **kwargs):
-        id = kwargs.get('id')
-        name = kwargs.get('name')
+    """ Transferred Items"""
+    all_items = graphene.Field(ItemsPaginatedType, page=graphene.Int())
 
-        if id is not None:
-            return Transfer.objects.get(pk=id)
-
-        if name is not None:
-            return Transfer.objects.get(name=name)
-
-        return None
-
-    def resolve_transfer_items(self, info, **kwargs):
-        id = kwargs.get('id')
-        name = kwargs.get('name')
-
-        if id is not None:
-            return Items.objects.get(pk=id)
-
-        if name is not None:
-            return Items.objects.get(name=name)
-
-        return None
+    def resolve_all_items(self, info, page, **kwargs):
+        page_size = 10
+        page = page
+        qs = Items.objects.all()
+        return get_paginator(qs, page_size, page, ItemsPaginatedType)

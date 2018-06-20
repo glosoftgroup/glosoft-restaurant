@@ -24,7 +24,7 @@ export class Quantity extends Component {
   componentDidMount = () => {
     this.setState({
       qty: this.props.instance.quantity,
-      maxQty: this.props.instance.sold_quantity
+      maxQty: this.props.instance.max_quantity + this.props.instance.quantity
     });
     try { jGrowl; } catch (error) {};
   }

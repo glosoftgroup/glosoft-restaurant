@@ -26,7 +26,7 @@ class ItemList extends Component {
             {this.props.items.results.map(obj => {
               return (
                 <tr key={obj.id}>
-                    <td onClick={() => { this.addCart(obj); } }>
+                    <td title="add to cart" onClick={() => { this.addCart(obj); } }>
                       <span className="cursor-pointer btn btn-primary btn-sm">
                         <i className="icon-cart-add"></i>
                       </span>

@@ -108,9 +108,6 @@ class PurchaseItemListAPIView(generics.ListAPIView):
 
     def get_queryset(self, *args, **kwargs):
         queryset_list = Item.objects.filter(quantity__gt=F('returned_quantity'))
-        print queryset_list.first().quantity
-        print queryset_list.last().__dict__
-        print '*'*123
         try:
             if self.kwargs['pk']:
                 pk = self.kwargs['pk']
