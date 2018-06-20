@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import FilterSearch from './FilterSearch';
 import FilterDate from './FilterDate';
+import FilterMonth from './FilterMonth';
 import FilterDateRange from './FilterDateRange';
 import FilterMonthRange from './FilterMonthRange';
 import Select2 from 'react-select2-wrapper';
@@ -28,12 +29,12 @@ class FilterBlock extends Component {
       filterChoices: [
         {'text': 'Date', 'id': '1'},
         {'text': 'Month', 'id': '2'},
-        {'text': 'Year', 'id': '3'},
-        {'text': 'Range', 'id': '4'}
+        {'text': 'Year', 'id': '3'}
       ],
       defaultFilter:1,
       filters: [
         {'text': 'Filter', 'id': '1'},
+        {'text': 'Range Filter', 'id': '3'},
         {'text': 'Compare', 'id': '2'}
       ],
       rangeStatus:false,
@@ -67,10 +68,8 @@ class FilterBlock extends Component {
     var name = e.target.name, value = e.target.value,
         newRangeStatus, newCompareStatus;
 
-    console.log("names: "+name+" value: "+value);
     newRangeStatus = value == 1 ? false : true;
     newCompareStatus = value == 1 ? false : true;
-    console.log("newRangeStatus: "+newRangeStatus);
 
     this.setState({
       [name]: value,
@@ -83,12 +82,7 @@ class FilterBlock extends Component {
     var name = e.target.name, value = e.target.value,
         newRangeStatus, newCompareStatus;
 
-    console.log("names: "+name+" value: "+value);
-    console.log("defaultFilter: "+this.state.defaultFilter);
-
-    newRangeStatus = (this.state.defaultFilter == 1 && value!=4) ? false : true;
-
-    console.log("newRangeStatus: "+newRangeStatus);
+    newRangeStatus = (this.state.defaultFilter == 1) ? false : true;
 
     this.setState({
       [name]: value,
@@ -97,10 +91,21 @@ class FilterBlock extends Component {
   }
 
   renderDateComponent(){
-    var button;
-  button = this.state.rangeStatus ? 
-      (this.state.defaultFilterChoice == 2 ? <FilterMonthRange mode={"year"} /> : <FilterDateRange />) 
-      : <FilterDate />;
+    var button,
+        periodChoice = this.state.defaultFilterChoice;
+        
+    button = this.state.rangeStatus ? 
+            (
+              periodChoice == 2 || periodChoice == 3 ? 
+              <FilterMonthRange mode={ periodChoice == 2 ? "month" : "year"} /> : 
+              <FilterDateRange />
+            ) 
+          : 
+            ( 
+              periodChoice == 2 || periodChoice == 3 ? 
+              <FilterMonth mode={ periodChoice == 2 ? "month" : "year"} /> : 
+              <FilterDate />        
+            );
 
     return button;
   }
