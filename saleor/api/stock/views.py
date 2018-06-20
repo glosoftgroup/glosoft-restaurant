@@ -8,6 +8,7 @@ from rest_framework import pagination
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.test import APIRequestFactory
+from rest_framework.views import APIView
 from .pagination import PostLimitOffsetPagination
 
 from saleor.product.models import Stock as Table
@@ -80,8 +81,6 @@ class UpdateAPIView(generics.RetrieveUpdateAPIView):
     """
     queryset = Table.objects.all()
     serializer_class = UpdateSerializer
-
-from rest_framework.views import APIView
 
 class SearchTransferredStockListAPIView(APIView):
     def get(self, request):
