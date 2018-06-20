@@ -9,6 +9,7 @@ import { formatDate, parseDate } from 'react-day-picker/moment';
 import Datetime from 'react-datetime';
 // import 'react-day-picker/lib/style.css';
 import { setDate, setDateRange } from '../actions/action-date';
+import { setMode } from '../actions/action-mode';
 import { fetchItems } from '../actions/action-items';
 
 class FilterMonthRange extends Component {
@@ -48,11 +49,17 @@ class FilterMonthRange extends Component {
   fetchItems = () => {
     var from = this.dateFormatter(this.state.from);
     var to = this.dateFormatter(this.state.to);
+
     var payload = {};
 
     if (this.state.from != undefined && this.state.to!=undefined) {
         payload = { date_from: from, date_to:to, mode:this.props.mode };
         this.props.setDateRange(payload);
+    }
+
+    if(this.props.mode){
+      payload = { ...payload, mode:this.props.mode };
+      this.props.setMode(payload);
     }
 
     if (this.props.search) {
@@ -63,15 +70,8 @@ class FilterMonthRange extends Component {
     this.props.fetchItems(payload);
 
   }
-  
-  focusTo() {
-    // Focus to `to` field. A timeout is required here because the overlays
-    // already set timeouts to work well with input fields
-    this.timeout = setTimeout(() => this.to.getInput().focus(), 0);
-  }
 
   handleFromChange = (from) => {
-    // Change the from date and focus the 
     this.setState({ from }, () => {
         this.fetchItems();
     });
@@ -91,19 +91,20 @@ class FilterMonthRange extends Component {
   
   handleChange = (date) => {
     var newDate = moment(date).format('YYYY-MM-DD');
-    console.log("value is "+newDate);
    this.setState({ month: date });
   }
 
   render() {
     const { from, to, month } = this.state;
+    const { mode } = this.props;
     const modifiers = { start: from, end: to };
+    let format = (mode == "month") ? "YYYY-MM" : "YYYY"
 
     return (
         <div className="form-grou search-form-group mr-15">
           <div className="input-group">
               <Datetime
-                  dateFormat="YYYY-MM"
+                  dateFormat={format}
                   timeFormat={false}
                   value={from}
                   onChange={this.handleFromChange}
@@ -115,7 +116,7 @@ class FilterMonthRange extends Component {
               <span className="input-group-addon"> to</span>
 
               <Datetime
-                  dateFormat="YYYY-MM"
+                  dateFormat={format}
                   timeFormat={false}
                   value={to}
                   onChange={this.handleToChange}
@@ -131,6 +132,7 @@ class FilterMonthRange extends Component {
 }
 
 FilterMonthRange.propTypes = {
+  setMode: PropTypes.func.isRequired,
   setDate: PropTypes.func.isRequired,
   setDateRange: PropTypes.func.isRequired,
   search: PropTypes.array.isRequired,
@@ -141,7 +143,8 @@ function mapDispatchToProps(dispatch) {
   return bindActionCreators({
     fetchItems: fetchItems,
     setDate: setDate,
-    setDateRange: setDateRange
+    setDateRange: setDateRange,
+    setMode: setMode
   }, dispatch);
 }
 

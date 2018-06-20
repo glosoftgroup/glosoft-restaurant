@@ -43,11 +43,11 @@ export class ListTableRow extends Component {
     var instance = { ...this.props.instance };
     return (
       <tr>
-        <td>{instance.created}</td>
-        <td>{instance.opening}</td>
-        <td>{instance.added}</td>
-        <td>{instance.expenses}</td>
-        <td>{instance.closing}</td>
+        <td className="td" onClick={ () => this.goTo(instance.view_url)}>{instance.created}</td>
+        <td className="td" onClick={ () => this.goTo(instance.view_url)}>{instance.opening}</td>
+        <td className="td" onClick={ () => this.goTo(instance.view_url)}>{instance.added}</td>
+        <td className="td" onClick={ () => this.goTo(instance.view_url)}>{instance.expenses}</td>
+        <td className="td" onClick={ () => this.goTo(instance.view_url)}>{instance.closing}</td>
         <td className=" text-center no-print">
           <ul className="icons-list">
             <li className="dropdown">
