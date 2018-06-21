@@ -27,7 +27,9 @@ urlpatterns = [
     url(r'^pty/cash/add/$', petty_cash.add, name='petty_cash_add'),
     url(r'^pty/cash/balance/$', petty_cash.balance, name='petty_cash_balance'),
     url(r'^pty/cash/exp/$', petty_cash.expenditure, name='pettycash_expenditure'),
-    url(r'^api/list/$', ListAPIView.as_view(), name='api-list'),
     url(r'^api/list/cash/$', PettyCashListAPIView.as_view(), name='petty_cash-api-list'),
+    url(r'^api/list/cash/compare/$', PettyCashCompareAPIView.as_view(), name='petty_cash-api-list-compare'),
     url(r'^petty/cash/$', TemplateView.as_view(template_name="petty_cash/list.html"), name="petty_cash_list"),
+    url(r'^petty/cash/detail/(?P<pk>[0-9]+)/$', PettyCashDetailView.as_view(), name="petty_cash_detail"),
+    url(r'^petty/cash/detail/pdf/(?P<pk>[0-9]+)/$', expenses_pdf.pettycash_detail_pdf, name='petty_cash_detail_pdf'),
 ]

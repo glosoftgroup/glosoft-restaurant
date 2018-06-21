@@ -1,132 +1,34 @@
-import datetime
 import logging
-from datetime import timedelta
-from django.utils.dateformat import DateFormat
 from rest_framework import generics
-from django.db.models import Q, Sum
 from django.contrib.auth import get_user_model
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from django.db.models import Sum
 from rest_framework import pagination
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from .pagination import PostLimitOffsetPagination
 from saleor.accounts.models import PettyCash, Expenses
-from django.core.exceptions import ObjectDoesNotExist
+from rest_framework.request import Request
+from rest_framework.test import APIRequestFactory
 from .serializers import (
     PettyCashListSerializer,
-    NewPettyCashListSerializer,
+    PettyCashDetailSerializer,
+    PettyCashXSerializer
 )
+from django.views.generic import TemplateView, DetailView
 
 User = get_user_model()
 debug_logger = logging.getLogger('debug_logger')
 info_logger = logging.getLogger('info_logger')
 error_logger = logging.getLogger('error_logger')
-
-
-class ListAPIView(APIView):
-    def get(self, request):
-
-        query = self.request.GET.get('q', '')
-
-        date = request.GET.get('date')
-        date_from = request.GET.get('from')
-        date_to = request.GET.get('to')
-
-        try:
-            if date:
-                date = date
-            else:
-                date = DateFormat(datetime.datetime.today()).format('Y-m-d')
-
-            pettyCash = dateFactorial(date)
-            lastEntry = pettyCash.latest('id')
-
-            pd = DateFormat(lastEntry.created).format('Y-m-d')
-            td = DateFormat(datetime.datetime.today()).format('Y-m-d')
-            if td == pd:
-                dateToday = 1
-                expenses = Expenses.objects.filter(added_on__icontains=pd).aggregate(Sum('amount'))['amount__sum']
-                added = lastEntry.added
-                opening = lastEntry.opening
-            else:
-                dateToday = 0
-                try:
-                    expenses = Expenses.objects.filter(added_on__icontains=date).aggregate(Sum('amount'))['amount__sum']
-                    if expenses:
-                        added = lastEntry.added
-                        opening = lastEntry.opening
-                    else:
-                        expenses = 0
-                        added = 0
-                        opening = lastEntry.closing
-                except:
-                    expenses = 0
-
-            date = DateFormat(datetime.datetime.strptime(date, '%Y-%m-%d')).format('jS F Y')
-            amount = lastEntry.closing
-            opening = opening
-            added = added
-            closing = lastEntry.closing
-
-        except BaseException, e:
-            info_logger.info('Error in getting petty cash amount: ' + str(e))
-            dateToday = 0
-            date = datetime.date.today()
-            amount = 0
-            opening = 0
-            added = 0
-            closing = 0
-            expenses = 0
-
-        data = []
-        json_data = {
-            # 'pdate': date,
-            # 'opening_amount': opening,
-            # 'added_amount': added,
-            # 'closing_amount': closing,
-            # 'amount': amount,
-            # 'dateToday': dateToday,
-            # 'expenses': expenses,
-
-            'pdate': date,
-            'opening_cash': opening,
-            'cash_added': added,
-            'closing_amount': closing,
-            'balance': amount,
-            'expenses_incurred': expenses,
-            'expenses': {}
-        }
-
-        data.append(json_data)
-
-        serializer = PettyCashListSerializer(data, many=True)
-        return Response(serializer.data)
-
-
-def dateFactorial(date=None, date_from=None, date_to=None):
-    date = str(date)
-    enteredDate = DateFormat(datetime.datetime.strptime(date, '%Y-%m-%d')).format('Y-m-d')
-    firstDateEntry = DateFormat(PettyCash.objects.all().first().created).format('Y-m-d')
-    if enteredDate < firstDateEntry:
-        raise BaseException
-    elif enteredDate == firstDateEntry:
-        return PettyCash.objects.filter(created__icontains=firstDateEntry)
-    elif date_from and date_to:
-        return PettyCash.objects.filter(created__range=[date_from, date_to])
-    else:
-        try:
-            query = PettyCash.objects.filter(created__icontains=enteredDate)
-            if query.exists():
-                return query
-            else:
-                raise ObjectDoesNotExist
-        except ObjectDoesNotExist:
-            return dateFactorial(
-                DateFormat(datetime.datetime.strptime(date, '%Y-%m-%d') - timedelta(days=1)).format('Y-m-d'))
+factory = APIRequestFactory()
+request = factory.get('/')
+serializer_context = {
+    'request': Request(request),
+}
 
 
 class PettyCashListAPIView(generics.ListAPIView):
-    serializer_class = NewPettyCashListSerializer
+    serializer_class = PettyCashListSerializer
     pagination_class = PostLimitOffsetPagination
 
     def get_queryset(self, *args, **kwargs):
@@ -146,12 +48,17 @@ class PettyCashListAPIView(generics.ListAPIView):
         if date:
             if mode:
                 year = date.split("-")[0]
-                month = date.split("-")[1]
-                if mode and mode == "month":
+                if len(date.split('-')) >= 2:
+                    month = date.split("-")[1]
+                else:
+                    month = "01"
+                if mode == "month":
                     queryset_list = queryset_list.filter(created__year=year,
                                                          created__month=month)
-                elif mode and mode == "year":
+                elif mode == "year":
                     queryset_list = queryset_list.filter(created__year=year)
+                else:
+                    queryset_list = queryset_list.filter(created__icontains=date)
             else:
                 queryset_list = queryset_list.filter(created__icontains=date)
 
@@ -164,17 +71,81 @@ class PettyCashListAPIView(generics.ListAPIView):
                     month_from = "01"
 
                 year_to = date_to.split("-")[0]
-                month_to = date_to.split("-")[1]
-                if mode and mode == "month":
+                if len(date_to.split('-')) >= 2:
+                    month_to = date_to.split("-")[1]
+                else:
+                    month_to = "01"
+
+                if mode == "month":
                     queryset_list = queryset_list.filter(created__year__gte=year_from,
                                                          created__month__gte=month_from,
                                                          created__year__lte=year_to,
                                                          created__month__lte=month_to)
-                elif mode and mode == "year":
+                elif mode == "year":
                     queryset_list = queryset_list.filter(created__year__gte=year_from,
                                                          created__year__lte=year_to)
+                else:
+                    queryset_list = queryset_list.filter(created__range=[date_from, date_to])
             else:
                 queryset_list = queryset_list.filter(created__range=[date_from, date_to])
 
-
         return queryset_list
+
+
+class PettyCashCompareAPIViewz(APIView):
+    queryset = PettyCash.objects.all()
+    serializer_class = PettyCashDetailSerializer(instance=queryset, context=serializer_context)
+
+    def get_queryset(self, request, pk=None):
+        serializer_context = {
+            'request': Request(request),
+        }
+        # Note the use of `get_queryset()` instead of `self.queryset`
+        query = self.request.GET.get('q')
+        queryset = self.get_queryset().filter(pk=pk)
+        serializer = PettyCashDetailSerializer(queryset, context=serializer_context, many=True)
+        return Response(serializer.data)
+
+
+class PettyCashDetailView(DetailView):
+    model = PettyCash
+    context_object_name = 'pettycash'
+    template_name = "petty_cash/detail.html"
+
+    def get_context_data(self, **kwargs):
+        context = super(PettyCashDetailView, self).get_context_data(**kwargs)
+
+        context['pcash'] = PettyCash.objects.filter(pk=self.kwargs.get('pk'))
+
+        date = PettyCash.objects.get(pk=self.kwargs.get('pk')).created.date().strftime('%Y-%m-%d')
+
+        expenses = Expenses.objects.filter(added_on__icontains=date)
+        if expenses:
+            context['expenses'] = expenses
+            context['total_expenses'] = expenses.aggregate(Sum('amount'))['amount__sum']
+        else:
+            context['expenses'] = []
+            context['total_expenses'] = 0
+
+        return context
+
+
+class PettyCashCompareAPIView(APIView):
+    def get(self, request):
+        query = self.request.GET.get('q', '')
+
+        data = []
+        json_data = {
+            'pdate': "2018-10-12",
+            'opening_cash': "wer",
+            'cash_added': "qwe",
+            'closing_amount': "oosd",
+            'balance': "werwe",
+            'expenses_incurred': "werf",
+            'expenses': {}
+        }
+
+        data.append(json_data)
+
+        serializer = PettyCashXSerializer(data, many=True)
+        return Response(serializer.data)
