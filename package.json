@@ -17,6 +17,12 @@
     "yarn": "0.20.x"
   },
   "dependencies": {
+    "apollo-cache-inmemory": "^1.2.5",
+    "apollo-client": "^2.3.5",
+    "apollo-link": "^1.2.2",
+    "apollo-link-error": "^1.1.0",
+    "apollo-link-http": "^1.5.4",
+    "apollo-link-state": "^0.4.1",
     "assets": "^1.0",
     "axios": "^0.18.0",
     "bootstrap": "4.0.0",
@@ -24,6 +30,7 @@
     "dropzone": "^4.2.0",
     "favicons-webpack-plugin": "^0.0.7",
     "glamor": "^2.20.40",
+    "graphql": "^0.13.2",
     "jgrowl": "^1.4.6",
     "jquery": "^3.3.1",
     "jquery-match-height": "^0.7.0",
