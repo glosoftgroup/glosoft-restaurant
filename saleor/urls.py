@@ -6,6 +6,7 @@ from django.contrib.sitemaps.views import sitemap
 from django.contrib.staticfiles.views import serve
 from django.views.i18n import javascript_catalog
 from graphene_django.views import GraphQLView
+from django.views.decorators.csrf import csrf_exempt
 
 from .accounts.urls import urlpatterns as accounts_urls
 from .api.booking.urls import urlpatterns as api_booking_urls
@@ -93,7 +94,7 @@ urlpatterns = [
     url(r'^cart/', include(cart_urls, namespace='cart')),
     url(r'^checkout/', include(checkout_urls, namespace='checkout')),
     url(r'^dashboard/', include(dashboard_urls, namespace='dashboard')),
-    url(r'^graphql', GraphQLView.as_view(graphiql=settings.DEBUG)),
+    url(r'^graphql', csrf_exempt(GraphQLView.as_view(graphiql=settings.DEBUG))),
     url(r'^jsi18n/$', javascript_catalog, name='javascript-catalog'),
     url(r'^notifications/', include(notifications.urls, namespace='notifications')),
     url(r'^order/', include(order_urls, namespace='order')),
