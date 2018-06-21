@@ -74,23 +74,30 @@ export class PaginateBlock extends Component {
     if (this.props.search) {
       params = { ...params, 'q': this.props.search.q };
     }
-    if (this.props.date.date) {
-      params = { ...params, 'date': this.props.date.date };
+    if(this.props.date){
+      if (this.props.date.date) {
+        params = { ...params, 'date': this.props.date.date };
+      }
+
+      if (this.props.date.date_from && this.props.date.date_to) {
+        var date_from = this.props.date.date_from,
+            date_to = this.props.date.date_to;
+        params = { ...params, 'date_from': date_from, 'date_to': date_to };
+      }
+      
     }
+    // if (this.props.date.date) {
+    //   params = { ...params, 'date': this.props.date.date };
+    // }
     if (this.props.mode) {
       params = { ...params, 'mode': this.props.mode.mode };
     }
 
-    if (this.props.date.date_from && this.props.date.date_to) {
-      var date_from = this.props.date.date_from,
-          date_to = this.props.date.date_to;
-      params = { ...params, 'date_from': date_from, 'date_to': date_to };
-    }
-
-    console.log(this.props.date);
-    console.log("this.props.date.date "+ this.props.date.date);
-    console.log("this.props.date.date_from "+ this.props.date.date_from);
-    console.log("this.props.date.date_to "+ this.props.date.date_to);
+    // if (this.props.date.date_from && this.props.date.date_to) {
+    //   var date_from = this.props.date.date_from,
+    //       date_to = this.props.date.date_to;
+    //   params = { ...params, 'date_from': date_from, 'date_to': date_to };
+    // }
 
     this.props.fetchItems(params);
   }
