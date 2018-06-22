@@ -94,7 +94,10 @@
 <div class="col-md-12">
     <div class="row">
         <div class="col-md-12" style="margin-bottom:10px;">
-        <a class="btn btn-primary pull-left" {% if sale.pk %} href="{% url 'dashboard:purchase-variant-single' pk=sale.pk %}" {% else %}href="{% url 'dashboard:purchase-variant' %}"{% endif %}><i class="icon-arrow-left13 position-left"></i> Back To Purchase List</a>
+        <a class="btn btn-primary pull-left back-btn" href="javascript:;" >
+            <i class="icon-arrow-left13 position-left"></i>
+            Back To Purchase List
+        </a>
         <a class="btn btn-primary pull-right printPdf" id="printBtn" data-url="{% url 'dashboard:pdf-sale-detail' pk=sale.pk%}" href="javascript:;"><i class="fa fa-file-pdf-o position-left"></i> Print</a>
         </div>
     </div>
@@ -133,7 +136,7 @@
                         <tr class="bg-primary">
                           <th>Transaction Date</th>
                           <th>Item Name</th>
-                          <th>Unit Cost</th>
+                          <th>Cost Price</th>
                           <th>Quantity</th>
                           <th>Total Purchase ({{'DEFAULT_CURRENCY'|site_settings}})</th>
                         </tr>
@@ -391,11 +394,16 @@
     <script type="text/javascript" src="{% static 'backend/js/purchase/vue/invoice.js' %}"></script>
     {% endcompress %}
 <script>
+    $('.back-btn').on('click', function() {
+        window.location.href  = document.referrer;
+    });
     $('.printPdf').on('click', function(){
+
        var url = $(this).data('url');
         $.get(url, function(data){
              openPdf(data);
         });
     });
+
 </script>
 {% endblock %}

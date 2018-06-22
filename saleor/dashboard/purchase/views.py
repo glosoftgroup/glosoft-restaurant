@@ -90,6 +90,20 @@ def report_list(request):
 
 @staff_member_required
 @permission_decorator('reports.view_sale_reports')
+def report_items(request):
+    global table_name
+
+    data = {
+        "table_name": table_name,
+        "name": 'Purchase',
+        "pk": 33,
+        "suppliers": Supplier.objects.all()
+    }
+    return TemplateResponse(request, 'dashboard/purchase/reports/list_items.html', data)
+
+
+@staff_member_required
+@permission_decorator('reports.view_sale_reports')
 def report_single(request, pk=None):
     global table_name
     if not pk:

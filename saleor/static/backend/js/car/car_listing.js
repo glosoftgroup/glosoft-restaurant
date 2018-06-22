@@ -31,6 +31,7 @@ var parent = new Vue({
        page_size:10,
        search:'',
        status:'all',
+       supplier: '',
        exportType:'none',
        date: 'Select date'
     },
@@ -47,8 +48,13 @@ var parent = new Vue({
             if(this.date == 'Select date'){
                 date = '';
             }else{ date = this.date; }
-            console.log(this.date);
-            this.$http.get($('.pageUrls').data('bookinglisturl')+'?page_size='+self.page_size+'&q='+self.search+'&status='+this.status+'&date='+date)
+            var url = $('.pageUrls').data('bookinglisturl');
+            url += '?page_size='+self.page_size+'&q='+self.search+'&status=';
+            url += this.status+'&date='+date;
+            if (this.supplier && this.supplier !== 'all') {
+                url += '&supplier='+this.supplier;
+            }
+            this.$http.get(url)
                 .then(function(data){
                     data = JSON.parse(data.bodyText);
                     this.items = data.results;
@@ -59,10 +65,17 @@ var parent = new Vue({
         },
         listItems:function(num){
         /* make api request when pagination pages are clicked */
+            var self = this;
             if(this.date == 'Select date'){
                 date = '';
             }else{ date = this.date; }
-            this.$http.get($('.pageUrls').data('bookinglisturl')+'?page='+num+'&page_size='+this.page_size+'&status='+this.status+'&date='+date)
+            var url = $('.pageUrls').data('bookinglisturl');
+            url += '?page_size='+self.page_size+'&q='+self.search+'&status=';
+            url += this.status+'&date='+date+'&page='+num;
+            if (this.supplier && this.supplier !== 'all') {
+                url += '&supplier='+this.supplier;
+            }
+            this.$http.get(url)
                 .then(function(data){
                     data = JSON.parse(data.bodyText);
                     this.items = data.results;

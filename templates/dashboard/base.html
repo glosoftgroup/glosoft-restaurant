@@ -232,6 +232,12 @@
                     Add Stock</a>
                     </li>
                     {% endif %}
+                    {% if perms.product.view_stock %}
+                    <li class="{% block menu_purchase_list_item %}{% endblock %}">
+                    <a href="{% url 'dashboard:purchase-variant-items' %}"><i class=' icon-coin-dollar'></i>
+                    Purchases</a>
+                    </li>
+                    {% endif %}
                       {% if perms.product.view_category %}
                     <!-- categories -->
                      <li class="{% block menu_categories_class %}{% endblock %}">

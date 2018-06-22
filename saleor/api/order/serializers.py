@@ -56,7 +56,7 @@ class ListItemSerializer(serializers.ModelSerializer):
 
     def get_kitchen(self, obj):
         try:
-            return {"id":obj.kitchen.id, "name":obj.kitchen.name}
+            return {"id": obj.kitchen.id, "name": obj.kitchen.name}
         except:
             return None
 

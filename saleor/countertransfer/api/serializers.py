@@ -82,7 +82,7 @@ def format_fields(fields_data, items_list):
 class ItemsStockSerializer(serializers.ModelSerializer):
     sku = serializers.SerializerMethodField()
     quantity = serializers.SerializerMethodField()
-    unit_cost = serializers.SerializerMethodField()
+    unit_cost = serializers.SerializerMethodField()  # price overrride (selling price)
     total_cost = serializers.SerializerMethodField()
     product_name = serializers.SerializerMethodField()
     counter = serializers.SerializerMethodField()

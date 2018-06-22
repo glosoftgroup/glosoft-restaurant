@@ -172,7 +172,7 @@ class TableCreateSerializer(serializers.ModelSerializer):
             stock.variant = variant
             stock.quantity = item['qty']
             stock.cost_price = item['cost_price']
-            stock.price_override = item['price_override']
+            stock.price_override = item.get('price_override', 0)
             try:
                 stock.minimum_price = item['minimum_price']
             except:
@@ -189,7 +189,8 @@ class TableCreateSerializer(serializers.ModelSerializer):
 
         for item in items:
             new_created = False
-
+            if not item.get('price_override'):
+                item['price_override'] = 0
             variant = ProductVariant.objects.get(sku=item.get('sku'))
 
             try:
@@ -219,7 +220,7 @@ class TableCreateSerializer(serializers.ModelSerializer):
                     stock.variant = variant
                     stock.quantity = item['qty']
                     stock.cost_price = item['cost_price']
-                    stock.price_override = item['price_override']
+                    stock.price_override = item.get('price_override', 0)
                     try:
                         stock.minimum_price = item['minimum_price']
                     except:
@@ -227,11 +228,11 @@ class TableCreateSerializer(serializers.ModelSerializer):
                     try:
                         stock.wholesale_override = item['wholesale_override']
                     except:
-                        stock.wholesale_override = item['price_override']
+                        stock.wholesale_override = item.get('price_override', 0)
                     if item['low_stock_threshold']:
                         stock.low_stock_threshold = item['low_stock_threshold']
                     stock.save()
-                    update_all_stock_price_override(stock.variant, item['price_override'])
+                    update_all_stock_price_override(stock.variant, item.get('price_override', 0))
                     new_stock = stock
 
                 error_logger.error(e)
@@ -244,7 +245,7 @@ class TableCreateSerializer(serializers.ModelSerializer):
             single_item.wholesale_price = item.get('wholesale_price')
             single_item.minimum_price = item.get('minimum_price')
             single_item.low_stock_threshold = item.get('low_stock_threshold')
-            single_item.price_override = item.get('price_override')
+            single_item.price_override = item.get('price_override', 0)
             single_item.product_name = item['product_name']
             single_item.sku = item['sku']
             single_item.quantity = item['qty']
