@@ -60,7 +60,6 @@
         <thead>
             <tr class="bg-primary">            
             <th>Name</th>
-            <th>Number</th>
             <th></th>
             </tr>
         </thead>
@@ -70,9 +69,6 @@
             <td>
               <input placeholder="name" class="form-control" id="name" required="" name="name" type="text" >
             </td>
-            <td> 
-              <input placeholder="Number" class="form-control" id="loyalty_points" name="number" value="0" type="number" >
-           </td>
 
             <td>
               <button class="btn btn-xs btn-primary legitRipple" id="submitExpenseBtn" data-token="{% csrf_token %}" data-url="{% url 'dashboard:table-add' %}" type="submit">Submit <i class="icon-arrow-right14 position-right"></i></button>
@@ -97,7 +93,6 @@
                 <thead>
                   <tr class="bg-primary">                  
                     <th>Name</th>
-                    <th>Number</th>
                     {% if perms.sale.delete_table %}
                     <th class="text-center">Options</th>
                     {% endif %}
@@ -109,10 +104,7 @@
                   <tr class='clickable-row' id="{{option.pk }}">
                     <!-- name -->
                     <td class="td" data-href="{% url 'dashboard:table-detail' pk=option.pk %}" data-mtitle="{{option.name}}" data-m="#pdetail">{{option.name}}</td>
-                    <!-- number -->
-                    <td class="td" data-href="{% url 'dashboard:table-detail' pk=option.pk %}" data-mtitle="{{option.name}}" data-m="#pdetail">{{option.number}}</td>
 
-                    
                     {% if perms.sale.delete_paymentoption %}
                     <!-- actions -->
                     <td class="text-center">

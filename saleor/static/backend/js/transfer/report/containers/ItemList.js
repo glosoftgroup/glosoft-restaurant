@@ -26,7 +26,6 @@ class ItemList extends Component {
               <th data-tip="Counter name">Counter</th>
               <th data-tip="Total quantity">Quantity</th>
               <th data-tip="Transferred Items total cost price">Worth</th>
-              <th className="text-center">Actions</th>
             </tr>
           </thead>
           <tbody>

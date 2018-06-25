@@ -50,11 +50,13 @@ from .wing.urls import urlpatterns as wing_urls
 from .propertytype.urls import urlpatterns as propertytype_urls
 from .section.urls import urlpatterns as section_urls
 from .menucategory.urls import urlpatterns as menu_categories_urls
+from .table.urls import urlpatterns as menu_table_urls
 from .menu.urls import urlpatterns as menu_urls
 from .kitchen.urls import urlpatterns as kitchen_urls
 from .counter.urls import urlpatterns as counter_urls
 from .kitchentransfer.urls import urlpatterns as kitchentransfer_urls
 from .countertransfer.urls import urlpatterns as countertransfer_urls
+from .counter_transfer_report.urls import urlpatterns as counter_transfer_report_urls
 from .menutransfer.urls import urlpatterns as menutransfer_urls
 from .return_sale.urls import urlpatterns as return_sale_urls
 from .return_purchase.urls import urlpatterns as return_purchase_urls
@@ -107,10 +109,12 @@ urlpatterns = [
     url(r'^wing/', include(wing_urls, namespace='wing')),
     url(r'^section/', include(section_urls, namespace='section')),
     url(r'^menucategory/', include(menu_categories_urls, namespace='menucategory')),
+    url(r'^table/', include(menu_table_urls, namespace='table')),
     url(r'^menu/', include(menu_urls, namespace='menu')),
     url(r'^kitchen/', include(kitchen_urls, namespace='kitchen')),
     url(r'^counter/', include(counter_urls, namespace='counter')),
     url(r'^counter/transfer/', include(countertransfer_urls, namespace='countertransfer')),
+    url(r'^counter/transfer/report/', include(counter_transfer_report_urls, namespace='counter_transfer_report')),
     url(r'^kitchen/transfer/', include(kitchentransfer_urls, namespace='kitchentransfer')),
     url(r'^menu/transfer/', include(menutransfer_urls, namespace='menutransfer')),
     url(r'^return/sale/', include(return_sale_urls, namespace='return_sale')),

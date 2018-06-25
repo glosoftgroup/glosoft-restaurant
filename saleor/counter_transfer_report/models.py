@@ -2,19 +2,19 @@ from __future__ import unicode_literals
 
 from decimal import Decimal
 from django.db import models
-from django.db.models import signals
-from django.dispatch import receiver
 from django.conf import settings
 from django.utils.translation import pgettext_lazy
 from django.utils.timezone import now
 from django.core.validators import MinValueValidator, RegexValidator
 from django.contrib.auth.models import (AbstractBaseUser, BaseUserManager, PermissionsMixin)
 from saleor.counter.models import Counter
-from saleor.product.models import Stock
-from saleor.counter_transfer_report.models import Transfer as Report
 
 
 class TransferManager(BaseUserManager):
+    def create_report(self, date, counter, user, **extra_fields):
+        report = self.model(date=date, counter=counter, user=user, **extra_fields)
+        report.save()
+
     def all_items_filter(self, start_date=None, end_date=None):
         query = self.all()
         if start_date and end_date is not None:
@@ -36,52 +36,41 @@ class TransferManager(BaseUserManager):
         return 0
 
 
-class CounterTransfer(models.Model):
+class Transfer(models.Model):
     counter = models.ForeignKey(Counter, on_delete=models.CASCADE, blank=True, null=True,
                                 verbose_name=pgettext_lazy("CounterTransfer field", 'counter'))
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, blank=True, null=True, related_name='counter_transfer_users',
+        settings.AUTH_USER_MODEL, blank=True, null=True, related_name='counter_transfer_report_users',
         verbose_name=pgettext_lazy('Sales field', 'user'))
     action = models.IntegerField(
         pgettext_lazy('Stock item field', 'action'),
         validators=[MinValueValidator(0)], default=Decimal(1))
     name = models.CharField(
-        pgettext_lazy('CounterTransfer field', 'name'), null=True, blank=True, max_length=128)
+        pgettext_lazy('Transfer field', 'name'), null=True, blank=True, max_length=128)
     description = models.TextField(
-        verbose_name=pgettext_lazy('CounterTransfer field', 'description'), blank=True, null=True)
+        verbose_name=pgettext_lazy('Transfer field', 'description'), blank=True, null=True)
     updated_at = models.DateTimeField(
-        pgettext_lazy('CounterTransfer field', 'updated at'), auto_now=True, null=True)
-    date = models.DateField(pgettext_lazy('CounterTransfer field', 'date'),
+        pgettext_lazy('Transfer field', 'updated at'), auto_now=True, null=True)
+    date = models.DateField(pgettext_lazy('Transfer field', 'date'),
                             default=now)
-    created = models.DateTimeField(pgettext_lazy('CounterTransfer field', 'created'),
+    created = models.DateTimeField(pgettext_lazy('Transfer field', 'created'),
                                    default=now, editable=False)
 
     objects = TransferManager()
 
     class Meta:
-        app_label = 'countertransfer'
-        verbose_name = pgettext_lazy('CounterTransfer model', 'CounterTransfer')
-        verbose_name_plural = pgettext_lazy('CounterTransfers model', 'CounterTransfers')
+        # app_label = 'countertransfer'
+        verbose_name = pgettext_lazy('Transfer model', 'Transfer')
+        verbose_name_plural = pgettext_lazy('Transfers model', 'Transfers')
 
     def __str__(self):
         return str(self.id)
 
     def all_items_closed(self):
-        query = self.counter_transfer_items.filter(closed=False)
+        query = self.counter_transfer_report_items.filter(closed=False)
         if query.exists():
             return False
         return True
-
-    def on_post_save(self):
-        print "%s.on_post_save()" % self
-        print self.counter
-        print self.date
-        Report.objects.create_report(self.date, self.counter, user=self.user)
-        print '(*)-}'*120
-
-    def on_post_delete(self):
-        print "%s.on_post_save()" % self
-        print '(-----*---)-}'*120
 
 
 class TransferItemManager(BaseUserManager):
@@ -126,71 +115,54 @@ class TransferItemManager(BaseUserManager):
         return total
 
 
-class CounterTransferItems(models.Model):
+class TransferItems(models.Model):
     transfer = models.ForeignKey(
-        CounterTransfer, on_delete=models.CASCADE, related_name='counter_transfer_items',
-        verbose_name=pgettext_lazy("CounterTransfer field", 'counter'))
-    counter = models.ForeignKey(Counter, on_delete=models.CASCADE, related_name="item_counter", blank=True, null=True,
+        Transfer, on_delete=models.CASCADE, related_name='counter_transfer_report_items',
+        verbose_name=pgettext_lazy("Transfer item field", 'counter'))
+    counter = models.ForeignKey(Counter, on_delete=models.CASCADE, related_name="item_report_counter", blank=True, null=True,
                                 verbose_name=pgettext_lazy("CounterTransfer field", 'counter'))
-    stock = models.ForeignKey(Stock, on_delete=models.CASCADE, blank=True, null=True,
-                              verbose_name=pgettext_lazy("CounterTransfer field", 'stock'))
     quantity = models.IntegerField(
-        pgettext_lazy('Stock item field', 'quantity'),
+        pgettext_lazy('Transfer item field', 'quantity'),
         validators=[MinValueValidator(0)], default=Decimal(1))
     sku = models.CharField(max_length=60, blank=True, null=True,
-                           verbose_name=pgettext_lazy('CounterTransfer field', 'sku'))
+                           verbose_name=pgettext_lazy('Transfer item field', 'sku'))
     product_category = models.CharField(max_length=60, blank=True, null=True,
-                                        verbose_name=pgettext_lazy('CounterTransfer field', 'category'))
+                                        verbose_name=pgettext_lazy('Transfer item field', 'category'))
     price = models.DecimalField(max_digits=9, decimal_places=2, default=Decimal(0),
-                                verbose_name=pgettext_lazy('CounterTransfer field', 'price'))
+                                verbose_name=pgettext_lazy('Transfer item field', 'price'))
     unit_price = models.DecimalField(max_digits=9, decimal_places=2, default=Decimal(0),
-                                     verbose_name=pgettext_lazy('CounterTransfer field', 'unit price'))
+                                     verbose_name=pgettext_lazy('Transfer item field', 'unit price'))
 
     tax = models.DecimalField(max_digits=9, decimal_places=2, default=Decimal(0),
-                              verbose_name=pgettext_lazy('CounterTransfer field', 'tax'))
+                              verbose_name=pgettext_lazy('Transfer item field', 'tax'))
     discount = models.DecimalField(max_digits=9, decimal_places=2, default=Decimal(0),
-                                   verbose_name=pgettext_lazy('CounterTransfer field', 'discount'))
+                                   verbose_name=pgettext_lazy('Transfer item field', 'discount'))
     qty = models.PositiveIntegerField(default=1,
-                                      verbose_name=pgettext_lazy('CounterTransfer field', 'quantity'))
+                                      verbose_name=pgettext_lazy('Transfer item field', 'quantity'))
     transferred_qty = models.PositiveIntegerField(default=1,
-                                                  verbose_name=pgettext_lazy('CounterTransfer field', 'transferred_qty'))
-    deficit = models.IntegerField(default=0,
-                                          verbose_name=pgettext_lazy('CounterTransfer field', 'deficit'))
+                                                  verbose_name=pgettext_lazy('Transfer item field', 'transferred_qty'))
+    deficit = models.IntegerField(default=0, verbose_name=pgettext_lazy('Transfer item field', 'deficit'))
     expected_qty = models.PositiveIntegerField(default=1,
-                                               verbose_name=pgettext_lazy('CounterTransfer field', 'expected_qty'))
+                                               verbose_name=pgettext_lazy('Transfer item field', 'expected_qty'))
 
     sold = models.PositiveIntegerField(default=0,
-                                       verbose_name=pgettext_lazy('CounterTransfer field', 'sold'))
+                                       verbose_name=pgettext_lazy('Transfer item field', 'sold'))
 
     productName = models.CharField(max_length=100, blank=True, null=True,
-                                   verbose_name=pgettext_lazy('CounterTransfer field', 'product name'))
+                                   verbose_name=pgettext_lazy('Transfer item field', 'product name'))
     description = models.TextField(
-        verbose_name=pgettext_lazy('CounterTransfer field', 'description'), blank=True, null=True)
+        verbose_name=pgettext_lazy('Transfer item field', 'description'), blank=True, null=True)
     updated_at = models.DateTimeField(
-        pgettext_lazy('CounterTransfer field', 'updated at'), auto_now=True, null=True)
-    created = models.DateTimeField(pgettext_lazy('CounterTransfer field', 'created'),
+        pgettext_lazy('Transfer item field', 'updated at'), auto_now=True, null=True)
+    created = models.DateTimeField(pgettext_lazy('Transfer item field', 'created'),
                                    default=now, editable=False)
     closed = models.BooleanField(default=False)
     objects = TransferItemManager()
 
     class Meta:
-        app_label = 'countertransfer'
-        verbose_name = pgettext_lazy('CounterTransfer model', 'CounterTransfer')
-        verbose_name_plural = pgettext_lazy('CounterTransfers model', 'CounterTransfers')
+        # app_label = 'countertransfer'
+        verbose_name = pgettext_lazy('Transfer item model', 'Transfer item')
+        verbose_name_plural = pgettext_lazy('Transfer items model', 'Transfer items')
 
     def __str__(self):
         return str(self.sku) + ' ' + str(self.qty)
-
-
-@receiver(signals.post_save)
-def search_on_post_save(sender, instance, **kwargs):
-    if issubclass(sender, CounterTransfer):
-         instance.on_post_save()
-
-
-@receiver(signals.post_delete)
-def search_on_post_delete(sender, instance, **kwargs):
-    if issubclass(sender, CounterTransfer):
-         instance.on_post_delete()
-
-

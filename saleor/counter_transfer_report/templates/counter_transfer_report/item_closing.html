@@ -8,7 +8,7 @@
 {% endblock %}
 
  {% block breadcrumbs %}
-     <li><a href="/counter/">Counter Management</a></li>
+     <li><a href="/counter/">Bar Management</a></li>
      <li class=""><a href="/counter/transfer/close/"> Close Counter Stock</a></li>
      <li class="active"><a >Transferred Items</a></li>
  {% endblock %}
@@ -16,7 +16,7 @@
 
  {% block menu_close_counter_class %}active{% endblock %}
  {% block custom_css %}
- {% render_bundle 'transferred_items_close_view' 'css' %}
+ {% render_bundle 'transferred_items_close' 'css' %}
 <style>
           .theme_xbox .pace_activity, .theme_xbox .pace_activity::after, .theme_xbox .pace_activity::before, .theme_xbox_sm .pace_activity, .theme_xbox_sm .pace_activity::after, .theme_xbox_sm .pace_activity::before, .theme_xbox_xs .pace_activity, .theme_xbox_xs .pace_activity::after, .theme_xbox_xs .pace_activity::before {
         border-radius: 50%;
@@ -68,5 +68,5 @@
 <!--<script src="https://../popper.js/1.12.3/umd/popper.min.js"></script>-->
 <!--<script src="https://../bootstrap/4.0.0-beta.2/js/bootstrap.min.js"></script>-->
 {% render_bundle 'vendor' 'js' %}
-{% render_bundle 'transferred_items_close_view' 'js' %}
+{% render_bundle 'transferred_items_close' 'js' %}
 {% endblock %}
