@@ -95,6 +95,7 @@ class ListOrderSerializer(serializers.ModelSerializer):
 class SearchListOrderSerializer(serializers.ModelSerializer):
     ordered_items = serializers.SerializerMethodField()
     point = serializers.SerializerMethodField()
+    created = serializers.SerializerMethodField()
     table = serializers.SerializerMethodField()
     user = serializers.SerializerMethodField()
     update_url = HyperlinkedIdentityField(view_name='order-api:update-order')
@@ -125,6 +126,10 @@ class SearchListOrderSerializer(serializers.ModelSerializer):
                   'total_tax',
                   'discount_amount'
                   )
+
+    def get_created(self, obj):
+        time = obj.created.time().strftime('%H:%M %p')
+        return time
 
     def get_point(self, orders):
       try:

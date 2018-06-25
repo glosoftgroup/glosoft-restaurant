@@ -71,9 +71,11 @@ export class PaginateBlock extends Component {
       page_size: this.state.itemsCountPerPage,
       page: page
     });
+    
     if (this.props.search) {
       params = { ...params, 'q': this.props.search.q };
     }
+
     if(this.props.date){
       if (this.props.date.date) {
         params = { ...params, 'date': this.props.date.date };
@@ -86,18 +88,10 @@ export class PaginateBlock extends Component {
       }
       
     }
-    // if (this.props.date.date) {
-    //   params = { ...params, 'date': this.props.date.date };
-    // }
+
     if (this.props.mode) {
       params = { ...params, 'mode': this.props.mode.mode };
     }
-
-    // if (this.props.date.date_from && this.props.date.date_to) {
-    //   var date_from = this.props.date.date_from,
-    //       date_to = this.props.date.date_to;
-    //   params = { ...params, 'date_from': date_from, 'date_to': date_to };
-    // }
 
     this.props.fetchItems(params);
   }
