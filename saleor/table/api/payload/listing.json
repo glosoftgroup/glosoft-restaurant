@@ -1,0 +1,18 @@
+{
+    "count": 1,
+    "total_pages": 1,
+    "results": [
+        {
+            "id": 1,
+            "name": "Soups",
+            "text": "Soups",
+            "description": "dsdd",
+            "update_url": "http://127.0.0.1:8000/menucategory/api/update/1/",
+            "delete_url": "http://127.0.0.1:8000/menucategory/api/delete/1/"
+        }
+    ],
+    "links": {
+        "previous": null,
+        "next": null
+    }
+}

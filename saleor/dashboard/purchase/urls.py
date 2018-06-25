@@ -21,6 +21,8 @@ urlpatterns = [
         # product varaint purchase reports
         url(r'^report/$', permission_required('reports.view_sale_reports', login_url='not_found')
             (views.report_list), name='purchase-variant'),
+        url(r'^report/items/$', permission_required('reports.view_sale_reports', login_url='not_found')
+            (views.report_items), name='purchase-variant-items'),
         url(r'^report/(?P<pk>[0-9]+)/$', permission_required('reports.view_sale_reports', login_url='not_found')
             (views.report_single), name='purchase-variant-single'),
         url(r'^report/(?P<pk>[0-9]+)/detail/$', permission_required('reports.view_sale_reports', login_url='not_found')

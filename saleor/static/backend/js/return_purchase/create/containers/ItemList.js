@@ -15,26 +15,24 @@ class ItemList extends Component {
         <table className="table table-xs table-hover">
             <thead>
                 <tr className="bg-primary">
-                    <th>Add</th>
                     <th>Product</th>
                     <th>SKU</th>
                     <th>Quantity</th>
-                    <th>Selling Price</th>
+                    <th>Add</th>
                 </tr>
             </thead>
             <tbody>
             {this.props.items.results.map(obj => {
               return (
                 <tr className={`${obj.quantity === 0 && 'hidden'}`} key={obj.id}>
+                    <td>{obj.product_name}</td>
+                    <td>{obj.sku}</td>
+                    <td>{obj.quantity}</td>
                     <td title="add to cart" onClick={() => { this.addCart(obj); } }>
                       <span className={`cursor-pointer btn btn-primary btn-sm ${obj.quantity === 0 && 'hidden'}`}>
                         <i className="icon-cart-add"></i>
                       </span>
                     </td>
-                    <td>{obj.product_name}</td>
-                    <td>{obj.sku}</td>
-                    <td>{obj.quantity}</td>
-                    <td>{obj.unit_cost}</td>
                 </tr>
               );
             })

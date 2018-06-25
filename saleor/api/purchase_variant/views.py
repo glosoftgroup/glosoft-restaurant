@@ -73,15 +73,21 @@ class PurchaseListAPIView(generics.ListAPIView):
     pagination_class = PostLimitOffsetPagination
 
     def get_queryset(self, *args, **kwargs):
+        queryset_list = Table.objects.all().select_related()
         try:
             if self.kwargs['pk']:
                 pk = Table.objects.get(pk=self.kwargs['pk']).supplier.pk
                 queryset_list = Table.objects.filter(supplier__pk=pk).select_related()
-            if self.request.GET.get('date'):
-                queryset_list = queryset_list.filter(supplier__pk=pk).filter(created__icontains=self.request.GET.get('date'))
 
         except Exception as e:
-            queryset_list = Table.objects.all().select_related()
+            pass
+        if self.request.GET.get('date'):
+            queryset_list = queryset_list.filter(
+                created__icontains=self.request.GET.get('date'))
+        if self.request.GET.get('supplier'):
+            queryset_list = queryset_list.filter(
+                supplier__pk=self.request.GET.get('supplier'))
+
         page_size = 'page_size'
         if self.request.GET.get(page_size):
             pagination.PageNumberPagination.page_size = self.request.GET.get(page_size)

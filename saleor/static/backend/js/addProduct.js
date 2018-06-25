@@ -242,7 +242,7 @@ $(function() {
     addProductDetails(dynamicData,url,method)
     .done(function(data){
       alertUser('data sent successfully');
-      document.getElementById("variant_adding_form").reset();
+     // document.getElementById("variant_adding_form").reset();
       $('#toggleVariant').slideUp();
       json = [];
       refreshVaraintsContent.html(data);

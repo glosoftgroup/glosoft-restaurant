@@ -47,39 +47,6 @@ export class TransferTableRow extends Component {
         <td className="cursor-pointer" onClick={ () => this.goTo(instance.view_url)}>{instance.counter.name}</td>
         <td className="cursor-pointer" onClick={ () => this.goTo(instance.view_url)}>{instance.quantity}</td>
         <td className="cursor-pointer" onClick={ () => this.goTo(instance.view_url)}>{instance.worth}</td>
-        <td className=" text-center">
-          <ul className="icons-list">
-            <li className="dropdown">
-              { this.state.showDelete &&
-                <button onClick={this.deleteInstance} type="button" aria-expanded="true" className="animated fadeIn btn btn-md bg-danger btn-primary dropdown-toggle legitRipple">
-                Confirm Delete
-              </button>
-              }
-              {!this.state.showDelete &&
-                <button type="button" data-toggle="dropdown" aria-expanded="true" className="no-print animated fadeIn btn btn-md btn-primary dropdown-toggle legitRipple">
-                Actions <span className="no-print  caret"></span>
-                </button>
-              }
-              <ul className="dropdown-menu dropdown-menu-right">
-                <li>
-                  <a onClick={ () => this.goTo(instance.view_url)} href="javascript:;">
-                     <i className="icon-eye"></i> View
-                  </a>
-                </li>
-                <li>
-                  <a onClick={ () => this.goTo(instance.update_items_url)} href="javascript:;">
-                     <i className="icon-pencil"></i> EDIT
-                  </a>
-                </li>
-                <li>
-                  <a onClick={this.toggleDelete} href="javascript:;">
-                    <i className=" icon-trash-alt"></i> DELETE
-                  </a>
-                </li>
-              </ul>
-            </li>
-          </ul>
-        </td>
     </tr>
     );
   }

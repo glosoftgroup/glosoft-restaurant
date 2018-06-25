@@ -7,11 +7,11 @@ class App extends Component {
   render() {
     return (
         <div className="row">
-            <div className="col-md-6 transfer-cart-wrapper">
-              <TransferCart />
-            </div>
             <div className="col-md-6 transfer-products-wrapper">
               <ItemSearch />
+            </div>
+            <div className="col-md-6 transfer-cart-wrapper">
+              <TransferCart />
             </div>
         </div>
     );

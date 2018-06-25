@@ -2,6 +2,8 @@ from __future__ import unicode_literals
 
 from decimal import Decimal
 from django.db import models
+from django.db.models import signals
+from django.dispatch import receiver
 from django.conf import settings
 from django.utils.translation import pgettext_lazy
 from django.utils.timezone import now
@@ -9,6 +11,7 @@ from django.core.validators import MinValueValidator, RegexValidator
 from django.contrib.auth.models import (AbstractBaseUser, BaseUserManager, PermissionsMixin)
 from saleor.counter.models import Counter
 from saleor.product.models import Stock
+from saleor.counter_transfer_report.models import Transfer as Report
 
 
 class TransferManager(BaseUserManager):
@@ -68,6 +71,17 @@ class CounterTransfer(models.Model):
         if query.exists():
             return False
         return True
+
+    def on_post_save(self):
+        print "%s.on_post_save()" % self
+        print self.counter
+        print self.date
+        Report.objects.create_report(self.date, self.counter, user=self.user)
+        print '(*)-}'*120
+
+    def on_post_delete(self):
+        print "%s.on_post_save()" % self
+        print '(-----*---)-}'*120
 
 
 class TransferItemManager(BaseUserManager):
@@ -168,5 +182,15 @@ class CounterTransferItems(models.Model):
         return str(self.sku) + ' ' + str(self.qty)
 
 
+@receiver(signals.post_save)
+def search_on_post_save(sender, instance, **kwargs):
+    if issubclass(sender, CounterTransfer):
+         instance.on_post_save()
+
+
+@receiver(signals.post_delete)
+def search_on_post_delete(sender, instance, **kwargs):
+    if issubclass(sender, CounterTransfer):
+         instance.on_post_delete()
 
 

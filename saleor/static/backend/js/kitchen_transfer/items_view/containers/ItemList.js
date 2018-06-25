@@ -31,7 +31,7 @@ class ItemList extends Component {
               <th>Cost Price</th>
               <th>Quantity</th>
               <th>Sold</th>
-              <th>Price</th>
+              <th>Retail Price</th>
             </tr>
           </thead>
           <tbody>
