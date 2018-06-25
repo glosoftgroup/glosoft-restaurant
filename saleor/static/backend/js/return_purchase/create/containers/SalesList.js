@@ -26,26 +26,26 @@ class SalesList extends Component {
         <table className="table table-xs table-hover">
             <thead>
                 <tr className="bg-primary">
-                    <th>Select</th>
                     <th>Invoice Number</th>
                     <th>Supplier</th>
                     <th>Date</th>
                     <th>Amount</th>
+                    <th className="text-center">Select</th>
                 </tr>
             </thead>
             <tbody>
             {this.props.items.results.map(obj => {
               return (
                 <tr key={obj.id}>
-                    <td onClick={() => { this.selectSale(obj); } }>
-                      <span title="Click to select" className="cursor-pointer btn btn-primary btn-sm">
-                        <i className="icon-select2"></i>Select
-                      </span>
-                    </td>
                     <td>{obj.invoice_number}</td>
                     <td>{obj.supplier_name}</td>
                     <td>{obj.date}</td>
                     <td>{obj.total_net}</td>
+                    <td className="text-center" onClick={() => { this.selectSale(obj); } }>
+                      <span title="Click to select" className="cursor-pointer btn btn-primary btn-sm">
+                        <i className="icon-select2"></i>Select
+                      </span>
+                    </td>
                 </tr>
               );
             })

@@ -420,7 +420,7 @@ def send_to_sale(credit):
 
         if item.counter:
             try:
-                stock = Stock.objects.get(sku=item.sku)
+                stock = Stock.objects.filter(sku=item.sku).first()
                 new_item.minimum_price = stock.minimum_price
                 new_item.wholesale_override = stock.wholesale_override
                 new_item.low_stock_threshold = stock.low_stock_threshold

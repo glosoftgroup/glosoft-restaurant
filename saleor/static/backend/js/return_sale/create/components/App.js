@@ -12,11 +12,11 @@ class App extends Component {
            <hr/>
           </div>
           <div className="col-md-12 text-center">
-            <div className="col-md-5 transfer-cart-wrapper">
-              <TransferCart />
-            </div>
             <div className="col-md-7 transfer-products-wrapper">
               <ItemSearch />
+            </div>
+            <div className="col-md-5 transfer-cart-wrapper">
+              <TransferCart />
             </div>
           </div>
         </div>

@@ -78,7 +78,7 @@ var parent = new Vue({
                 return false;
            }
 
-           // retail price required
+           /*/ retail price required
            var checker = true;
            this.cartItems.forEach(item => {
                 if(!item.price_override){
@@ -95,7 +95,7 @@ var parent = new Vue({
 
            if(!checker){
                 return false
-           }
+           } */
 
            // send purchase data
            // *******************
@@ -241,14 +241,12 @@ var parent = new Vue({
     created:function(){
         // preset supplier
         this.supplier = $('#variant_supplier').val();
-        console.log(this.supplier);
 
         /* on page load populate items with api list response */
         this.$http.get($('.pageUrls').data('listurl')+'?supplier='+this.supplier)
             .then(function(data){
                 data = JSON.parse(data.bodyText);
                 this.items = data.results;
-                console.log(this.items);
                 this.loader = false;
             }, function(error){
                 console.log(error.statusText);
@@ -258,7 +256,6 @@ var parent = new Vue({
             .then(function(data){
                 data = JSON.parse(data.bodyText);
                 this.paymentOptions = data.results;
-                console.log(this.paymentOptions);
             }, function(error){
                 console.log(error.statusText);
         });

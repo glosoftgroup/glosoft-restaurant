@@ -232,6 +232,12 @@
                     Add Stock</a>
                     </li>
                     {% endif %}
+                    {% if perms.product.view_stock %}
+                    <li class="{% block menu_purchase_list_item %}{% endblock %}">
+                    <a href="{% url 'dashboard:purchase-variant-items' %}"><i class='icon-cart-add2'></i>
+                    Purchases</a>
+                    </li>
+                    {% endif %}
                       {% if perms.product.view_category %}
                     <!-- categories -->
                      <li class="{% block menu_categories_class %}{% endblock %}">
@@ -459,7 +465,7 @@
                   <ul>
 
                     <li class="{% block menu_table_class %}{% endblock %}">
-                    <a href="{% url 'dashboard:table-list'%}">
+                    <a href="{% url 'table:index'%}">
                     <i class="icon-table2"></i>Tables
                     </a> 
                     </li>
