@@ -4,11 +4,12 @@ from ...site.models import SiteSettings
 
 register = Library()
 
+
 @register.simple_tag
 def business_name():
-	try:
-		site = get_object_or_404(SiteSettings, pk=1)
-		name = (site.name).upper()
-	except:
-		name ="RESTAURANT MGT SYSTEM"
-		return name
+    try:
+        site = get_object_or_404(SiteSettings, pk=1)
+        name = (site.name).upper()
+    except:
+        name = "RESTAURANT MGT SYSTEM"
+    return name
