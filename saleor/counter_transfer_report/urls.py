@@ -3,7 +3,7 @@ from django.views.generic import TemplateView
 from django.views.generic.edit import UpdateView
 
 from .api.views import *
-from .models import Transfer as Table
+from saleor.countertransfer.models import CounterTransfer as Table
 
 global module
 module = 'counter_transfer_report'

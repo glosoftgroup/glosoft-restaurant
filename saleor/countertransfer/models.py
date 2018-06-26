@@ -12,6 +12,7 @@ from django.contrib.auth.models import (AbstractBaseUser, BaseUserManager, Permi
 from saleor.counter.models import Counter
 from saleor.product.models import Stock
 from saleor.counter_transfer_report.models import Transfer as Report
+from saleor.counter_transfer_report.models import TransferItems as ReportItem
 
 
 class TransferManager(BaseUserManager):
@@ -55,6 +56,7 @@ class CounterTransfer(models.Model):
                             default=now)
     created = models.DateTimeField(pgettext_lazy('CounterTransfer field', 'created'),
                                    default=now, editable=False)
+    trashed = models.BooleanField(default=False)
 
     objects = TransferManager()
 
@@ -72,12 +74,16 @@ class CounterTransfer(models.Model):
             return False
         return True
 
+    def any_closed(self):
+        """ Return true if one of its transferred item is closed """
+        query = self.counter_transfer_items.filter(closed=True)
+        if query.exists():
+            return True
+        return False
+
     def on_post_save(self):
         print "%s.on_post_save()" % self
-        print self.counter
-        print self.date
-        Report.objects.create_report(self.date, self.counter, user=self.user)
-        print '(*)-}'*120
+        # ReportItem.objects.create_report(self)
 
     def on_post_delete(self):
         print "%s.on_post_save()" % self
@@ -112,7 +118,17 @@ class TransferItemManager(BaseUserManager):
             query = self.get_queryset().filter(stock=instance)
         if counter:
             query = query.filter(counter=counter)
-        qty = query.aggregate(models.Sum('qty'))['qty__sum']
+        qty = query.aggregate(models.Sum('transferred_qty'))['transferred_qty__sum']
+        return qty
+
+    def instance_sold_quantity(self, instance, filter_type='transfer', counter=None):
+        if filter_type == 'transfer':
+            query = self.get_queryset().filter(transfer=instance)
+        else:
+            query = self.get_queryset().filter(stock=instance)
+        if counter:
+            query = query.filter(counter=counter)
+        qty = query.aggregate(models.Sum('sold'))['sold__sum']
         return qty
 
     def instance_worth(self, instance, filter_type='transfer'):
@@ -122,7 +138,17 @@ class TransferItemManager(BaseUserManager):
             query = self.get_queryset().filter(stock=instance)
         total = 0
         for i in query:
-            total += Decimal(i.qty) * Decimal(i.stock.cost_price.gross)
+            total += Decimal(i.transferred_qty) * Decimal(i.stock.cost_price.gross)
+        return total
+
+    def instance_sold_price(self, instance, filter_type='transfer'):
+        if filter_type == 'transfer':
+            query = self.get_queryset().filter(transfer=instance)
+        else:
+            query = self.get_queryset().filter(stock=instance)
+        total = 0
+        for i in query:
+            total += Decimal(i.sold) * Decimal(i.price)
         return total
 
 
@@ -171,6 +197,7 @@ class CounterTransferItems(models.Model):
     created = models.DateTimeField(pgettext_lazy('CounterTransfer field', 'created'),
                                    default=now, editable=False)
     closed = models.BooleanField(default=False)
+    trashed = models.BooleanField(default=False)
     objects = TransferItemManager()
 
     class Meta:
@@ -185,7 +212,7 @@ class CounterTransferItems(models.Model):
 @receiver(signals.post_save)
 def search_on_post_save(sender, instance, **kwargs):
     if issubclass(sender, CounterTransfer):
-         instance.on_post_save()
+        instance.on_post_save()
 
 
 @receiver(signals.post_delete)

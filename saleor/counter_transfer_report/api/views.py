@@ -5,9 +5,9 @@ from django.contrib.auth import get_user_model
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework import pagination
 from .pagination import PostLimitOffsetPagination
-from saleor.counter_transfer_report.models import Transfer as Table
+from saleor.countertransfer.models import CounterTransfer as Table
 from saleor.product.models import Stock
-from saleor.counter_transfer_report.models import TransferItems as Item
+from saleor.countertransfer.models import CounterTransferItems as Item
 from .serializers import (
     CloseTransferItemSerializer,
     CreateListSerializer,

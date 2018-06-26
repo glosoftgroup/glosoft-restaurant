@@ -14,6 +14,7 @@ fields = ('id',
           'user',
           'counter',
           'created',
+          'trashed',
           'date',
           'description')
 
@@ -32,6 +33,7 @@ item_fields = ('id',
                'quantity',
                'counter',
                'closed',
+               'trashed',
                'productName',
                'description',
                'product_category',)
