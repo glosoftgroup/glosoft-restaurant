@@ -17,7 +17,7 @@ class FilterBlock extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      title: 'Transferred Item Report',
+      title: 'Counter transfer list',
       label: 'Transfer Report',
       exportData: [],
       printCssPaths: []
@@ -39,16 +39,17 @@ class FilterBlock extends Component {
       delete obj['name'];
       delete obj['user'];
       delete obj['created'];
-      obj['note'] = obj.description;
       delete obj['description'];
       delete obj['update_items_url'];
       delete obj['update_url'];
       delete obj['delete_url'];
+      delete obj['view_url'];
+      delete obj['closing_items_view_url'];
       delete obj['closing_items_url'];
       delete obj['counter_transfer_items'];
       delete obj['text'];
-      // obj['counter'] = obj.counter.name;
-      // obj['closed'] = obj.all_item_closed;
+      obj['counter'] = obj.counter.name;
+      obj['closed'] = obj.all_item_closed;
       delete obj['all_item_closed'];
       items.push(obj);
     });
@@ -63,12 +64,12 @@ class FilterBlock extends Component {
             <li>
               <FilterSearch />
             </li>
-            <li className="hidden"><a href="javascript:;" className="text-bold"> Date:</a></li>
-            <li className="hidden">
+            <li><a href="javascript:;" className="text-bold"> Date:</a></li>
+            <li>
               <FilterDate />
             </li>
             <li>
-              <PrintThis printCssPaths={this.state.printCssPaths} title={this.state.title} />
+              <PrintThis printCssPaths={this.state.printCssPaths} title={this.state.title}/>
             </li>
             <li>
               <CsvExport getData={this.getData} title={this.state.title} label={this.state.label} />
@@ -78,7 +79,6 @@ class FilterBlock extends Component {
     );
   }
 }
-
 FilterBlock.propTypes = {
   items: PropTypes.array.isRequired
 };

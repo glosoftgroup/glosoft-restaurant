@@ -8,12 +8,13 @@
 {% endblock %}
 
  {% block breadcrumbs %}
-     <li><a href="/counter/">Counter Management</a></li>
-     <li class="active"><a> Counter Stock</a></li>
+     <li><a href="javascript:;">Reports</a></li>
+     <li><a href="/counter/tranfer/report/"> Transfers</a></li>
+     <li class="active"><a> Counter Transfer</a></li>
  {% endblock %}
 
 
- {% block menu_release_counter_class %}active{% endblock %}
+ {% block menu_transfer_report_class %}active{% endblock %}
  {% block custom_css %}
  {% render_bundle 'transfer_report' 'css' %}
 <style>
