@@ -57,7 +57,7 @@ class ItemList extends Component {
         <h6 className="text-bold text-center">
          <span className="text-bold text-primary">DATE: </span>
          {this.props.items.date} &nbsp;
-         <span className="text-bold text-primary">Kitchen: </span>
+         <span className="text-bold text-primary">KITCHEN: </span>
          {this.props.items.counter}
         </h6>
         </div>
@@ -70,7 +70,7 @@ class ItemList extends Component {
           <thead>
             <tr className="bg-primary">
               <th>.</th>
-              <th>Product</th>
+              <th>Menu</th>
               <th>Transferred Qty</th>
               <th>Sold/Used</th>
               <th>Selling Price</th>

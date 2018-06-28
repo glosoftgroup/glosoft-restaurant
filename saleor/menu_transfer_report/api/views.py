@@ -5,9 +5,8 @@ from django.contrib.auth import get_user_model
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework import pagination
 from .pagination import PostLimitOffsetPagination
-
 from saleor.menutransfer.models import MenuTransfer as Table
-from saleor.core.utils.closing_time import is_business_time
+from saleor.product.models import Stock
 from saleor.menutransfer.models import TransferItems as Item
 from .serializers import (
     CloseTransferItemSerializer,
@@ -18,7 +17,7 @@ from .serializers import (
     ItemsSerializer,
     ItemsStockSerializer
      )
-
+from saleor.core.utils.closing_time import is_business_time
 User = get_user_model()
 
 
@@ -34,24 +33,20 @@ class DestroyView(generics.DestroyAPIView):
     queryset = Table.objects.all()
 
     def perform_destroy(self, instance):
-        if instance.any_closed():
-            instance.trashed = True
-            instance.save()
-        else:
-            instance.delete()
+        items = instance.counter_transfer_items.all()
+        for item in items:
+            Stock.objects.increase_stock(item.stock, item.qty)
+        # raise serializers.ValidationError('You cannot delete ')
+        instance.delete()
 
 
 class DestroyItemView(generics.DestroyAPIView):
     queryset = Item.objects.all()
 
     def perform_destroy(self, instance):
-        # Stock.objects.increase_stock(instance.stock, instance.qty)
+        Stock.objects.increase_stock(instance.stock, instance.qty)
         # raise serializers.ValidationError('You cannot delete ')
-        if instance.closed:
-            instance.trashed = True
-            instance.save()
-        else:
-            instance.delete()
+        instance.delete()
 
 
 class ListAPIView(generics.ListAPIView):
@@ -69,13 +64,13 @@ class ListAPIView(generics.ListAPIView):
         return {"date": None, 'request': self.request}
 
     def get_queryset(self, *args, **kwargs):
-        queryset_list = Table.objects.filter(trashed=False)
         try:
             if self.kwargs['pk']:
-                queryset_list = queryset_list.filter(customer__pk=self.kwargs['pk']).order_by('car').distinct('car').select_related()
-
+                queryset_list = Table.objects.filter(customer__pk=self.kwargs['pk']).order_by('car').distinct('car').select_related()
+            else:
+                queryset_list = Table.objects.all.select_related()
         except Exception as e:
-            pass
+            queryset_list = Table.objects.all()
 
         page_size = 'page_size'
         if self.request.GET.get(page_size):
@@ -108,6 +103,7 @@ class ListItemsAPIView(generics.ListAPIView):
             response.data['counter'] = instance.transfer.counter.name
             response.data['date'] = instance.transfer.date
             response.data['instance_id'] = instance.transfer.id
+
         except:
             pass
         return response
@@ -118,12 +114,13 @@ class ListItemsAPIView(generics.ListAPIView):
         return {"date": None, 'request': self.request}
 
     def get_queryset(self, *args, **kwargs):
-        queryset_list = Item.objects.filter(trashed=False)
         try:
             if self.kwargs['pk']:
-                queryset_list = queryset_list.filter(transfer__pk=self.kwargs['pk']).select_related()
+                queryset_list = Item.objects.filter(transfer__pk=self.kwargs['pk']).select_related()
+            else:
+                queryset_list = Item.objects.all.select_related()
         except Exception as e:
-            pass
+            queryset_list = Item.objects.all()
 
         page_size = 'page_size'
         if self.request.GET.get(page_size):
@@ -166,12 +163,32 @@ class ListStockAPIView(generics.ListAPIView):
         return {"date": None, 'request': self.request}
 
     def get_queryset(self, *args, **kwargs):
-        queryset_list = Item.objects.filter(trashed=False)
+        # determine whether to show yesterdays transfer
+        # This will enable selling today's stock after mid day
+        show_yesterday = is_business_time()
+        today = datetime.date.today()
+        if show_yesterday:
+            yesterday = datetime.date.today() - datetime.timedelta(days=1)
+        else:
+            yesterday = today
+
         try:
             if self.kwargs['pk']:
-                queryset_list = queryset_list.filter(transfer__counter__pk=self.kwargs['pk']).distinct('stock').select_related()
+                queryset_list = Item.objects.filter(
+                    Q(transfer__date=today) |
+                    Q(transfer__date=yesterday)
+                ).filter(transfer__counter__pk=self.kwargs['pk'])\
+                    .distinct('stock').select_related()
+            else:
+                queryset_list = Item.objects.filter(
+                    Q(transfer__date=today) |
+                    Q(transfer__date=yesterday)
+                ).distinct('stock').select_related()
         except Exception as e:
-            queryset_list = Item.objects.filter(trashed=False).distinct('stock')
+            queryset_list = Item.objects.all().filter(
+                Q(transfer__date=today) |
+                Q(transfer__date=yesterday)
+            ).distinct('stock')
 
         page_size = 'page_size'
         if self.request.GET.get(page_size):
@@ -179,13 +196,13 @@ class ListStockAPIView(generics.ListAPIView):
         else:
             pagination.PageNumberPagination.page_size = 10
         if self.request.GET.get('date'):
-            queryset_list = queryset_list.filter(date__icontains=self.request.GET.get('date'))
+            queryset_list = queryset_list.filter(transfer__date__icontains=self.request.GET.get('date'))
 
         query = self.request.GET.get('q')
         if query:
             queryset_list = queryset_list.filter(
-                Q(stock__variant__sku__icontains=query) |
-                Q(stock__variant__product__name__icontains=query))
+                Q(menu__category__name__icontains=query) |
+                Q(name__icontains=query))
         return queryset_list.order_by('stock')
 
 
@@ -193,7 +210,7 @@ class ListCategoryAPIView(generics.ListAPIView):
     """
         list transferred stock in {pk} category
         :param pk category pk
-        GET /menu/transfer/api/list/category/1/
+        GET /counter/transfer/api/list/category/1/
 
         Json payload => /payload/category-items.json
     """
@@ -213,27 +230,25 @@ class ListCategoryAPIView(generics.ListAPIView):
             yesterday = datetime.date.today() - datetime.timedelta(days=1)
         else:
             yesterday = today
+
         queryset_list = Item.objects.filter(qty__gte=1)
         try:
             if self.kwargs['pk']:
                 queryset_list = queryset_list.filter(
                     Q(transfer__date=today) |
                     Q(transfer__date=yesterday)
-                ).filter(menu__category__pk=self.kwargs['pk'])
+                ).filter(stock__variant__product__categories__pk=self.kwargs['pk'])
+
             else:
-                queryset_list = queryset_list.filter(
+                queryset_list = Item.objects.filter(
                     Q(transfer__date=today) |
                     Q(transfer__date=yesterday)
                 )
         except Exception as e:
-            print e
-            queryset_list = queryset_list.filter(
+            queryset_list = Item.objects.all().filter(
                 Q(transfer__date=today) |
                 Q(transfer__date=yesterday)
             )
-
-        if self.request.GET.get('kitchen'):
-            queryset_list = queryset_list.filter(counter__pk=self.request.GET.get('kitchen'))
 
         page_size = 'page_size'
         if self.request.GET.get(page_size):
@@ -249,9 +264,9 @@ class ListCategoryAPIView(generics.ListAPIView):
         query = self.request.GET.get('q')
         if query:
             queryset_list = queryset_list.filter(
-                Q(stock__variant__sku__icontains=query) |
-                Q(stock__variant__product__name__icontains=query))
-        return queryset_list.distinct('menu').select_related().order_by('menu')
+                Q(menu__category__name__icontains=query) |
+                Q(name__icontains=query))
+        return queryset_list.distinct('stock').select_related().order_by('stock')
 
 
 class UpdateAPIView(generics.RetrieveUpdateAPIView):
