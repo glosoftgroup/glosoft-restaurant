@@ -18,16 +18,23 @@ from saleor.counter_transfer_report.models import TransferItems as ReportItem
 class TransferManager(BaseUserManager):
     def all_items_filter(self, start_date=None, end_date=None):
         query = self.all()
-        if start_date and end_date is not None:
-            query = query.filter(
-                models.Q(date__gte=start_date) &
-                models.Q(date__lte=end_date)
-            )
-        else:
-            if start_date is not None:
-                query = query.filter(date__gte=start_date)
-            if end_date is not None:
-                query = query.filter(date__lte=end_date)
+        # if start_date and end_date is not None:
+        #     query = query.filter(
+        #         models.Q(date__gte=start_date) &
+        #         models.Q(date__lte=end_date)
+        #     )
+        # else:
+        #     if start_date is not None:
+        #         query = query.filter(date__gte=start_date)
+        #     if end_date is not None:
+        #         query = query.filter(date__lte=end_date)
+        # query = query.values_list('date').annotate(total_item=models.Sum('counter_transfer_items__transferred_qty'))
+        # # print [r.counter_transfer_items.values_list('quantity').annotate(total=models.Sum('quantity')) for r in query]
+        # for item in query:
+        #     # print item.__dict__
+        #     print '*'*12
+        # print query
+
         return query
 
     def all_item_closed(self, instance):
@@ -150,6 +157,21 @@ class TransferItemManager(BaseUserManager):
         for i in query:
             total += Decimal(i.sold) * Decimal(i.price)
         return total
+
+    def all_items_filter(self, start_date=None, end_date=None):
+        query = self.all()
+        if start_date and end_date is not None:
+            query = query.filter(
+                models.Q(transfer__date__gte=start_date) &
+                models.Q(transfer__date__lte=end_date)
+            )
+        else:
+            if start_date is not None:
+                query = query.filter(transfer__date__gte=start_date)
+            if end_date is not None:
+                query = query.filter(transfer__date__lte=end_date)
+        # query = query.values_list('transfer').annotate(total_item=models.Sum('transferred_qty'))
+        return query
 
 
 class CounterTransferItems(models.Model):

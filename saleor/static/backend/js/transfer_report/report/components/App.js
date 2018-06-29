@@ -1,35 +1,54 @@
-import React, { Component } from 'react';
-import PropTypes from 'prop-types';
+import React from 'react';
+import { Query } from 'react-apollo';
+import gql from 'graphql-tag';
 
 /**
- * CONTAINERS
+ * COMPONENTS
  */
-import FilterBlock from '../containers/FilterBlock';
+import Loader from './Loader';
+
+/**
+ * Containers
+ */
 import ItemList from '../containers/ItemList';
-import PaginationBlock from '../containers/PaginateBlock';
 
-/**
- * STYLES
- */
-import '../css/style.scss';
-import '../css/tooltip.scss';
+const ExchangeRates = () => (
+  <Query
+    query={gql`
+    {
+      allCounterTransfer(page: 1) {
+        page
+        pages
+        total
+        hasNext
+        hasPrev
+        results {
+          id
+          date
+          counter {
+            id
+            name
+          }
+          counterTransferItems {
+            id
+            sku
+            counter {
+              id
+              name
+            }
+          }
+        }
+      }
+    }
+    `}
+  >
+    {({ loading, error, data }) => {
+      if (loading) return <Loader />;
+      if (error) return <Loader />;
+      console.log(data.allCounterTransfer.results);
+      return <ItemList items={data.allCounterTransfer} />;
+    }}
+  </Query>
+);
 
-export default class App extends Component {
-  static propTypes = {
-    prop: PropTypes
-  }
-
-  render() {
-    return (
-      <div className="row">
-        <div className="col-md-12">
-          <FilterBlock />
-          <div className="panel panel-body">
-            <ItemList />
-            <PaginationBlock />
-          </div>
-        </div>
-      </div>
-    );
-  }
-}
+export default ExchangeRates;

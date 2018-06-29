@@ -2,13 +2,17 @@ import graphene
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 
 from django.shortcuts import _get_queryset
-
+from django.db import models
 
 # First we create a little helper function, becase we will potentially have many PaginatedTypes
 # and we will potentially want to turn many querysets into paginated results:
 
 def get_paginator(qs, page_size, page, paginated_type, **kwargs):
     p = Paginator(qs, page_size)
+    query = qs.values_list('date').annotate(total_item=models.Sum('counter_transfer_items__transferred_qty'))
+    items = list()
+    for item in query:
+        items.append(item)
     try:
         page_obj = p.page(page)
     except PageNotAnInteger:
@@ -21,8 +25,8 @@ def get_paginator(qs, page_size, page, paginated_type, **kwargs):
         total=p.count,
         has_next=page_obj.has_next(),
         has_prev=page_obj.has_previous(),
-        objects=page_obj.object_list,
-        **kwargs
+        items=items,
+        results=page_obj.object_list,
     )
 
 

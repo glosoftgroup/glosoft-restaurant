@@ -61,7 +61,7 @@ ItemList.propTypes = {
 };
 function mapStateToProps(state) {
   return {
-    items: state.items
+    // items: state.items
   };
 }
 
