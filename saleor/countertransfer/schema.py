@@ -51,7 +51,7 @@ class TransferPaginatedType(graphene.ObjectType):
     has_next = graphene.String()
     has_prev = graphene.Boolean()
     results = graphene.List(TransferType)
-    items = graphene.List()
+    # items = graphene.List(ItemType)
 
 
 class CounterPaginatedType(graphene.ObjectType):
@@ -109,5 +109,5 @@ class Query(object):
     def resolve_all_items(self, info, page, start_date, end_date, **kwargs):
         page_size = 10
         page = page
-        qs = Items.objects.all_items_filter(start_date=start_date, end_date=end_date)
+        qs = Items.objects.all()  # all_items_filter(start_date=start_date, end_date=end_date)
         return get_paginator(qs, page_size, page, ItemsPaginatedType)

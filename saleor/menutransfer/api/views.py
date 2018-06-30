@@ -26,7 +26,7 @@ class CreateAPIView(generics.CreateAPIView):
     queryset = Table.objects.all()
     serializer_class = CreateListSerializer
 
-    def perform_update(self, serializer):
+    def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
 

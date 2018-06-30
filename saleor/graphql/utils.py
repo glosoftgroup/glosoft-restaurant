@@ -9,10 +9,10 @@ from django.db import models
 
 def get_paginator(qs, page_size, page, paginated_type, **kwargs):
     p = Paginator(qs, page_size)
-    query = qs.values_list('date').annotate(total_item=models.Sum('counter_transfer_items__transferred_qty'))
-    items = list()
-    for item in query:
-        items.append(item)
+    # query = qs.values_list('date').annotate(total_item=models.Sum('counter_transfer_items__transferred_qty'))
+    # items = list()
+    # for item in query:
+    #     items.append(item)
     try:
         page_obj = p.page(page)
     except PageNotAnInteger:
@@ -25,7 +25,7 @@ def get_paginator(qs, page_size, page, paginated_type, **kwargs):
         total=p.count,
         has_next=page_obj.has_next(),
         has_prev=page_obj.has_previous(),
-        items=items,
+        # items=items,
         results=page_obj.object_list,
     )
 

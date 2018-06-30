@@ -18,6 +18,7 @@ from .serializers import (
     ItemsStockSerializer
      )
 from saleor.core.utils.closing_time import is_business_time
+from ...decorators import user_trail
 User = get_user_model()
 
 
@@ -25,8 +26,11 @@ class CreateAPIView(generics.CreateAPIView):
     queryset = Table.objects.all()
     serializer_class = CreateListSerializer
 
-    def perform_update(self, serializer):
+    def perform_create(self, serializer):
+        serializer.user = self.request.user
         serializer.save(user=self.request.user)
+        user_trail(self.request.user.name,
+                   'made a counter transfer:#' + str(serializer.data['date']), 'add')
 
 
 class DestroyView(generics.DestroyAPIView):

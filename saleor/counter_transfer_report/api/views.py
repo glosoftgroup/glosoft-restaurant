@@ -1,5 +1,7 @@
 import datetime
 from rest_framework import generics
+from rest_framework.views import APIView
+from rest_framework.response import Response
 from django.db.models import Q
 from django.contrib.auth import get_user_model
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
@@ -15,38 +17,11 @@ from .serializers import (
     UpdateSerializer,
     UpdateTransferItemSerializer,
     ItemsSerializer,
-    ItemsStockSerializer
+    ItemsStockSerializer,
+    SnippetSerializer
      )
 from saleor.core.utils.closing_time import is_business_time
 User = get_user_model()
-
-
-class CreateAPIView(generics.CreateAPIView):
-    queryset = Table.objects.all()
-    serializer_class = CreateListSerializer
-
-    def perform_update(self, serializer):
-        serializer.save(user=self.request.user)
-
-
-class DestroyView(generics.DestroyAPIView):
-    queryset = Table.objects.all()
-
-    def perform_destroy(self, instance):
-        items = instance.counter_transfer_items.all()
-        for item in items:
-            Stock.objects.increase_stock(item.stock, item.qty)
-        # raise serializers.ValidationError('You cannot delete ')
-        instance.delete()
-
-
-class DestroyItemView(generics.DestroyAPIView):
-    queryset = Item.objects.all()
-
-    def perform_destroy(self, instance):
-        Stock.objects.increase_stock(instance.stock, instance.qty)
-        # raise serializers.ValidationError('You cannot delete ')
-        instance.delete()
 
 
 class ListAPIView(generics.ListAPIView):
@@ -295,14 +270,17 @@ class UpdateItemAPIView(generics.RetrieveUpdateAPIView):
     serializer_class = UpdateTransferItemSerializer
 
 
-class CloseItemAPIView(generics.RetrieveUpdateAPIView):
+class SnippetList(APIView):
     """
-        update instance details
-        @:param pk id
-        @:method PUT
-
-        PUT /api/house/update/
-        payload Json: /payload/update.json
+    List all snippets, or create a new snippet.
     """
-    queryset = Item.objects.all()
-    serializer_class = CloseTransferItemSerializer
+    def get(self, request, format=None):
+        start_date = self.request.GET.get('start_date')
+        end_date = self.request.GET.get('end_date')
+        snippets = Table.objects.all_items_filter(start_date, end_date)
+        items = []
+        for i in snippets:
+            items.append({"name": i[0], "counter": i[1], "total": i[2]})
+            print list(i)
+        serializer = SnippetSerializer(items, many=True)
+        return Response(serializer.data)

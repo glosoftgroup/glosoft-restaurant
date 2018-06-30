@@ -201,9 +201,6 @@ class UpdateTransferItemSerializer(serializers.ModelSerializer):
 class TableListSerializer(serializers.ModelSerializer):
     update_url = serializers.HyperlinkedIdentityField(view_name=module + ':api-update')
     update_items_url = serializers.HyperlinkedIdentityField(view_name=module + ':update')
-    closing_items_url = serializers.HyperlinkedIdentityField(view_name=module + ':close-item')
-    closing_items_view_url = serializers.HyperlinkedIdentityField(view_name=module + ':close-item-view')
-    delete_url = serializers.HyperlinkedIdentityField(view_name=module + ':api-delete')
     view_url = serializers.HyperlinkedIdentityField(view_name=module + ':update-view')
     text = serializers.SerializerMethodField()
     counter = serializers.SerializerMethodField()
@@ -220,9 +217,7 @@ class TableListSerializer(serializers.ModelSerializer):
         fields = fields + (
             'quantity', 'sold', 'price', 'worth', 'all_item_closed',
             'counter_transfer_items', 'text',
-            'closing_items_url', 'view_url',
-            'closing_items_view_url', 'update_url',
-            'delete_url', 'update_items_url')
+            'view_url', 'update_url', 'update_items_url')
 
     def get_text(self, obj):
         try:
@@ -421,3 +416,10 @@ class UpdateSerializer(serializers.ModelSerializer):
                 item.save()
         instance.save()
         return instance
+
+
+class SnippetSerializer(serializers.Serializer):
+    id = serializers.IntegerField(read_only=True)
+    name = serializers.DateField(required=False)
+    total = serializers.IntegerField()
+    counter = serializers.CharField()

@@ -18,7 +18,7 @@ from .serializers import (
     ItemsSerializer,
     ItemsStockSerializer
      )
-
+from ...decorators import user_trail
 User = get_user_model()
 
 
@@ -26,8 +26,10 @@ class CreateAPIView(generics.CreateAPIView):
     queryset = Table.objects.all()
     serializer_class = CreateListSerializer
 
-    def perform_update(self, serializer):
+    def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+        user_trail(self.request.user.name,
+                   'made a kitchen transfer:#' + str(serializer.data['date']), 'add')
 
 
 class DestroyView(generics.DestroyAPIView):
@@ -37,12 +39,13 @@ class DestroyView(generics.DestroyAPIView):
         items = instance.kitchen_transfer_items.all()
         for item in items:
             Stock.objects.increase_stock(item.stock, item.qty)
-        # raise serializers.ValidationError('You cannot delete ')
         if instance.any_closed():
             instance.trashed = True
             instance.save()
         else:
             instance.delete()
+        user_trail(self.request.user.name,
+                   'deleted a kitchen transfer:#', 'add')
 
 
 class DestroyItemView(generics.DestroyAPIView):
@@ -56,6 +59,8 @@ class DestroyItemView(generics.DestroyAPIView):
             instance.save()
         else:
             instance.delete()
+        user_trail(self.request.user.name,
+                   'deleted a kitchen transfer item:#', 'add')
 
 
 class ListAPIView(generics.ListAPIView):
