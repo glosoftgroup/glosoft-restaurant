@@ -420,6 +420,11 @@ class UpdateSerializer(serializers.ModelSerializer):
 
 class SnippetSerializer(serializers.Serializer):
     id = serializers.IntegerField(read_only=True)
-    name = serializers.DateField(required=False)
-    total = serializers.IntegerField()
-    counter = serializers.CharField()
+    series = serializers.SerializerMethodField()
+    categories = serializers.JSONField(required=False)
+
+    def get_series(self, obj):
+        print obj
+        return obj
+    # total = serializers.IntegerField()
+    # counter = serializers.CharField()

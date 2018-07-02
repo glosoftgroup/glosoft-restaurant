@@ -16,6 +16,37 @@ from saleor.counter_transfer_report.models import TransferItems as ReportItem
 
 
 class TransferManager(BaseUserManager):
+    def recharts_items_filter(self, start_date=None, end_date=None):
+        query = self.all()
+        if start_date and end_date is not None:
+            query = query.filter(
+                models.Q(date__gte=start_date) &
+                models.Q(date__lte=end_date)
+            )
+        else:
+            if start_date is not None:
+                query = query.filter(date__gte=start_date)
+            if end_date is not None:
+                query = query.filter(date__lte=end_date)
+        query_dates = query.values_list('date').annotate(
+            total_item=models.Sum('counter_transfer_items__transferred_qty'))
+        items = []
+        for date in query_dates:
+            query_date = list(date)[0]
+            date_transfers = self.filter(date__icontains=query_date)
+            transferred = 0
+            sold = 0
+            deficit = 0
+            for transfer in date_transfers:
+                transferred += transfer.counter_transfer_items.all().aggregate(total=models.Sum('transferred_qty'))['total']
+                sold += transfer.counter_transfer_items.all().aggregate(total=models.Sum('sold'))['total']
+                deficit += transfer.counter_transfer_items.all().aggregate(total=models.Sum('deficit'))['total']
+            items.append({
+                'name': query_date, 'sold': sold,
+                'transferred': transferred, 'deficit': deficit
+            })
+        return items
+
     def all_items_filter(self, start_date=None, end_date=None):
         query = self.all()
         if start_date and end_date is not None:
@@ -28,14 +59,33 @@ class TransferManager(BaseUserManager):
                 query = query.filter(date__gte=start_date)
             if end_date is not None:
                 query = query.filter(date__lte=end_date)
-        query = query.values_list('date', 'counter__name').annotate(total_item=models.Sum('counter_transfer_items__transferred_qty'))
+        query_dates = query.values_list('date').annotate(total_item=models.Sum('counter_transfer_items__transferred_qty'))
+        categories = []
+        transferred = []
+        sold = []
+        for date in query_dates:
+            query_date = list(date)[0]
+            categories.append(query_date)
+            date_transfers = self.filter(date__icontains=query_date)
+            for transfer in date_transfers:
+                transferred.append(transfer.counter_transfer_items.all().aggregate(total=models.Sum('transferred_qty'))['total'])
+                sold.append(transfer.counter_transfer_items.all().aggregate(total=models.Sum('sold'))['total'])
+        data = {
+            'categories': categories,
+            'series': [
+                {'name': 'transferred', 'data': transferred},
+                {'name': 'sold', 'data': sold},
+            ]
+        }
+        # print data
         # # print [r.counter_transfer_items.values_list('quantity').annotate(total=models.Sum('quantity')) for r in query]
         # for item in query:
         #     # print item.__dict__
-        #     print '*'*12
-        print query
+        #     print item.counter_transfer_items.all().aggregate(total_item=models.Sum('qty'))
+        #     print item.date
+        # print query
 
-        return query
+        return data
 
     def all_item_closed(self, instance):
         return True
@@ -125,7 +175,19 @@ class TransferItemManager(BaseUserManager):
             query = self.get_queryset().filter(stock=instance)
         if counter:
             query = query.filter(counter=counter)
+        query = query.filter(trashed=False)
         qty = query.aggregate(models.Sum('transferred_qty'))['transferred_qty__sum']
+        return qty
+
+    def instance_qty(self, instance, filter_type='transfer', counter=None):
+        if filter_type == 'transfer':
+            query = self.get_queryset().filter(transfer=instance)
+        else:
+            query = self.get_queryset().filter(stock=instance)
+        if counter:
+            query = query.filter(counter=counter)
+        query = query.filter(trashed=False).filter(transfer__trashed=False)
+        qty = query.aggregate(models.Sum('qty'))['qty__sum']
         return qty
 
     def instance_sold_quantity(self, instance, filter_type='transfer', counter=None):

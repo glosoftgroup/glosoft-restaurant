@@ -12,6 +12,7 @@ urlpatterns = [
     url(r'^$', TemplateView.as_view(template_name=module+"/list.html"), name="index"),
     url(r'^api/list/$', ListAPIView.as_view(), name='api-list'),
     url(r'^api/graph/$', SnippetList.as_view(), name='api-list'),
+    url(r'^api/graph/recharts/$', RechartsList.as_view(), name='api-list'),
     url(r'^api/list/items/(?P<pk>[0-9]+)/$', ListItemsAPIView.as_view(), name='api-list-items'),
     url(r'^api/list/stock/$', ListStockAPIView.as_view(), name='api-list-all-stock'),
     url(r'^api/list/stock/(?P<pk>[0-9]+)/$', ListStockAPIView.as_view(), name='api-list-stock'),

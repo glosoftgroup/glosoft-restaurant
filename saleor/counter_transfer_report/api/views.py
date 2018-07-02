@@ -277,10 +277,17 @@ class SnippetList(APIView):
     def get(self, request, format=None):
         start_date = self.request.GET.get('start_date')
         end_date = self.request.GET.get('end_date')
-        snippets = Table.objects.all_items_filter(start_date, end_date)
-        items = []
-        for i in snippets:
-            items.append({"name": i[0], "counter": i[1], "total": i[2]})
-            print list(i)
-        serializer = SnippetSerializer(items, many=True)
-        return Response(serializer.data)
+        query = Table.objects.all_items_filter(start_date, end_date)
+        serializer = SnippetSerializer(query, many=True)
+        return Response(query)
+
+
+class RechartsList(APIView):
+    """
+    List all snippets, or create a new snippet.
+    """
+    def get(self, request, format=None):
+        start_date = self.request.GET.get('start_date')
+        end_date = self.request.GET.get('end_date')
+        query = Table.objects.recharts_items_filter(start_date, end_date)
+        return Response(query)
