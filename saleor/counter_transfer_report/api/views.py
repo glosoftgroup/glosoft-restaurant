@@ -291,3 +291,13 @@ class RechartsList(APIView):
         end_date = self.request.GET.get('end_date')
         query = Table.objects.recharts_items_filter(start_date, end_date)
         return Response(query)
+
+class RechartsListTotal(APIView):
+    """
+    List all snippets, or create a new snippet.
+    """
+    def get(self, request, format=None):
+        start_date = self.request.GET.get('start_date')
+        end_date = self.request.GET.get('end_date')
+        query = Table.objects.recharts_items_price(start_date, end_date)
+        return Response(query)

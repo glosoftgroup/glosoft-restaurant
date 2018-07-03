@@ -424,7 +424,6 @@ class SnippetSerializer(serializers.Serializer):
     categories = serializers.JSONField(required=False)
 
     def get_series(self, obj):
-        print obj
         return obj
     # total = serializers.IntegerField()
     # counter = serializers.CharField()

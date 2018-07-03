@@ -1,5 +1,5 @@
 import graphene
-
+from graphene.types.generic import GenericScalar
 from graphene_django.types import DjangoObjectType
 
 from saleor.graphql.utils import get_paginator
@@ -12,6 +12,7 @@ from saleor.counter.models import Counter
 class TransferGraphType(DjangoObjectType):
     date = graphene.String()
     total_item = graphene.Int()
+    series = GenericScalar()
 
     class Meta:
         model = Transfer
@@ -63,7 +64,20 @@ class CounterPaginatedType(graphene.ObjectType):
     results = graphene.List(CounterType)
 
 
+class User(graphene.ObjectType):
+    """ Type definition for User """
+    id = graphene.Int()
+    username = graphene.String()
+    email = graphene.String()
+
+
 class Query(object):
+    users = graphene.List(User)
+
+    def resolve_users(self, args):
+        resp = {'id': 39330, 'username': 'RCraig', "email": 'WRussell@dolor.gov'}
+        return resp
+
     """ Counter """
     all_counters = graphene.Field(CounterPaginatedType, page=graphene.Int())
 
@@ -75,7 +89,7 @@ class Query(object):
 
     """ Counter Transfer """
     transfer_graph = graphene.Field(
-        TransferPaginatedType,
+        TransferGraphType,
         page=graphene.Int(),
         start_date=graphene.String(),
         end_date=graphene.String()
@@ -83,6 +97,7 @@ class Query(object):
 
     def resolve_transfer_graph(self, info, start_date=None, end_date=None, **kwargs):
         return Transfer.objects.all_items_filter(start_date=start_date, end_date=end_date)
+        # return data['series']
 
     all_counter_transfer = graphene.Field(
         TransferPaginatedType,

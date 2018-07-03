@@ -11,11 +11,40 @@ from django.core.validators import MinValueValidator, RegexValidator
 from django.contrib.auth.models import (AbstractBaseUser, BaseUserManager, PermissionsMixin)
 from saleor.counter.models import Counter
 from saleor.product.models import Stock
-from saleor.counter_transfer_report.models import Transfer as Report
-from saleor.counter_transfer_report.models import TransferItems as ReportItem
 
 
 class TransferManager(BaseUserManager):
+    def recharts_items_price(self, start_date=None, end_date=None):
+        query = self.all()
+        if start_date and end_date is not None:
+            query = query.filter(
+                models.Q(date__gte=start_date) &
+                models.Q(date__lte=end_date)
+            )
+        else:
+            if start_date is not None:
+                query = query.filter(date__gte=start_date)
+            if end_date is not None:
+                query = query.filter(date__lte=end_date)
+        query_dates = query.values_list('date').annotate(
+            total_item=models.Sum('counter_transfer_items__transferred_qty'))
+        items = []
+        for date in query_dates:
+            query_date = list(date)[0]
+            date_transfers = self.filter(date__icontains=query_date)
+            transferred = 0
+            sold = 0
+            deficit = 0
+            for transfer in date_transfers:
+                transferred += transfer.counter_transfer_items.all().aggregate(total=models.Sum('total'))['total']
+                sold += transfer.counter_transfer_items.all().aggregate(total=models.Sum('total'))['total']
+                deficit += transfer.counter_transfer_items.all().aggregate(total=models.Sum('deficit'))['total']
+            items.append({
+                'name': query_date, 'sold': sold,
+                'transferred': transferred, 'deficit': deficit
+            })
+        return items
+
     def recharts_items_filter(self, start_date=None, end_date=None):
         query = self.all()
         if start_date and end_date is not None:
@@ -139,12 +168,13 @@ class CounterTransfer(models.Model):
         return False
 
     def on_post_save(self):
-        print "%s.on_post_save()" % self
+        pass
+        # print "%s.on_post_save()" % self
         # ReportItem.objects.create_report(self)
 
     def on_post_delete(self):
-        print "%s.on_post_save()" % self
-        print '(-----*---)-}'*120
+        pass
+        # print "%s.on_post_save()" % self
 
 
 class TransferItemManager(BaseUserManager):
@@ -260,6 +290,9 @@ class CounterTransferItems(models.Model):
                               verbose_name=pgettext_lazy('CounterTransfer field', 'tax'))
     discount = models.DecimalField(max_digits=9, decimal_places=2, default=Decimal(0),
                                    verbose_name=pgettext_lazy('CounterTransfer field', 'discount'))
+    total = models.DecimalField(max_digits=9, decimal_places=2, default=Decimal(0),
+                                verbose_name=pgettext_lazy('CounterTransfer field', 'total price'))
+
     qty = models.PositiveIntegerField(default=1,
                                       verbose_name=pgettext_lazy('CounterTransfer field', 'quantity'))
     transferred_qty = models.PositiveIntegerField(default=1,
@@ -292,6 +325,10 @@ class CounterTransferItems(models.Model):
     def __str__(self):
         return str(self.sku) + ' ' + str(self.qty)
 
+    def save(self, *args, **kwargs):
+        self.total = self.qty * self.price
+        super(CounterTransferItems, self).save(*args, **kwargs)
+
 
 @receiver(signals.post_save)
 def search_on_post_save(sender, instance, **kwargs):
@@ -303,5 +340,6 @@ def search_on_post_save(sender, instance, **kwargs):
 def search_on_post_delete(sender, instance, **kwargs):
     if issubclass(sender, CounterTransfer):
          instance.on_post_delete()
+
 
 
