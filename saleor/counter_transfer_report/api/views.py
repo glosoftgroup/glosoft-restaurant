@@ -1,13 +1,15 @@
 import datetime
 from rest_framework import generics
+from rest_framework.views import APIView
+from rest_framework.response import Response
 from django.db.models import Q
 from django.contrib.auth import get_user_model
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework import pagination
 from .pagination import PostLimitOffsetPagination
-from saleor.counter_transfer_report.models import Transfer as Table
+from saleor.countertransfer.models import CounterTransfer as Table
 from saleor.product.models import Stock
-from saleor.counter_transfer_report.models import TransferItems as Item
+from saleor.countertransfer.models import CounterTransferItems as Item
 from .serializers import (
     CloseTransferItemSerializer,
     CreateListSerializer,
@@ -15,38 +17,11 @@ from .serializers import (
     UpdateSerializer,
     UpdateTransferItemSerializer,
     ItemsSerializer,
-    ItemsStockSerializer
+    ItemsStockSerializer,
+    SnippetSerializer
      )
 from saleor.core.utils.closing_time import is_business_time
 User = get_user_model()
-
-
-class CreateAPIView(generics.CreateAPIView):
-    queryset = Table.objects.all()
-    serializer_class = CreateListSerializer
-
-    def perform_update(self, serializer):
-        serializer.save(user=self.request.user)
-
-
-class DestroyView(generics.DestroyAPIView):
-    queryset = Table.objects.all()
-
-    def perform_destroy(self, instance):
-        items = instance.counter_transfer_items.all()
-        for item in items:
-            Stock.objects.increase_stock(item.stock, item.qty)
-        # raise serializers.ValidationError('You cannot delete ')
-        instance.delete()
-
-
-class DestroyItemView(generics.DestroyAPIView):
-    queryset = Item.objects.all()
-
-    def perform_destroy(self, instance):
-        Stock.objects.increase_stock(instance.stock, instance.qty)
-        # raise serializers.ValidationError('You cannot delete ')
-        instance.delete()
 
 
 class ListAPIView(generics.ListAPIView):
@@ -295,14 +270,34 @@ class UpdateItemAPIView(generics.RetrieveUpdateAPIView):
     serializer_class = UpdateTransferItemSerializer
 
 
-class CloseItemAPIView(generics.RetrieveUpdateAPIView):
+class SnippetList(APIView):
     """
-        update instance details
-        @:param pk id
-        @:method PUT
+    List all snippets, or create a new snippet.
+    """
+    def get(self, request, format=None):
+        start_date = self.request.GET.get('start_date')
+        end_date = self.request.GET.get('end_date')
+        query = Table.objects.all_items_filter(start_date, end_date)
+        serializer = SnippetSerializer(query, many=True)
+        return Response(query)
 
-        PUT /api/house/update/
-        payload Json: /payload/update.json
+
+class RechartsList(APIView):
     """
-    queryset = Item.objects.all()
-    serializer_class = CloseTransferItemSerializer
+    List all snippets, or create a new snippet.
+    """
+    def get(self, request, format=None):
+        start_date = self.request.GET.get('start_date')
+        end_date = self.request.GET.get('end_date')
+        query = Table.objects.recharts_items_filter(start_date, end_date)
+        return Response(query)
+
+class RechartsListTotal(APIView):
+    """
+    List all snippets, or create a new snippet.
+    """
+    def get(self, request, format=None):
+        start_date = self.request.GET.get('start_date')
+        end_date = self.request.GET.get('end_date')
+        query = Table.objects.recharts_items_price(start_date, end_date)
+        return Response(query)

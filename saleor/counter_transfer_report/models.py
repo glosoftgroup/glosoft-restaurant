@@ -11,8 +11,8 @@ from saleor.counter.models import Counter
 
 
 class TransferManager(BaseUserManager):
-    def create_report(self, date, counter, user, **extra_fields):
-        report = self.model(date=date, counter=counter, user=user, **extra_fields)
+    def create_report(self, instance, **extra_fields):
+        report = self.model(transfer_id=instance.id, date=instance.date, counter=instance.counter, user=instance.user, **extra_fields)
         report.save()
 
     def all_items_filter(self, start_date=None, end_date=None):
@@ -37,6 +37,9 @@ class TransferManager(BaseUserManager):
 
 
 class Transfer(models.Model):
+    transfer_id = models.IntegerField(
+        pgettext_lazy('Transfer item field', 'transfer_id'),
+        validators=[MinValueValidator(0)], default=Decimal(1))
     counter = models.ForeignKey(Counter, on_delete=models.CASCADE, blank=True, null=True,
                                 verbose_name=pgettext_lazy("CounterTransfer field", 'counter'))
     user = models.ForeignKey(
@@ -74,6 +77,11 @@ class Transfer(models.Model):
 
 
 class TransferItemManager(BaseUserManager):
+    def create_report_item(self, instance, **extra_fields):
+        print instance.__dict__
+        report = self.model(**extra_fields)
+        report.save()
+
     def carry_forward_quantity(self, stock):
         query = self.get_queryset().filter(stock=stock)
         query = query.filter(closed=True)

@@ -3,8 +3,8 @@ from decimal import Decimal
 import datetime
 from django.utils.formats import localize
 from rest_framework import serializers
-from saleor.counter_transfer_report.models import Transfer as Table
-from saleor.counter_transfer_report.models import TransferItems as Item
+from saleor.countertransfer.models import CounterTransfer as Table
+from saleor.countertransfer.models import CounterTransferItems as Item
 from saleor.product.models import Stock
 
 global fields, item_fields, module
@@ -14,6 +14,7 @@ fields = ('id',
           'user',
           'counter',
           'created',
+          'trashed',
           'date',
           'description')
 
@@ -32,6 +33,7 @@ item_fields = ('id',
                'quantity',
                'counter',
                'closed',
+               'trashed',
                'productName',
                'description',
                'product_category',)
@@ -118,7 +120,7 @@ class ItemsStockSerializer(serializers.ModelSerializer):
             return Item.objects.instance_quantities(obj.stock, filter_type='stock', counter=obj.counter)
         except:
             return 0
-            
+
     def get_counter(self, obj):
         try:
             return {"id": obj.counter.id, "name": obj.counter.name}
@@ -197,28 +199,25 @@ class UpdateTransferItemSerializer(serializers.ModelSerializer):
 
 
 class TableListSerializer(serializers.ModelSerializer):
-    update_url = serializers.HyperlinkedIdentityField(view_name=module+':api-update')
-    update_items_url = serializers.HyperlinkedIdentityField(view_name=module+':update')
-    closing_items_url = serializers.HyperlinkedIdentityField(view_name=module+':close-item')
-    closing_items_view_url = serializers.HyperlinkedIdentityField(view_name=module+':close-item-view')
-    delete_url = serializers.HyperlinkedIdentityField(view_name=module+':api-delete')
-    view_url = serializers.HyperlinkedIdentityField(view_name=module+':update-view')
+    update_url = serializers.HyperlinkedIdentityField(view_name=module + ':api-update')
+    update_items_url = serializers.HyperlinkedIdentityField(view_name=module + ':update')
+    view_url = serializers.HyperlinkedIdentityField(view_name=module + ':update-view')
     text = serializers.SerializerMethodField()
     counter = serializers.SerializerMethodField()
     date = serializers.SerializerMethodField()
-    counter_transfer_report_items = ItemsSerializer(many=True)
+    counter_transfer_items = ItemsSerializer(many=True)
     quantity = serializers.SerializerMethodField()
+    sold = serializers.SerializerMethodField()
+    price = serializers.SerializerMethodField()
     worth = serializers.SerializerMethodField()
     all_item_closed = serializers.SerializerMethodField()
 
     class Meta:
         model = Table
         fields = fields + (
-            'quantity', 'worth', 'all_item_closed',
-            'counter_transfer_report_items', 'text',
-            'closing_items_url', 'view_url',
-            'closing_items_view_url', 'update_url',
-            'delete_url', 'update_items_url')
+            'quantity', 'sold', 'price', 'worth', 'all_item_closed',
+            'counter_transfer_items', 'text',
+            'view_url', 'update_url', 'update_items_url')
 
     def get_text(self, obj):
         try:
@@ -232,6 +231,12 @@ class TableListSerializer(serializers.ModelSerializer):
     def get_quantity(self, obj):
         return Item.objects.instance_quantities(obj)
 
+    def get_sold(self, obj):
+        return Item.objects.instance_sold_quantity(obj)
+
+    def get_price(self, obj):
+        return Item.objects.instance_sold_price(obj)
+
     def get_worth(self, obj):
         return "{:,}".format(Item.objects.instance_worth(obj))
 
@@ -240,7 +245,7 @@ class TableListSerializer(serializers.ModelSerializer):
 
     def get_counter(self, obj):
         try:
-            return {'id': obj.counter.id, 'name': obj.counter.name }
+            return {'id': obj.counter.id, 'name': obj.counter.name}
         except:
             return ''
 
@@ -356,7 +361,7 @@ class CreateListSerializer(serializers.ModelSerializer):
         counter_transfer_items = validated_data.pop('counter_transfer_items')
 
         # check if transfer with counter/date exists
-        query = Table.objects.\
+        query = Table.objects. \
             filter(counter=instance.counter, date__icontains=instance.date)
         # if true update transferred items quantity and price
         # else save new instance and add items
@@ -375,7 +380,7 @@ class UpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Table
-        fields = ('id', 'date', 'action', 'items', )
+        fields = ('id', 'date', 'action', 'items',)
 
     def update(self, instance, validated_data):
         # action 1: carry forward 2: return to stock
@@ -411,3 +416,14 @@ class UpdateSerializer(serializers.ModelSerializer):
                 item.save()
         instance.save()
         return instance
+
+
+class SnippetSerializer(serializers.Serializer):
+    id = serializers.IntegerField(read_only=True)
+    series = serializers.SerializerMethodField()
+    categories = serializers.JSONField(required=False)
+
+    def get_series(self, obj):
+        return obj
+    # total = serializers.IntegerField()
+    # counter = serializers.CharField()

@@ -43,6 +43,7 @@ class MenuTransfer(models.Model):
                             default=now)
     created = models.DateTimeField(pgettext_lazy('MenuTransfer field', 'created'),
                                    default=now, editable=False)
+    trashed = models.BooleanField(default=False)
 
     objects = TransferManager()
 
@@ -59,6 +60,13 @@ class MenuTransfer(models.Model):
         if query.exists():
             return False
         return True
+
+    def any_closed(self):
+        """ Return true if one of its transferred item is closed """
+        query = self.kitchen_transfer_items.filter(closed=True)
+        if query.exists():
+            return True
+        return False
 
 
 class TransferItemManager(BaseUserManager):
@@ -86,20 +94,33 @@ class TransferItemManager(BaseUserManager):
         if filter_type == 'transfer':
             query = self.get_queryset().filter(transfer=instance)
         else:
-            query = self.get_queryset().filter(stock=instance)
+            query = self.get_queryset()  #.filter(stock=instance)
         if counter:
             query = query.filter(counter=counter)
         qty = query.aggregate(models.Sum('qty'))['qty__sum']
         return qty
 
     def instance_worth(self, instance, filter_type='transfer'):
+        return 0
+
+    def instance_sold_quantity(self, instance, filter_type='transfer', counter=None):
         if filter_type == 'transfer':
             query = self.get_queryset().filter(transfer=instance)
         else:
-            query = self.get_queryset().filter(stock=instance)
+            query = self.get_queryset()
+        if counter:
+            query = query.filter(counter=counter)
+        qty = query.aggregate(models.Sum('sold'))['sold__sum']
+        return qty
+
+    def instance_sold_price(self, instance, filter_type='transfer'):
+        if filter_type == 'transfer':
+            query = self.get_queryset().filter(transfer=instance)
+        else:
+            query = self.get_queryset()  # filter(stock=instance)
         total = 0
         for i in query:
-            total += Decimal(i.qty) * Decimal(i.price)
+            total += Decimal(i.sold) * Decimal(i.price)
         return total
 
 
@@ -153,6 +174,7 @@ class TransferItems(models.Model):
     created = models.DateTimeField(pgettext_lazy('TransferItems field', 'created'),
                                    default=now, editable=False)
     closed = models.BooleanField(default=False)
+    trashed = models.BooleanField(default=False)
     objects = TransferItemManager()
 
     class Meta:

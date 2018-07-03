@@ -14,6 +14,7 @@ fields = ('id',
           'user',
           'counter',
           'created',
+          'trashed',
           'date',
           'description')
 
@@ -32,6 +33,7 @@ item_fields = ('id',
                'quantity',
                'counter',
                'closed',
+               'trashed',
                'productName',
                'description',
                'product_category',)
@@ -115,7 +117,7 @@ class ItemsStockSerializer(serializers.ModelSerializer):
 
     def get_quantity(self, obj):
         try:
-            return Item.objects.instance_quantities(obj.stock, filter_type='stock', counter=obj.counter)
+            return Item.objects.instance_qty(obj.stock, filter_type='stock', counter=obj.counter)
         except:
             return 0
             

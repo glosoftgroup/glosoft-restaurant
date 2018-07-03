@@ -18,6 +18,7 @@ from .serializers import (
     ItemsStockSerializer
      )
 from saleor.core.utils.closing_time import is_business_time
+from ...decorators import user_trail
 User = get_user_model()
 
 
@@ -25,8 +26,11 @@ class CreateAPIView(generics.CreateAPIView):
     queryset = Table.objects.all()
     serializer_class = CreateListSerializer
 
-    def perform_update(self, serializer):
+    def perform_create(self, serializer):
+        serializer.user = self.request.user
         serializer.save(user=self.request.user)
+        user_trail(self.request.user.name,
+                   'made a counter transfer:#' + str(serializer.data['date']), 'add')
 
 
 class DestroyView(generics.DestroyAPIView):
@@ -37,7 +41,11 @@ class DestroyView(generics.DestroyAPIView):
         for item in items:
             Stock.objects.increase_stock(item.stock, item.qty)
         # raise serializers.ValidationError('You cannot delete ')
-        instance.delete()
+        if instance.any_closed():
+            instance.trashed = True
+            instance.save()
+        else:
+            instance.delete()
 
 
 class DestroyItemView(generics.DestroyAPIView):
@@ -46,7 +54,11 @@ class DestroyItemView(generics.DestroyAPIView):
     def perform_destroy(self, instance):
         Stock.objects.increase_stock(instance.stock, instance.qty)
         # raise serializers.ValidationError('You cannot delete ')
-        instance.delete()
+        if instance.closed:
+            instance.trashed = True
+            instance.save()
+        else:
+            instance.delete()
 
 
 class ListAPIView(generics.ListAPIView):
@@ -64,13 +76,12 @@ class ListAPIView(generics.ListAPIView):
         return {"date": None, 'request': self.request}
 
     def get_queryset(self, *args, **kwargs):
+        queryset_list = Table.objects.filter(trashed=False)
         try:
             if self.kwargs['pk']:
-                queryset_list = Table.objects.filter(customer__pk=self.kwargs['pk']).order_by('car').distinct('car').select_related()
-            else:
-                queryset_list = Table.objects.all.select_related()
+                queryset_list = queryset_list.filter(customer__pk=self.kwargs['pk']).order_by('car').distinct('car').select_related()
         except Exception as e:
-            queryset_list = Table.objects.all()
+            pass
 
         page_size = 'page_size'
         if self.request.GET.get(page_size):
@@ -114,13 +125,12 @@ class ListItemsAPIView(generics.ListAPIView):
         return {"date": None, 'request': self.request}
 
     def get_queryset(self, *args, **kwargs):
+        queryset_list = Item.objects.filter(trashed=False)
         try:
             if self.kwargs['pk']:
-                queryset_list = Item.objects.filter(transfer__pk=self.kwargs['pk']).select_related()
-            else:
-                queryset_list = Item.objects.all.select_related()
+                queryset_list = queryset_list.filter(transfer__pk=self.kwargs['pk']).select_related()
         except Exception as e:
-            queryset_list = Item.objects.all()
+            pass
 
         page_size = 'page_size'
         if self.request.GET.get(page_size):
