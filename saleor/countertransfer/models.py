@@ -29,8 +29,12 @@ class TransferManager(BaseUserManager):
         query_dates = query.values_list('date').annotate(
             total_item=models.Sum('counter_transfer_items__transferred_qty'))
         items = []
-        for date in query_dates:
-            query_date = list(date)[0]
+        dates = []
+        for d in query_dates:
+            dates.append(list(d)[0])
+        dates = sorted(dates)
+        for date in dates:
+            query_date = date
             date_transfers = self.filter(date__icontains=query_date)
             transferred = 0
             sold = 0
@@ -60,8 +64,12 @@ class TransferManager(BaseUserManager):
         query_dates = query.values_list('date').annotate(
             total_item=models.Sum('counter_transfer_items__transferred_qty'))
         items = []
-        for date in query_dates:
-            query_date = list(date)[0]
+        dates = []
+        for d in query_dates:
+            dates.append(list(d)[0])
+        dates = sorted(dates)
+        for date in dates:
+            query_date = date
             date_transfers = self.filter(date__icontains=query_date)
             transferred = 0
             sold = 0

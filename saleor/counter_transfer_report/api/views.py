@@ -52,8 +52,50 @@ class ListAPIView(generics.ListAPIView):
             pagination.PageNumberPagination.page_size = self.request.GET.get(page_size)
         else:
             pagination.PageNumberPagination.page_size = 10
-        if self.request.GET.get('date'):
-            queryset_list = queryset_list.filter(date__icontains=self.request.GET.get('date'))
+        mode = self.request.GET.get('mode')
+        date = self.request.GET.get('date')
+        date_from = self.request.GET.get('date_from')
+        date_to = self.request.GET.get('date_to')
+        if date:
+            year = date.split("-")[0]
+            if len(date.split('-')) >= 2:
+                month = date.split("-")[1]
+            else:
+                month = "01"
+            if mode == "month":
+                queryset_list = queryset_list.filter(date__year=year,
+                                                     date__month=month)
+            elif mode == "year":
+                queryset_list = queryset_list.filter(date__year=year)
+            else:
+                queryset_list = queryset_list.filter(date__icontains=date)
+        # filter date range
+        elif date_from and date_to:
+            if mode:
+                year_from = date_from.split("-")[0]
+                if len(date_from.split('-')) >= 2:
+                    month_from = date_from.split("-")[1]
+                else:
+                    month_from = "01"
+
+                year_to = date_to.split("-")[0]
+                if len(date_to.split('-')) >= 2:
+                    month_to = date_to.split("-")[1]
+                else:
+                    month_to = "01"
+
+                if mode == "month":
+                    queryset_list = queryset_list.filter(date__year__gte=year_from,
+                                                         date__month__gte=month_from,
+                                                         date__year__lte=year_to,
+                                                         date__month__lte=month_to)
+                elif mode == "year":
+                    queryset_list = queryset_list.filter(date__year__gte=year_from,
+                                                         date__year__lte=year_to)
+                else:
+                    queryset_list = queryset_list.filter(date__range=[date_from, date_to])
+            else:
+                queryset_list = queryset_list.filter(date__range=[date_from, date_to])
 
         query = self.request.GET.get('q')
         if query:
@@ -287,10 +329,11 @@ class RechartsList(APIView):
     List all snippets, or create a new snippet.
     """
     def get(self, request, format=None):
-        start_date = self.request.GET.get('start_date')
-        end_date = self.request.GET.get('end_date')
+        start_date = self.request.GET.get('date_from')
+        end_date = self.request.GET.get('date_to')
         query = Table.objects.recharts_items_filter(start_date, end_date)
         return Response(query)
+
 
 class RechartsListTotal(APIView):
     """

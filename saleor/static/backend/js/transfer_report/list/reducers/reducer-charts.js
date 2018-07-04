@@ -1,9 +1,6 @@
-import SET_CHART_OPTIONS from '../actions/action-charts';
+import { SET_CHART_OPTIONS } from '../actions/action-charts';
 
-const initialState = {
-  series: [],
-  categories: []
-};
+const initialState = [];
 
 export default (state = initialState, action) => {
   switch (action.type) {

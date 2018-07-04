@@ -13,7 +13,7 @@ import { setChartOptions } from '../actions/action-charts';
 /**
  * Utils
  */
-import Api from '../api/Api';
+// import Api from '../api/Api';
 
 export class GraphList extends Component {
   constructor(props) {
@@ -51,37 +51,41 @@ export class GraphList extends Component {
     };
   }
   componentWillMount() {
-    Api.retrieve('/counter/transfer/report/api/graph/recharts/')
-    // Api.retrieve('/counter/transfer/report/api/graph/')
-    .then(response => { return response.data; })
-    .then(data => {
-      // console.error(data);
-      this.props.setChartOptions(data);
-      var options = this.state.options;
-      options = {
-        ...options,
-        series: data.series,
-        categories: data.categories
-      };
-      this.setState({data, options});
-    })
-    .catch(error => console.error(error));
+    // Api.retrieve('/counter/transfer/report/api/graph/recharts/')
+    // // Api.retrieve('/counter/transfer/report/api/graph/')
+    // .then(response => { return response.data; })
+    // .then(data => {
+    //   // console.error(data);
+    //   this.props.setChartOptions(data);
+    //   var options = this.state.options;
+    //   options = {
+    //     ...options,
+    //     series: data.series,
+    //     categories: data.categories
+    //   };
+    //   this.setState({data, options});
+    // })
+    // .catch(error => console.error(error));
   }
   render() {
     return (
       <div>
-        <Rechart data={this.state.data}/>
+        <Rechart data={this.props.charts}/>
       </div>
     );
   }
 }
+GraphList.propTypes = {
+  setChartOptions: PropTypes.func.isRequired,
+  charts: PropTypes.array.isRequired
+};
 const mapDispatchToProps = (dispatch) => {
   return bindActionCreators({
     setChartOptions
   }, dispatch);
 };
+const mapStateToProps = (state) => ({
+  charts: state.charts
+});
 
-GraphList.propTypes = {
-  setChartOptions: PropTypes.func.isRequired
-};
-export default connect(undefined, mapDispatchToProps)(GraphList);
+export default connect(mapStateToProps, mapDispatchToProps)(GraphList);
