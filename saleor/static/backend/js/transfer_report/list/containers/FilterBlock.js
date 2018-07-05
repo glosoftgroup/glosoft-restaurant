@@ -46,8 +46,7 @@ class FilterBlock extends Component {
       defaultFilter: 1,
       filters: [
         {'text': 'Filter', 'id': '1'},
-        {'text': 'Range Filter', 'id': '3'},
-        {'text': 'Compare', 'id': '2'}
+        {'text': 'Range Filter', 'id': '3'}
       ],
       rangeStatus: false,
       compareStatus: false

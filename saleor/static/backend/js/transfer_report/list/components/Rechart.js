@@ -17,8 +17,8 @@ export class Rechart extends Component {
         <Tooltip/>
         <Legend/>
         <CartesianGrid stroke='#f5f5f5'/>
-        <Area type='monotone' dataKey='sold' fill='#8884d8' stroke='#8884d8'/>
-        <Bar dataKey='transferred' barSize={20} fill='#413ea0'/>
+        <Area type='monotone' dataKey='transferred' fill='#8884d8' stroke='#8884d8'/>
+        <Bar dataKey='sold' barSize={20} fill='#413ea0'/>
         <Line type='monotone' dataKey='deficit' stroke='#ff7300'/>
       </ComposedChart>
       </div>

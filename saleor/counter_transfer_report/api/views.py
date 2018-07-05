@@ -324,14 +324,29 @@ class SnippetList(APIView):
         return Response(query)
 
 
+class HighchartPieList(APIView):
+    """
+    List all snippets, or create a new snippet.
+    """
+    def get(self, request, format=None):
+        mode = self.request.GET.get('mode')
+        date = self.request.GET.get('date')
+        date_from = self.request.GET.get('date_from')
+        date_to = self.request.GET.get('date_to')
+        query = Table.objects.highcharts_pie_filter(date_from, date_to, date, mode)
+        return Response(query)
+
+
 class RechartsList(APIView):
     """
     List all snippets, or create a new snippet.
     """
     def get(self, request, format=None):
-        start_date = self.request.GET.get('date_from')
-        end_date = self.request.GET.get('date_to')
-        query = Table.objects.recharts_items_filter(start_date, end_date)
+        mode = self.request.GET.get('mode')
+        date = self.request.GET.get('date')
+        date_from = self.request.GET.get('date_from')
+        date_to = self.request.GET.get('date_to')
+        query = Table.objects.recharts_items_filter(date_from, date_to, date, mode)
         return Response(query)
 
 

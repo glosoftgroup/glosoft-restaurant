@@ -15,6 +15,12 @@ import { setChartOptions } from '../actions/action-charts';
  */
 // import Api from '../api/Api';
 
+/**
+ * Components
+ */
+// import LineChart from './LineChart';
+import PieChart from './PieChart';
+
 export class GraphList extends Component {
   constructor(props) {
     super(props);
@@ -71,6 +77,8 @@ export class GraphList extends Component {
     return (
       <div>
         <Rechart data={this.props.charts}/>
+        {/* <LineChart /> */}
+        <PieChart />
       </div>
     );
   }

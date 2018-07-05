@@ -3,6 +3,7 @@ import ItemReducer from './reducer-items';
 import ItemSearch from './reducer-search';
 import ItemDate from './reducer-date';
 import charts from './reducer-charts';
+import pie from './reducer-pie';
 import mode from './reducer-mode';
 
 const allReducers = combineReducers({
@@ -10,7 +11,8 @@ const allReducers = combineReducers({
   search: ItemSearch,
   date: ItemDate,
   charts: charts,
-  mode
+  mode,
+  pie
 });
 
 export default allReducers;
