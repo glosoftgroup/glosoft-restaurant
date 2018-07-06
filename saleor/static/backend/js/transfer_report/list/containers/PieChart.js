@@ -50,7 +50,13 @@ class PieChart extends React.Component {
         plotBackgroundColor: null,
         plotBorderWidth: null,
         plotShadow: false,
-        type: 'pie'
+        type: 'pie',
+        options3d: {
+          enabled: true,
+          alpha: 45,
+          beta: 0
+        },
+        polar: false
       },
       title: {
         text: this.state.title
@@ -61,7 +67,10 @@ class PieChart extends React.Component {
       plotOptions: {
         pie: {
           allowPointSelect: true,
+          depth: 35,
           cursor: 'pointer',
+          innerSize: '60%',
+          showInLegend: true,
           dataLabels: {
             enabled: true,
             format: '<b>{point.name}</b>: {point.percentage:.1f} %',

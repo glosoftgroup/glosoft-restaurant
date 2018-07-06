@@ -75,10 +75,13 @@ export class GraphList extends Component {
   }
   render() {
     return (
-      <div>
-        <Rechart data={this.props.charts}/>
-        {/* <LineChart /> */}
-        <PieChart />
+      <div className="row">
+        <div className="col-md-6">
+          <Rechart data={this.props.charts}/>
+        </div>
+        <div className="col-md-6">
+          <PieChart />
+        </div>
       </div>
     );
   }
