@@ -23,6 +23,11 @@ import CsvExport from '../../../common/components/CsvExport';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 
+/**
+ * Actions
+ */
+import { toggleGraph } from '../actions/action-toggle-graph';
+
 class FilterBlock extends Component {
   /*
    * This component render search/datepicker components & transfer button.
@@ -46,11 +51,11 @@ class FilterBlock extends Component {
       defaultFilter: 1,
       filters: [
         {'text': 'Filter', 'id': '1'},
-        {'text': 'Range Filter', 'id': '3'},
-        {'text': 'Compare', 'id': '2'}
+        {'text': 'Range Filter', 'id': '3'}
       ],
       rangeStatus: false,
-      compareStatus: false
+      compareStatus: false,
+      checked: false
     };
   }
   componentWillMount() {
@@ -60,6 +65,12 @@ class FilterBlock extends Component {
     printCssPaths.push(baseURL + '/static/backend/css/core.css');
     printCssPaths.push(baseURL + '/static/backend/css/print.css');
     this.setState({printCssPaths});
+  }
+  toggleCheckBox = () => {
+    var checked = (this.state.checked === '') ? 'checked' : '';
+    this.setState({checked});
+    let open = !this.props.openGraph.open;
+    this.props.toggleGraph({open});
   }
   getData = () => {
     var items = [];
@@ -103,18 +114,16 @@ class FilterBlock extends Component {
   }
 
   renderDateComponent(){
-    var button,
-        periodChoice = this.state.defaultFilterChoice;
+    var button;
+    var periodChoice = this.state.defaultFilterChoice;
         
-    button = this.state.rangeStatus ? 
+    button = this.state.rangeStatus ?
             (
               periodChoice == 2 || periodChoice == 3 ? 
               <FilterMonthRange mode={ periodChoice == 2 ? "month" : "year"} /> : 
               <FilterDateRange />
-            ) 
-          : 
-            ( 
-              periodChoice == 2 || periodChoice == 3 ? 
+            ) :
+            (periodChoice == 2 || periodChoice == 3 ? 
               <FilterMonth mode={ periodChoice == 2 ? "month" : "year"} /> : 
               <FilterDate />        
             );
@@ -127,22 +136,22 @@ class FilterBlock extends Component {
         <div>
             <div className="panel no-print">
                 <div className="panel-body">
-                    <div className="col-md-2">
+                    <div className="col-md-1">
                     <label>Action</label>
                     <div className="form-group">
                         <Select2
-                            data={this.state.filters}
-                            onChange={this.onSelectChange}
-                            value={ this.state.defaultFilter }
-                            name="defaultFilter"
-                            options={{
-                              minimumResultsForSearch: -1,
-                              placeholder: 'Select Action'
-                            }}
+                          data={this.state.filters}
+                          onChange={this.onSelectChange}
+                          value={ this.state.defaultFilter }
+                          name="defaultFilter"
+                          options={{
+                            minimumResultsForSearch: -1,
+                            placeholder: 'Select Action'
+                          }}
                         />
                         </div>
                     </div>
-                    <div className="col-md-2">
+                    <div className="col-md-1">
                         <label>Period</label>
                         <div className="form-group">
                           <Select2
@@ -163,7 +172,7 @@ class FilterBlock extends Component {
                         {this.renderDateComponent()}
                         </div>
                     </div>
-                    <div className="col-md-2"> 
+                    <div className="col-md-2">
                       <label className="visibility-hidden">&nbsp;</label>
                       <div className="form-group">
                         <PrintThis printCssPaths={this.state.printCssPaths} title={this.state.title} />
@@ -175,6 +184,16 @@ class FilterBlock extends Component {
                         <CsvExport getData={this.getData} title={this.state.title} label={this.state.label} />
                       </div>
                     </div>
+                    <div className="col-md-1">
+                      <label> Graph</label>
+                      <div className="form-control">
+                        <div onClick={this.toggleCheckBox} className="checker">
+                          <span className={this.state.checked}>
+                            <input className="styleds" type="checkbox" />
+                          </span>
+                        </div>
+                      </div>
+                    </div>
                 </div>
             </div>
 
@@ -183,13 +202,15 @@ class FilterBlock extends Component {
   }
 }
 FilterBlock.propTypes = {
-  items: PropTypes.array.isRequired
+  items: PropTypes.array.isRequired,
+  openGraph: PropTypes.object.isRequired,
+  toggleGraph: PropTypes.func.isRequired
 };
 function mapDispatchToProps(dispatch) {
-  return bindActionCreators({}, dispatch);
+  return bindActionCreators({ toggleGraph }, dispatch);
 }
 
 function mapStateToProps(state) {
-  return { items: state.items };
+  return { items: state.items, openGraph: state.openGraph };
 }
 export default connect(mapStateToProps, mapDispatchToProps)(FilterBlock);

@@ -9,7 +9,7 @@ export const UPDATE_ITEM = 'UPDATE_ITEM';
 /**
  * Actions
  */
-import { setChartOptions } from '../actions/action-charts';
+import { setChartOptions, setPie } from '../actions';
 
 export const setItems = (payload) => ({
   type: SET_ITEMS,
@@ -34,20 +34,33 @@ export const fetchItems = (params = {}) => {
         url = url.slice(0, -1);
       }
     }
-    // listing items
+    /**
+     * listing items
+     */
     api.retrieve('/counter/transfer/report/api/list?' + url)
     .then(data => {
       data.loading = false;
       dispatch(setItems(data.data));
     })
     .catch(error => console.error(error));
-    // fetch graph data
+
+    /**
+     * fetch rechart graph data
+     */
     api.retrieve(`/counter/transfer/report/api/graph/recharts/?${url}`)
-    // Api.retrieve('/counter/transfer/report/api/graph/')
     .then(response => { return response.data; })
     .then(data => {
-      // console.error(data);
       dispatch(setChartOptions(data));
+    })
+    .catch(error => console.error(error));
+
+    /**
+     * fetch Pie Chart data
+     */
+    api.retrieve(`/counter/transfer/report/api/graph/pie/?${url}`)
+    .then(response => { return response.data; })
+    .then(data => {
+      dispatch(setPie(data));
     })
     .catch(error => console.error(error));
   };

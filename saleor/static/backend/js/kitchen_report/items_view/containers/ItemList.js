@@ -57,13 +57,13 @@ class ItemList extends Component {
         <h6 className="text-bold text-center">
          <span className="text-bold text-primary">DATE: </span>
          {this.props.items.date} &nbsp;
-         <span className="text-bold text-primary">Kitchen: </span>
+         <span className="text-bold text-primary">KITCHEN: </span>
          {this.props.items.counter}
         </h6>
         </div>
         <div className="col-md-4"></div>
         <h2 className="col-md-12 text-center text-bold yes-print">
-        Transferred Item Closing Report
+        Transferred Item Report
         </h2>
         <ReactTooltip place="bottom"/>
         <table className="table table-hover table-xs">
@@ -72,7 +72,7 @@ class ItemList extends Component {
               <th>.</th>
               <th>Product</th>
               <th>Transferred Qty</th>
-              <th>Sold/Used</th>
+              <th>Sold</th>
               <th>Selling Price</th>
               <th>Actual Qty</th>
               <th>Deficit/Surplus</th>
