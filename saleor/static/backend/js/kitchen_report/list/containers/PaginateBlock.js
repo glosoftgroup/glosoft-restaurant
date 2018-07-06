@@ -74,17 +74,30 @@ export class PaginateBlock extends Component {
     if (this.props.search) {
       params = { ...params, 'q': this.props.search.q };
     }
+
     if (this.props.date) {
-      params = { ...params, 'date': this.props.date.date };
+      if (this.props.date.date) {
+        params = { ...params, 'date': this.props.date.date };
+      }
+
+      if (this.props.date.date_from && this.props.date.date_to) {
+        var dateFrom = this.props.date.date_from;
+        var dateTo = this.props.date.date_to;
+        params = { ...params, 'date_from': dateFrom, 'date_to': dateTo };
+      }
     }
+    if (this.props.mode) {
+      params = { ...params, 'mode': this.props.mode.mode };
+    }
+
     this.props.fetchItems(params);
   }
 
   render() {
     return (
-      <div>
-        <div className="no-print row text-center mb-15">
-                <div className="col-md-2 page-of mt-15">
+      <div className={'no-print ' + this.props.openGraph.open}>
+        <div className="row text-center mb-15">
+                <div className="col-md-2 page-of mt-15 ml-15">
                 <Select2
                     data={this.state.pageSizes}
                     onChange={this.onSelectChange}
@@ -96,7 +109,7 @@ export class PaginateBlock extends Component {
                     }}
                 />
                 </div>
-                <div className="col-md-8 page-of mt-15">
+                <div className="col-md-7 page-of mt-15">
                     <Pagination
                         activePage={this.state.activePage}
                         itemsCountPerPage={this.state.itemsCountPerPage}
@@ -116,13 +129,17 @@ PaginateBlock.propTypes = {
   items: PropTypes.array.isRequired,
   date: PropTypes.object.isRequired,
   fetchItems: PropTypes.func.isRequired,
-  search: PropTypes.object.isRequired
+  search: PropTypes.object.isRequired,
+  mode: PropTypes.object.isRequired,
+  openGraph: PropTypes.object.isRequired
 };
 
 const mapStateToProps = (state) => ({
   items: state.items,
   search: state.search,
-  date: state.date
+  date: state.date,
+  mode: state.mode,
+  openGraph: state.openGraph
 });
 
 const mapDispatchToProps = (dispatch) => {

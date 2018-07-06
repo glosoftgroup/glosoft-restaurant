@@ -14,7 +14,7 @@ class ItemList extends Component {
    * */
   render() {
     return (
-      <div className="panel-group panel-group-control panel-group-control-right content-group-lg">
+      <div className={'panel-group panel-group-control panel-group-control-right content-group-lg ' + this.props.openGraph.open}>
       <ReactTooltip place="bottom"/>
         <table className="table table-hover table-xs">
           <thead>
@@ -57,11 +57,13 @@ class ItemList extends Component {
 }
 
 ItemList.propTypes = {
-  items: PropTypes.array.isRequired
+  items: PropTypes.array.isRequired,
+  openGraph: PropTypes.object.isRequired
 };
 function mapStateToProps(state) {
   return {
-    items: state.items
+    items: state.items,
+    openGraph: state.openGraph
   };
 }
 

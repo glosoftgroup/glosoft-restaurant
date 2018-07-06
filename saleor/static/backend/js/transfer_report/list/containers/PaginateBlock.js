@@ -95,7 +95,7 @@ export class PaginateBlock extends Component {
 
   render() {
     return (
-      <div className="no-print">
+      <div className={'no-print ' + this.props.openGraph.open}>
         <div className="row text-center mb-15">
                 <div className="col-md-2 page-of mt-15 ml-15">
                 <Select2
@@ -130,14 +130,16 @@ PaginateBlock.propTypes = {
   date: PropTypes.object.isRequired,
   fetchItems: PropTypes.func.isRequired,
   search: PropTypes.object.isRequired,
-  mode: PropTypes.object.isRequired
+  mode: PropTypes.object.isRequired,
+  openGraph: PropTypes.object.isRequired
 };
 
 const mapStateToProps = (state) => ({
   items: state.items,
   search: state.search,
   date: state.date,
-  mode: state.mode
+  mode: state.mode,
+  openGraph: state.openGraph
 });
 
 const mapDispatchToProps = (dispatch) => {
