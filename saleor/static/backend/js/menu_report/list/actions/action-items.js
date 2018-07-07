@@ -1,8 +1,15 @@
 import api from '../api/Api';
-
+/**
+ * Constants
+ */
 export const SET_ITEMS = 'SET_ITEMS';
 export const ADD_ITEM = 'ADD_ITEM';
 export const UPDATE_ITEM = 'UPDATE_ITEM';
+
+/**
+ * Actions
+ */
+import { setChartOptions, setPie } from '../actions';
 
 export const setItems = (payload) => ({
   type: SET_ITEMS,
@@ -27,10 +34,34 @@ export const fetchItems = (params = {}) => {
         url = url.slice(0, -1);
       }
     }
+    /**
+     * listing items
+     */
     api.retrieve('/menu/transfer/report/api/list?' + url)
-      .then(data => {
-        data.loading = false;
-        dispatch(setItems(data.data));
-      });
+    .then(data => {
+      data.loading = false;
+      dispatch(setItems(data.data));
+    })
+    .catch(error => console.error(error));
+
+    /**
+     * fetch rechart graph data
+     */
+    api.retrieve(`/menu/transfer/report/api/graph/recharts/?${url}`)
+    .then(response => { return response.data; })
+    .then(data => {
+      dispatch(setChartOptions(data));
+    })
+    .catch(error => console.error(error));
+
+    /**
+     * fetch Pie Chart data
+     */
+    api.retrieve(`/menu/transfer/report/api/graph/pie/?${url}`)
+    .then(response => { return response.data; })
+    .then(data => {
+      dispatch(setPie(data));
+    })
+    .catch(error => console.error(error));
   };
 };

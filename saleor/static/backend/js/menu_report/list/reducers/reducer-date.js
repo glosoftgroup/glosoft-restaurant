@@ -4,11 +4,13 @@
  * */
 
 // "state = null" is set so that we don't throw an error when app first boots up
-import { SET_DATE } from '../actions/action-date.js';
+import { SET_DATE, SET_DATE_RANGE } from '../actions/action-date.js';
 
 export default function (state = null, action) {
   switch (action.type) {
     case SET_DATE:
+      return action.payload;
+    case SET_DATE_RANGE:
       return action.payload;
   }
   return state;
