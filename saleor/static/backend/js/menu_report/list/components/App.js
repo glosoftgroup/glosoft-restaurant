@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import FilterBlock from '../containers/FilterBlock';
 import ItemList from '../containers/ItemList';
+import GraphList from '../containers/GraphList';
 import PaginationBlock from '../containers/PaginateBlock';
 import '../css/style.scss';
 import '../css/tooltip.scss';
@@ -20,6 +21,9 @@ export default class App extends Component {
           <div className="panel panel-body">
             <ItemList />
             <PaginationBlock />
+          </div>
+          <div className="panel panel-body">
+            <GraphList />
           </div>
         </div>
       </div>

@@ -1,5 +1,7 @@
 import datetime
 from rest_framework import generics
+from rest_framework.views import APIView
+from rest_framework.response import Response
 from django.db.models import Q
 from django.contrib.auth import get_user_model
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
@@ -15,38 +17,11 @@ from .serializers import (
     UpdateSerializer,
     UpdateTransferItemSerializer,
     ItemsSerializer,
-    ItemsStockSerializer
+    ItemsStockSerializer,
+    SnippetSerializer
      )
 from saleor.core.utils.closing_time import is_business_time
 User = get_user_model()
-
-
-class CreateAPIView(generics.CreateAPIView):
-    queryset = Table.objects.all()
-    serializer_class = CreateListSerializer
-
-    def perform_update(self, serializer):
-        serializer.save(user=self.request.user)
-
-
-class DestroyView(generics.DestroyAPIView):
-    queryset = Table.objects.all()
-
-    def perform_destroy(self, instance):
-        items = instance.counter_transfer_items.all()
-        for item in items:
-            Stock.objects.increase_stock(item.stock, item.qty)
-        # raise serializers.ValidationError('You cannot delete ')
-        instance.delete()
-
-
-class DestroyItemView(generics.DestroyAPIView):
-    queryset = Item.objects.all()
-
-    def perform_destroy(self, instance):
-        Stock.objects.increase_stock(instance.stock, instance.qty)
-        # raise serializers.ValidationError('You cannot delete ')
-        instance.delete()
 
 
 class ListAPIView(generics.ListAPIView):
@@ -77,8 +52,50 @@ class ListAPIView(generics.ListAPIView):
             pagination.PageNumberPagination.page_size = self.request.GET.get(page_size)
         else:
             pagination.PageNumberPagination.page_size = 10
-        if self.request.GET.get('date'):
-            queryset_list = queryset_list.filter(date__icontains=self.request.GET.get('date'))
+        mode = self.request.GET.get('mode')
+        date = self.request.GET.get('date')
+        date_from = self.request.GET.get('date_from')
+        date_to = self.request.GET.get('date_to')
+        if date:
+            year = date.split("-")[0]
+            if len(date.split('-')) >= 2:
+                month = date.split("-")[1]
+            else:
+                month = "01"
+            if mode == "month":
+                queryset_list = queryset_list.filter(date__year=year,
+                                                     date__month=month)
+            elif mode == "year":
+                queryset_list = queryset_list.filter(date__year=year)
+            else:
+                queryset_list = queryset_list.filter(date__icontains=date)
+        # filter date range
+        elif date_from and date_to:
+            if mode:
+                year_from = date_from.split("-")[0]
+                if len(date_from.split('-')) >= 2:
+                    month_from = date_from.split("-")[1]
+                else:
+                    month_from = "01"
+
+                year_to = date_to.split("-")[0]
+                if len(date_to.split('-')) >= 2:
+                    month_to = date_to.split("-")[1]
+                else:
+                    month_to = "01"
+
+                if mode == "month":
+                    queryset_list = queryset_list.filter(date__year__gte=year_from,
+                                                         date__month__gte=month_from,
+                                                         date__year__lte=year_to,
+                                                         date__month__lte=month_to)
+                elif mode == "year":
+                    queryset_list = queryset_list.filter(date__year__gte=year_from,
+                                                         date__year__lte=year_to)
+                else:
+                    queryset_list = queryset_list.filter(date__range=[date_from, date_to])
+            else:
+                queryset_list = queryset_list.filter(date__range=[date_from, date_to])
 
         query = self.request.GET.get('q')
         if query:
@@ -133,8 +150,8 @@ class ListItemsAPIView(generics.ListAPIView):
         query = self.request.GET.get('q')
         if query:
             queryset_list = queryset_list.filter(
-                Q(menu__category__name__icontains=query) |
-                Q(name__icontains=query))
+                Q(name__icontains=query) |
+                Q(menu__name__icontains=query))
         return queryset_list.order_by('-id')
 
 
@@ -201,8 +218,8 @@ class ListStockAPIView(generics.ListAPIView):
         query = self.request.GET.get('q')
         if query:
             queryset_list = queryset_list.filter(
-                Q(menu__category__name__icontains=query) |
-                Q(name__icontains=query))
+                Q(name__icontains=query) |
+                Q(menu__name__icontains=query))
         return queryset_list.order_by('stock')
 
 
@@ -264,8 +281,8 @@ class ListCategoryAPIView(generics.ListAPIView):
         query = self.request.GET.get('q')
         if query:
             queryset_list = queryset_list.filter(
-                Q(menu__category__name__icontains=query) |
-                Q(name__icontains=query))
+                Q(stock__variant__sku__icontains=query) |
+                Q(stock__variant__product__name__icontains=query))
         return queryset_list.distinct('stock').select_related().order_by('stock')
 
 
@@ -295,14 +312,50 @@ class UpdateItemAPIView(generics.RetrieveUpdateAPIView):
     serializer_class = UpdateTransferItemSerializer
 
 
-class CloseItemAPIView(generics.RetrieveUpdateAPIView):
+class SnippetList(APIView):
     """
-        update instance details
-        @:param pk id
-        @:method PUT
+    List all snippets, or create a new snippet.
+    """
+    def get(self, request, format=None):
+        start_date = self.request.GET.get('start_date')
+        end_date = self.request.GET.get('end_date')
+        query = Table.objects.all_items_filter(start_date, end_date)
+        serializer = SnippetSerializer(query, many=True)
+        return Response(query)
 
-        PUT /api/house/update/
-        payload Json: /payload/update.json
+
+class HighchartPieList(APIView):
     """
-    queryset = Item.objects.all()
-    serializer_class = CloseTransferItemSerializer
+    List all snippets, or create a new snippet.
+    """
+    def get(self, request, format=None):
+        mode = self.request.GET.get('mode')
+        date = self.request.GET.get('date')
+        date_from = self.request.GET.get('date_from')
+        date_to = self.request.GET.get('date_to')
+        query = Table.objects.highcharts_pie_filter(date_from, date_to, date, mode)
+        return Response(query)
+
+
+class RechartsList(APIView):
+    """
+    List all snippets, or create a new snippet.
+    """
+    def get(self, request, format=None):
+        mode = self.request.GET.get('mode')
+        date = self.request.GET.get('date')
+        date_from = self.request.GET.get('date_from')
+        date_to = self.request.GET.get('date_to')
+        query = Table.objects.recharts_items_filter(date_from, date_to, date, mode)
+        return Response(query)
+
+
+class RechartsListTotal(APIView):
+    """
+    List all snippets, or create a new snippet.
+    """
+    def get(self, request, format=None):
+        start_date = self.request.GET.get('start_date')
+        end_date = self.request.GET.get('end_date')
+        query = Table.objects.recharts_items_price(start_date, end_date)
+        return Response(query)

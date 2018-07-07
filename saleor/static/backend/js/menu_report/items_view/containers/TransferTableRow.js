@@ -119,7 +119,7 @@ export class TransferTableRow extends Component {
         </td>
         <td>
           <span>
-          {instance.name}<br/>{instance.category}
+          {instance.name}<br/>{instance.sku}
           </span>
         </td>
         <td>{instance.transferred_qty}</td>

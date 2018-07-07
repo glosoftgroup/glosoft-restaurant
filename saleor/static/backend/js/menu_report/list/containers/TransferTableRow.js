@@ -58,7 +58,7 @@ export class TransferTableRow extends Component {
         <td className="cursor-pointer" onClick={ () => this.goTo(instance.view_url)}>
          {instance.price}
         </td>
-        
+        <td className="cursor-pointer" onClick={ () => this.goTo(instance.view_url)} data-tip="Edit quantity">{instance.worth}</td>
         <td>
           {instance.all_item_closed &&
             <span className="text-success">closed</span>

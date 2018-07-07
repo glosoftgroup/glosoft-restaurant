@@ -49,9 +49,6 @@ class FilterDate extends Component {
         <div className="form-grou search-form-group mr-15">
             <div className="has-feedback has-feedback-left">
                 <DayPickerInput onDayChange={day => this.handleChange(day)}/>
-                <div className="form-control-feedback">
-                    <i className="icon-calendar22 text-size-large text-muted"></i>
-                </div>
             </div>
         </div>
     );
