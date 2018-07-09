@@ -9,7 +9,7 @@ export const UPDATE_ITEM = 'UPDATE_ITEM';
 /**
  * Actions
  */
-import { setChartOptions, setPie } from '../actions';
+import { setChartOptions, setPie, setCounterChart } from '../actions';
 
 export const setItems = (payload) => ({
   type: SET_ITEMS,
@@ -61,6 +61,16 @@ export const fetchItems = (params = {}) => {
     .then(response => { return response.data; })
     .then(data => {
       dispatch(setPie(data));
+    })
+    .catch(error => console.error(error));
+
+    /**
+     * fetch counter graph data
+     */
+    api.retrieve(`/counter/transfer/report/api/graph/counter/?${url}`)
+    .then(response => { return response.data; })
+    .then(data => {
+      dispatch(setCounterChart(data));
     })
     .catch(error => console.error(error));
   };
