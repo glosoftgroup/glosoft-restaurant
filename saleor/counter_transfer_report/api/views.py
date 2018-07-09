@@ -350,6 +350,19 @@ class RechartsList(APIView):
         return Response(query)
 
 
+class HighchartCounterList(APIView):
+    """
+    List all snippets, or create a new snippet.
+    """
+    def get(self, request, format=None):
+        mode = self.request.GET.get('mode')
+        date = self.request.GET.get('date')
+        date_from = self.request.GET.get('date_from')
+        date_to = self.request.GET.get('date_to')
+        query = Table.objects.highcharts_line_filter(date_from, date_to, date, mode)
+        return Response(query)
+
+
 class RechartsListTotal(APIView):
     """
     List all snippets, or create a new snippet.

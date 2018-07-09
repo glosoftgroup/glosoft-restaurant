@@ -128,6 +128,40 @@ class TransferManager(BaseUserManager):
             pass
         return title
 
+    def highcharts_line_filter(self, date_from=None, date_to=None, date=None, mode=None):
+        counters, items, series = Counter.objects.all(), [], []
+        dates, categories = self.get_dates(date_from, date_to, date, mode), []
+
+        transferred, sold, deficit = 0, 0, 0
+        for counter in counters:
+            series.append({'name': counter.name, 'data': []})
+        for query_date in dates:
+            categories.append(query_date)
+            date_transfers = self.filter(date__icontains=query_date)
+
+            for transfer in date_transfers:
+                for item in range(len(series)):
+                    if series[item]['name'] == transfer.counter.name:
+                        series[item]['data'].append(
+                            transfer.counter_transfer_items.all().aggregate(total=models.Sum('sold'))['total'])
+                    # else:
+                    #     series[item]['data'].append(0)
+                    # size = len(item['data'])
+                    # if item['name'] == transfer.counter.name:
+                    #     item['data'].append(transfer.counter_transfer_items.all().aggregate(total=models.Sum('sold'))['total'])
+                    #     break
+                    # else:
+                    #     if len(item['data']) is not size:
+                    #         item['data'].append(0)
+
+        title = self.generate_title('Counter Transfer Report ', date_from, date_to, date, mode)
+        data = {
+            'series': series,
+            'title': title,
+            'categories': categories
+        }
+        return data
+
     def highcharts_pie_filter(self, date_from=None, date_to=None, date=None, mode=None):
         dates, items = self.get_dates(date_from, date_to, date, mode), []
         transferred, sold, deficit = 0, 0, 0

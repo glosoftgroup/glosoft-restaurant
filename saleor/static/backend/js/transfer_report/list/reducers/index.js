@@ -6,6 +6,7 @@ import charts from './reducer-charts';
 import pie from './reducer-pie';
 import mode from './reducer-mode';
 import openGraph from './reducer-toggle-graph';
+import counterGraph from './reducer-counter-chart';
 
 const allReducers = combineReducers({
   items: ItemReducer,
@@ -14,7 +15,8 @@ const allReducers = combineReducers({
   charts: charts,
   mode,
   pie,
-  openGraph
+  openGraph,
+  counterGraph
 });
 
 export default allReducers;

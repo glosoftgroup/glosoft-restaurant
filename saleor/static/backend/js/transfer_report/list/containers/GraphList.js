@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 // import Rechart from '../components/HCharts';
-import Rechart from '../components/Rechart';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
@@ -20,6 +19,8 @@ import { setChartOptions } from '../actions/action-charts';
  */
 // import LineChart from './LineChart';
 import PieChart from './PieChart';
+import Rechart from '../components/Rechart';
+// import CounterGraph from './CountersGraph';
 
 export class GraphList extends Component {
   constructor(props) {
@@ -36,6 +37,9 @@ export class GraphList extends Component {
         </div>
         <div className="col-md-6">
           <PieChart />
+        </div>
+        <div className="col-md-6">
+          {/* <CounterGraph /> */}
         </div>
       </div>
     );
