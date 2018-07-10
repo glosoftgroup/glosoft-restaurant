@@ -49,7 +49,7 @@ class TransferManager(BaseUserManager):
             })
         return items
 
-    def get_dates(self, date_from, date_to, date, mode):
+    def get_dates(self, date_from, date_to, date, mode, counter=None):
         """
         Return distinct transfer dates between dates
         :param date_from: Date: start date for date range
@@ -59,6 +59,8 @@ class TransferManager(BaseUserManager):
         :return: a list of dates
         """
         query = self.all()
+        if counter:
+            query = query.filter(counter__pk=counter)
         if date:
             year = date.split("-")[0]
             if len(date.split('-')) >= 2:
@@ -102,8 +104,8 @@ class TransferManager(BaseUserManager):
             total_item=models.Sum('counter_transfer_items__transferred_qty'))
         return sorted([list(d)[0] for d in query_dates])
 
-    def recharts_items_filter(self, date_from=None, date_to=None, date=None, mode=None):
-        dates, items = self.get_dates(date_from, date_to, date, mode), []
+    def recharts_items_filter(self, date_from=None, date_to=None, date=None, mode=None, counter=None):
+        dates, items = self.get_dates(date_from, date_to, date, mode, counter), []
         for date in dates:
             query_date = date
             date_transfers = self.filter(date__icontains=query_date)
@@ -135,25 +137,28 @@ class TransferManager(BaseUserManager):
         transferred, sold, deficit = 0, 0, 0
         for counter in counters:
             series.append({'name': counter.name, 'data': []})
+        temp = []
         for query_date in dates:
             categories.append(query_date)
             date_transfers = self.filter(date__icontains=query_date)
 
             for transfer in date_transfers:
-                for item in range(len(series)):
-                    if series[item]['name'] == transfer.counter.name:
-                        series[item]['data'].append(
-                            transfer.counter_transfer_items.all().aggregate(total=models.Sum('sold'))['total'])
-                    # else:
-                    #     series[item]['data'].append(0)
-                    # size = len(item['data'])
-                    # if item['name'] == transfer.counter.name:
-                    #     item['data'].append(transfer.counter_transfer_items.all().aggregate(total=models.Sum('sold'))['total'])
-                    #     break
-                    # else:
-                    #     if len(item['data']) is not size:
-                    #         item['data'].append(0)
+                # for item in range(len(series)):
+                # if series[item]['name'] == transfer.counter.name:
+                total = transfer.counter_transfer_items.all().aggregate(total=models.Sum('sold'))['total']
+                temp.append({
+                    'date': query_date,
+                    'counter': transfer.counter.name,
+                    'total': total
+                })
 
+        dataset = self.values('counter__name')\
+            .annotate(survived_count=models.Count('sold', filter=models.Q(trashed=True)),
+                      not_survived_count=models.Count('counter', filter=models.Q(trashed=False))) \
+            .order_by('counter')
+        for i in dataset:
+            print i
+            print '*'*123
         title = self.generate_title('Counter Transfer Report ', date_from, date_to, date, mode)
         data = {
             'series': series,
@@ -162,8 +167,8 @@ class TransferManager(BaseUserManager):
         }
         return data
 
-    def highcharts_pie_filter(self, date_from=None, date_to=None, date=None, mode=None):
-        dates, items = self.get_dates(date_from, date_to, date, mode), []
+    def highcharts_pie_filter(self, date_from=None, date_to=None, date=None, mode=None, counter=None):
+        dates, items = self.get_dates(date_from, date_to, date, mode, counter), []
         transferred, sold, deficit = 0, 0, 0
         for query_date in dates:
             date_transfers = self.filter(date__icontains=query_date)
@@ -283,6 +288,18 @@ class CounterTransfer(models.Model):
 
 
 class TransferItemManager(BaseUserManager):
+    def temp_line(self):
+        dataset = self.values('counter__name') \
+            .annotate(
+                price=models.Sum('total'),
+                sold=models.Sum('sold'),
+                transferred=models.Sum('transferred_qty')) \
+            .order_by('counter')
+        for i in dataset:
+            print i
+            print '*' * 123
+        return dataset
+
     def carry_forward_quantity(self, stock):
         query = self.get_queryset().filter(stock=stock)
         query = query.filter(closed=True)

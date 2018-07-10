@@ -11,3 +11,18 @@
 .yes-print {
     display: none;
 }
+
+@media print {
+    #printBtn {
+       display: none;
+    }
+    #addPayment {
+       display: none;
+    }
+    .media-none {
+       display: none;
+    }
+    .no-print {
+       display: none;
+    }
+ }

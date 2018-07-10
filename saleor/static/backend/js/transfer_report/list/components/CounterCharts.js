@@ -30,18 +30,18 @@ export class Rechart extends Component {
   render() {
     return (
       <div>
-        <h6 className="text-center">Transferred Quantity Summary Report</h6>
+        <h6 className="text-center">Total Sales Per Counter</h6>
         <ResponsiveContainer height={400}>
           <ComposedChart width={600} height={400} data={this.props.data}
               margin={{top: 20, right: 80, bottom: 20, left: 20}}>
-            <XAxis dataKey="name" label={{ value: 'Dates', position: 'insideBottomRight', offset: 0 }}/>
-            <YAxis label={{ value: 'Quantity', angle: -90, position: 'insideLeft' }}/>
+            <XAxis dataKey="counter__name" label={{ value: 'Dates', position: 'insideBottomRight', offset: 0 }}/>
+            <YAxis label={{ value: 'Total Sales', angle: -90, position: 'insideLeft' }}/>
             <Tooltip/>
             <Legend/>
             <CartesianGrid stroke='#f5f5f5'/>
-            <Area type='monotone' dataKey='transferred' fill='#8884d8' stroke='#8884d8'/>
+            <Area type='monotone' dataKey='price' fill='#8884d8' stroke='#8884d8'/>
             <Bar dataKey='sold' barSize={20} fill='#413ea0'/>
-            <Line type='monotone' dataKey='deficit' stroke='#ff7300'/>
+            <Line type='monotone' dataKey='transferred' stroke='#ff7300'/>
           </ComposedChart>
       </ResponsiveContainer>
       </div>
