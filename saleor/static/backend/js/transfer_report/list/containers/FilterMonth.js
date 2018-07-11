@@ -28,9 +28,9 @@ class FilterMonth extends Component {
   fetchItems = () => {
     var payload = {};
 
-    if (this.state.date != undefined) {
+    if (this.state.date !== undefined) {
       var value = moment(this.state.date).format("YYYY-MM-DD");
-      payload = { date: value, mode:this.props.mode };
+      payload = { date: value, mode: this.props.mode };
       this.props.setDate(payload);
     }
 
@@ -42,6 +42,11 @@ class FilterMonth extends Component {
     if (this.props.search) {
         var search = this.props.search.q;
         payload = { ...payload, q: search };
+    }
+
+    if (this.props.counter) {
+      var counter = this.props.counter.counter;
+      payload = { ...payload, counter };
     }
 
     this.props.fetchItems(payload);
@@ -85,6 +90,7 @@ FilterMonth.propTypes = {
   setMode: PropTypes.func.isRequired,
   setDate: PropTypes.func.isRequired,
   search: PropTypes.array.isRequired,
+  counter: PropTypes.object.isRequired,
   fetchItems: PropTypes.func.isRequired
 };
 
@@ -97,6 +103,6 @@ function mapDispatchToProps(dispatch) {
 }
 
 function mapStateToProps(state) {
-  return { search: state.search };
+  return { search: state.search, counter: state.counter };
 }
 export default connect(mapStateToProps, mapDispatchToProps)(FilterMonth);

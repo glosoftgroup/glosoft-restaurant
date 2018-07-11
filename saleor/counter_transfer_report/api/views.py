@@ -97,6 +97,8 @@ class ListAPIView(generics.ListAPIView):
             else:
                 queryset_list = queryset_list.filter(date__range=[date_from, date_to])
 
+        if self.request.GET.get('counter'):
+            queryset_list = queryset_list.filter(counter__pk=self.request.GET.get('counter'))
         query = self.request.GET.get('q')
         if query:
             queryset_list = queryset_list.filter(
@@ -333,7 +335,8 @@ class HighchartPieList(APIView):
         date = self.request.GET.get('date')
         date_from = self.request.GET.get('date_from')
         date_to = self.request.GET.get('date_to')
-        query = Table.objects.highcharts_pie_filter(date_from, date_to, date, mode)
+        counter = self.request.GET.get('counter')
+        query = Table.objects.highcharts_pie_filter(date_from, date_to, date, mode, counter)
         return Response(query)
 
 
@@ -346,7 +349,8 @@ class RechartsList(APIView):
         date = self.request.GET.get('date')
         date_from = self.request.GET.get('date_from')
         date_to = self.request.GET.get('date_to')
-        query = Table.objects.recharts_items_filter(date_from, date_to, date, mode)
+        counter = self.request.GET.get('counter')
+        query = Table.objects.recharts_items_filter(date_from, date_to, date, mode, counter)
         return Response(query)
 
 
@@ -359,7 +363,8 @@ class HighchartCounterList(APIView):
         date = self.request.GET.get('date')
         date_from = self.request.GET.get('date_from')
         date_to = self.request.GET.get('date_to')
-        query = Table.objects.highcharts_line_filter(date_from, date_to, date, mode)
+        # query = Table.objects.highcharts_line_filter(date_from, date_to, date, mode)
+        query = Item.objects.temp_line()
         return Response(query)
 
 
