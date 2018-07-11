@@ -10,7 +10,7 @@ import FilterDate from './FilterDate';
 import FilterMonth from './FilterMonth';
 import FilterDateRange from './FilterDateRange';
 import FilterMonthRange from './FilterMonthRange';
-
+import FilterCounter from './FilterCounter';
 /**
  * Utilities
  */
@@ -38,8 +38,8 @@ class FilterBlock extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      title: 'Petty Cash Report',
-      label: 'Petty Cash',
+      title: 'Counter Transfer Report',
+      label: 'Counter Transfer',
       exportData: [],
       printCssPaths: [],
       defaultFilterChoice: 1,
@@ -78,11 +78,18 @@ class FilterBlock extends Component {
     temp.map((obj, index) => {
       // delete unneccessary fields
       delete obj['view_url'];
-      obj['created'] = obj.created;
-      obj['opening'] = obj.opening;
-      obj['added'] = obj.added;
-      obj['expenses'] = obj.expenses;
-      obj['closing'] = obj.closing;
+      delete obj['created'];
+      delete obj['trashed'];
+      delete obj['trashed'];
+      delete obj.name;
+      delete obj.user;
+      delete obj.description;
+      delete obj.update_url;
+      delete obj.text;
+      delete obj.counter_transfer_items;
+      delete obj.all_item_closed;
+      delete obj.update_items_url;
+      obj.counter = obj.counter.name;
       items.push(obj);
     });
     return items;
@@ -100,16 +107,17 @@ class FilterBlock extends Component {
       compareStatus: newCompareStatus
     });
   }
-  
   onSelectPeriod = (e) => {
-    var name = e.target.name, value = e.target.value,
-        newRangeStatus, newCompareStatus;
+    var name = e.target.name;
+    var value = e.target.value;
+    var newRangeStatus;
+    var newCompareStatus;
 
-    newRangeStatus = (this.state.defaultFilter == 1) ? false : true;
+    newRangeStatus = (this.state.defaultFilter === 1) ? false : true;
 
     this.setState({
       [name]: value,
-      rangeStatus: newRangeStatus,
+      rangeStatus: newRangeStatus
     });
   }
 
@@ -125,7 +133,7 @@ class FilterBlock extends Component {
             ) :
             (periodChoice == 2 || periodChoice == 3 ? 
               <FilterMonth mode={ periodChoice == 2 ? "month" : "year"} /> : 
-              <FilterDate />        
+              <FilterDate />
             );
 
     return button;
@@ -136,9 +144,12 @@ class FilterBlock extends Component {
         <div>
             <div className="panel no-print">
                 <div className="panel-body">
+                    <div className="col-md-2">
+                      <FilterCounter />
+                    </div>
                     <div className="col-md-1">
                     <label>Action</label>
-                    <div className="form-group">
+                      <div className="form-group">
                         <Select2
                           data={this.state.filters}
                           onChange={this.onSelectChange}
@@ -149,7 +160,7 @@ class FilterBlock extends Component {
                             placeholder: 'Select Action'
                           }}
                         />
-                        </div>
+                      </div>
                     </div>
                     <div className="col-md-1">
                         <label>Period</label>
@@ -173,19 +184,30 @@ class FilterBlock extends Component {
                         </div>
                     </div>
                     <div className="col-md-2">
-                      <label className="visibility-hidden">&nbsp;</label>
-                      <div className="form-group">
-                        <PrintThis printCssPaths={this.state.printCssPaths} title={this.state.title} />
-                      </div>
+                    <label className="visibility-hidden">&nbsp;</label>
+                    <br/>
+                    <div className="btn-group">
+												<a href="#" className="btn btn-sm bg-teal dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                          Export
+                          <span className="caret"></span>
+                        </a>
+
+												<ul className="dropdown-menu dropdown-menu-right">
+                          <li>
+                            <a href="#">
+                             <PrintThis getData={this.getData} title={this.state.title} label={this.state.label} />
+                            </a>
+                          </li>
+                          <li>
+                            <a href="#">
+                             <CsvExport getData={this.getData} title={this.state.title} label={this.state.label} />
+                            </a>
+                          </li>
+												</ul>
+											</div>
                     </div>
                     <div className="col-md-2">
-                    <label className="visibility-hidden">&nbsp;</label>
-                      <div className="form-group">
-                        <CsvExport getData={this.getData} title={this.state.title} label={this.state.label} />
-                      </div>
-                    </div>
-                    <div className="col-md-1">
-                      <label> Graph</label>
+                      <label>Show Graph</label>
                       <div className="form-control">
                         <div onClick={this.toggleCheckBox} className="checker">
                           <span className={this.state.checked}>

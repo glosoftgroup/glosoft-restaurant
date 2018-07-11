@@ -364,7 +364,18 @@ class HighchartCounterList(APIView):
         date_from = self.request.GET.get('date_from')
         date_to = self.request.GET.get('date_to')
         # query = Table.objects.highcharts_line_filter(date_from, date_to, date, mode)
-        query = Item.objects.temp_line()
+        query = Item.objects.top_products()
+        return Response(query)
+
+class TopProducts(APIView):
+    def get(self, request, format=None):
+        mode = self.request.GET.get('mode')
+        date = self.request.GET.get('date')
+        date_from = self.request.GET.get('date_from')
+        date_to = self.request.GET.get('date_to')
+        counter = self.request.GET.get('counter')
+        query_type = self.request.GET.get('query_type')
+        query = Item.objects.top_products(date_from, date_to, date, mode, counter, query_type)
         return Response(query)
 
 

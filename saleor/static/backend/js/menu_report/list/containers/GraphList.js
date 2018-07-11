@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 // import Rechart from '../components/HCharts';
-import Rechart from '../components/Rechart';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
@@ -20,6 +19,9 @@ import { setChartOptions } from '../actions/action-charts';
  */
 // import LineChart from './LineChart';
 import PieChart from './PieChart';
+import Rechart from '../components/Rechart';
+// import CounterCharts from '../components/CounterCharts';
+// import CounterGraph from './CountersGraph';
 
 export class GraphList extends Component {
   constructor(props) {
@@ -36,14 +38,15 @@ export class GraphList extends Component {
         </div>
         <div className="col-md-6">
           <PieChart />
-        </div>
+          </div>
       </div>
     );
   }
 }
 GraphList.propTypes = {
   setChartOptions: PropTypes.func.isRequired,
-  charts: PropTypes.array.isRequired
+  charts: PropTypes.array.isRequired.length,
+  counterGraph: PropTypes.array.isRequired
 };
 const mapDispatchToProps = (dispatch) => {
   return bindActionCreators({
@@ -51,7 +54,8 @@ const mapDispatchToProps = (dispatch) => {
   }, dispatch);
 };
 const mapStateToProps = (state) => ({
-  charts: state.charts
+  charts: state.charts,
+  counterGraph: state.counterGraph
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(GraphList);

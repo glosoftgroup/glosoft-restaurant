@@ -23,7 +23,7 @@ class TransferManager(BaseUserManager):
         qty = self.menu_transfer_items.filter(transfer=instance).aggregate(models.Sum('qty'))['qty__sum']
         return qty
 
-    def get_dates(self, date_from, date_to, date, mode):
+    def get_dates(self, date_from, date_to, date, mode, counter=None):
         """
         Return distinct transfer dates between dates
         :param date_from: Date: start date for date range
@@ -33,6 +33,8 @@ class TransferManager(BaseUserManager):
         :return: a list of dates
         """
         query = self.all()
+        if counter:
+            query = query.filter(counter__pk=counter)
         if date:
             year = date.split("-")[0]
             if len(date.split('-')) >= 2:
@@ -76,8 +78,8 @@ class TransferManager(BaseUserManager):
             total_item=models.Sum('menu_transfer_items__transferred_qty'))
         return sorted([list(d)[0] for d in query_dates])
 
-    def recharts_items_filter(self, date_from=None, date_to=None, date=None, mode=None):
-        dates, items = self.get_dates(date_from, date_to, date, mode), []
+    def recharts_items_filter(self, date_from=None, date_to=None, date=None, mode=None, counter=None):
+        dates, items = self.get_dates(date_from, date_to, date, mode, counter), []
         for date in dates:
             query_date = date
             date_transfers = self.filter(date__icontains=query_date)
@@ -102,8 +104,8 @@ class TransferManager(BaseUserManager):
             pass
         return title
 
-    def highcharts_pie_filter(self, date_from=None, date_to=None, date=None, mode=None):
-        dates, items = self.get_dates(date_from, date_to, date, mode), []
+    def highcharts_pie_filter(self, date_from=None, date_to=None, date=None, mode=None, counter=None):
+        dates, items = self.get_dates(date_from, date_to, date, mode, counter), []
         transferred, sold, deficit = 0, 0, 0
         for query_date in dates:
             date_transfers = self.filter(date__icontains=query_date)
