@@ -14,6 +14,7 @@ urlpatterns = [
     url(r'^api/graph/$', SnippetList.as_view(), name='api-list-high'),
     url(r'^api/graph/pie/$', HighchartPieList.as_view(), name='api-high-pie'),
     url(r'^api/graph/counter/$', HighchartCounterList.as_view(), name='api-high-pie'),
+    url(r'^api/graph/top/$', TopProducts.as_view(), name='api-top-products'),
     url(r'^api/graph/recharts/$', RechartsList.as_view(), name='api-rechart'),
     url(r'^api/graph/recharts/total/$', RechartsListTotal.as_view(), name='api-rechart-total'),
     url(r'^api/list/items/(?P<pk>[0-9]+)/$', ListItemsAPIView.as_view(), name='api-list-items'),

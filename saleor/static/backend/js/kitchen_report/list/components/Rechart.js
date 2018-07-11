@@ -30,6 +30,7 @@ export class Rechart extends Component {
   render() {
     return (
       <div>
+        <h6 className="text-center">Transferred Quantity Summary Report</h6>
         <ResponsiveContainer height={400}>
           <ComposedChart width={600} height={400} data={this.props.data}
               margin={{top: 20, right: 80, bottom: 20, left: 20}}>

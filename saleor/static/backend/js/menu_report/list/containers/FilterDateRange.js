@@ -49,7 +49,7 @@ class FilterDateRange extends Component {
     var to = this.dateFormatter(this.state.to);
     var payload = {};
 
-    if (this.state.from != undefined && this.state.to!=undefined) {
+    if (this.state.from !== undefined && this.state.to !== undefined) {
         payload = { date_from: from, date_to:to };
         this.props.setDateRange(payload);
     }
@@ -57,6 +57,11 @@ class FilterDateRange extends Component {
     if (this.props.search) {
         var search = this.props.search.q;
         payload = { ...payload, q: search };
+    }
+
+    if (this.props.counter) {
+      var counter = this.props.counter.counter;
+      payload = { ...payload, counter };
     }
 
     this.props.fetchItems(payload);
@@ -72,13 +77,13 @@ class FilterDateRange extends Component {
   handleFromChange = (from) => {
     // Change the from date and focus the 
     this.setState({ from }, () => {
-        this.fetchItems();
+      this.fetchItems();
     });
   }
 
   handleToChange = (to) => {
     this.setState({ to }, () => {
-        this.fetchItems();
+      this.fetchItems();
     });
   }
 
@@ -137,6 +142,7 @@ FilterDateRange.propTypes = {
   setDate: PropTypes.func.isRequired,
   setDateRange: PropTypes.func.isRequired,
   search: PropTypes.array.isRequired,
+  counter: PropTypes.object.isRequired,
   fetchItems: PropTypes.func.isRequired
 };
 
@@ -149,6 +155,6 @@ function mapDispatchToProps(dispatch) {
 }
 
 function mapStateToProps(state) {
-  return { search: state.search };
+  return { search: state.search, counter: state.counter };
 }
 export default connect(mapStateToProps, mapDispatchToProps)(FilterDateRange);

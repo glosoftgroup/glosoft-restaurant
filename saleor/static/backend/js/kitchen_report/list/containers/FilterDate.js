@@ -42,6 +42,12 @@ class FilterDate extends Component {
       var search = this.props.search.q;
       payload = { ...payload, q: search };
     }
+
+    if (this.props.counter) {
+      var counter = this.props.counter.counter;
+      payload = { ...payload, counter };
+    }
+
     this.props.fetchItems(payload);
   }
   render() {
@@ -58,6 +64,7 @@ class FilterDate extends Component {
 FilterDate.propTypes = {
   setDate: PropTypes.func.isRequired,
   search: PropTypes.array.isRequired,
+  counter: PropTypes.object.isRequired,
   fetchItems: PropTypes.func.isRequired
 };
 
@@ -69,6 +76,6 @@ function mapDispatchToProps(dispatch) {
 }
 
 function mapStateToProps(state) {
-  return { search: state.search };
+  return { search: state.search, counter: state.counter };
 }
 export default connect(mapStateToProps, mapDispatchToProps)(FilterDate);

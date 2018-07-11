@@ -288,6 +288,58 @@ class CounterTransfer(models.Model):
 
 
 class TransferItemManager(BaseUserManager):
+    def filter_dates(self, date_from, date_to, date, mode, counter=None):
+        """
+        Return distinct transfer dates between dates
+        :param date_from: Date: start date for date range
+        :param date_to: Date: end range
+        :param date: Date: filter transfer for specific date
+        :param mode: string : month, year, range
+        :return: a list of dates
+        """
+        query = self.all()
+        if counter:
+            query = query.filter(counter__pk=counter)
+        if date:
+            year = date.split("-")[0]
+            if len(date.split('-')) >= 2:
+                month = date.split("-")[1]
+            else:
+                month = "01"
+            if mode == "month":
+                query = query.filter(transfer__date__year=year, transfer__date__month=month)
+            elif mode == "year":
+                query = query.filter(transfer__date__year=year)
+            else:
+                query = query.filter(transfer__date__icontains=date)
+        elif date_from and date_to:
+            if mode:
+                year_from = date_from.split("-")[0]
+                if len(date_from.split('-')) >= 2:
+                    month_from = date_from.split("-")[1]
+                else:
+                    month_from = "01"
+
+                year_to = date_to.split("-")[0]
+                if len(date_to.split('-')) >= 2:
+                    month_to = date_to.split("-")[1]
+                else:
+                    month_to = "01"
+
+                if mode == "month":
+                    query = query.filter(transfer__date__year__gte=year_from,
+                                         transfer__date__month__gte=month_from,
+                                         transfer__date__year__lte=year_to,
+                                         transfer__date__month__lte=month_to)
+                elif mode == "year":
+                    query = query.filter(transfer__date__year__gte=year_from,
+                                         transfer__date__year__lte=year_to)
+                else:
+                    query = query.filter(transfer__date__range=[date_from, date_to])
+            else:
+                query = query.filter(transfer__date__range=[date_from, date_to])
+        return query
+
     def temp_line(self):
         dataset = self.values('counter__name') \
             .annotate(
@@ -299,6 +351,40 @@ class TransferItemManager(BaseUserManager):
             print i
             print '*' * 123
         return dataset
+
+    def top_products(self, date_from=None, date_to=None, date=None, mode=None, counter=None, query_type='total'):
+        query = self.filter_dates(date_from, date_to, date, mode, counter)
+        if query_type == 'sold':
+            top_records = query.values('sku', 'productName').annotate(
+                c=models.Count('sku', distinct=True))\
+                .annotate(models.Sum('total'))\
+                .annotate(models.Sum('sold')
+            ).order_by('-sold__sum')
+            data_item = 'sold__sum'
+        elif query_type == 'total':
+            top_records = query.values('sku', 'productName').annotate(
+                c=models.Count('sku', distinct=True))\
+                .annotate(models.Sum('total'))\
+                .annotate(models.Sum('sold')
+            ).order_by('-total__sum')
+            data_item = 'total__sum'
+        else:
+            top_records = query.values('sku', 'productName').annotate(
+                c=models.Count('sku', distinct=True)) \
+                .annotate(models.Sum('total')) \
+                .annotate(models.Sum('sold')
+                          ).order_by('-total__sum')
+            data_item = 'total__sum'
+        categories, series = [], []
+        for item in top_records:
+            categories.append(str(item.get('productName')) + '-' + str(item.get('sku')))
+            series.append(item.get(data_item))
+
+        data = {
+            'series': [{'name': 'Categories', 'data': series}],
+            'categories': categories
+        }
+        return data
 
     def carry_forward_quantity(self, stock):
         query = self.get_queryset().filter(stock=stock)
