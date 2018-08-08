@@ -333,6 +333,11 @@ def create_items(instance, items):
             single.transferred_qty = single.qty
             single.expected_qty = single.qty
             single.sku = item['sku']
+            print single.price
+            print single.unit_price
+            print single.discount
+            print single.tax
+            print single.qty
             if single.qty > 0:
                 single.save()
 
