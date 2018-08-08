@@ -367,6 +367,7 @@ class HighchartCounterList(APIView):
         query = Item.objects.top_products()
         return Response(query)
 
+
 class TopProducts(APIView):
     def get(self, request, format=None):
         mode = self.request.GET.get('mode')
