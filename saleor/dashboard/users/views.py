@@ -1,10 +1,12 @@
 from django.contrib.auth.models import Group, Permission
 from django.db.models import Q
 from django.db import IntegrityError
-from django.shortcuts import get_object_or_404, redirect, render_to_response
+from django.contrib.auth import update_session_auth_hash
+from django.core.exceptions import PermissionDenied
+from django.shortcuts import get_object_or_404
 from django.template.response import TemplateResponse
-from django.http import HttpResponse, JsonResponse
-from django.views.decorators.csrf import csrf_exempt, csrf_protect
+from django.http import HttpResponse
+from django.views.decorators.csrf import csrf_protect
 from django.contrib.auth.hashers import make_password
 from django.core.paginator import Paginator, PageNotAnInteger, InvalidPage, EmptyPage
 from ..views import staff_member_required
@@ -272,21 +274,39 @@ def user_process(request):
         info_logger.info('User: '+str(request.user.name)+' created user:'+str(name))
         return HttpResponse(last_id.id)
 
+
 @staff_member_required
-@permission_decorator('userprofile.change_user')
 def user_detail(request, pk):
     user = get_object_or_404(User, pk=pk)
     user_permissions = Permission.objects.filter(user=user)
     groups = user.groups.all()
     permissions = Permission.objects.filter(group__in=[group for group in groups]).distinct()
     all_permissions = list(set(user_permissions).union(set(permissions)))
+
+    """ check if the request user matches the
+        fetched user details else 
+        check the if request user has permissions to view
+    """
+    ctx = {
+        'user': user,
+        'all_permissions': all_permissions,
+        'groups': groups
+    }
     if request.user == user:
         user_trail(request.user.name, 'viewed self profile ','view')
         info_logger.info('User: '+str(request.user)+' viewed self profile')
+        return TemplateResponse(request, 'dashboard/users/detail.html', ctx)
     else:
-        user_trail(request.user.name, 'viewed '+str(user.name)+ '`s profile','view')
-        info_logger.info('User: '+str(request.user.name)+' viewed '+str(user.name)+'`s profile')
-    return TemplateResponse(request, 'dashboard/users/detail.html', {'user':user,'all_permissions':all_permissions,'groups':groups})
+
+        """ check the users permission to view users """
+
+        if request.user.has_perm('userprofile.change_user'):
+            user_trail(request.user.name, 'viewed ' + str(user.name) + '`s profile', 'view')
+            return TemplateResponse(request, 'dashboard/users/detail.html', ctx)
+        else:
+            debug_logger.debug('status: 403, view permission denied for ' + str(request.user))
+            raise PermissionDenied()
+
 
 @staff_member_required
 @permission_decorator('userprofile.delete_user')
@@ -297,18 +317,48 @@ def user_delete(request, pk):
         user_trail(request.user.name, 'deleted user: '+ str(user.name),'delete')
         return HttpResponse('success')
 
+
 @staff_member_required
-@permission_decorator('userprofile.change_user')
 def user_edit(request, pk):
     user = get_object_or_404(User, pk=pk)
     permissions = Permission.objects.all()
     groups = Group.objects.all()
     user_groups = user.groups.all()
     user_permissions = Permission.objects.filter(user=user)
-    ctx = {'user': user,'permissions':permissions, 'user_permissions':user_permissions, 'groups':groups, 'user_groups':user_groups}
-    user_trail(request.user.name, 'accessed edit page for user '+ str(user.name),'view')
-    info_logger.info('User: '+str(request.user.name)+' accessed edit page for user: '+str(user.name))
-    return TemplateResponse(request, 'dashboard/users/edit_user.html', ctx)
+    should_edit = False
+
+    """ check if the request user matches the
+        fetched user details else 
+        check the if request user has permissions to view
+    """
+
+    ctx = {
+        'user': user,
+        'permissions': permissions,
+        'user_permissions': user_permissions,
+        'groups': groups,
+        'user_groups': user_groups,
+        'should_edit': should_edit
+    }
+
+    if request.user == user:
+        if request.user.has_perm('userprofile.change_user'):
+            ctx['should_edit'] = True
+        user_trail(request.user.name, 'accessed edit page for user ' + str(user.name), 'view')
+        info_logger.info('User: ' + str(request.user.name) + ' accessed edit page for user: ' + str(user.name))
+        return TemplateResponse(request, 'dashboard/users/edit_user.html', ctx)
+    else:
+
+        """ check the users permission to view users """
+
+        if request.user.has_perm('userprofile.change_user'):
+            ctx['should_edit'] = True
+            user_trail(request.user.name, 'accessed edit page for user ' + str(user.name), 'view')
+            info_logger.info('User: ' + str(request.user.name) + ' accessed edit page for user: ' + str(user.name))
+            return TemplateResponse(request, 'dashboard/users/edit_user.html', ctx)
+        else:
+            raise PermissionDenied()
+
 
 @staff_member_required
 @csrf_protect
@@ -350,7 +400,11 @@ def user_update(request, pk):
         user.code = code
         user.rest_code = rest_code
         user.save()
-        user_trail(request.user.name, 'updated user: '+ str(user.name),'update')
+
+        """ update the user session """
+        update_session_auth_hash(request, user)
+
+        user_trail(request.user.name, 'updated user: '+ str(user.name), 'update')
         info_logger.info('User: '+str(request.user.name)+' updated user: '+str(user.name))
 
         if groups:

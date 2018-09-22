@@ -53,7 +53,7 @@
         <div class="tabbable">
           <ul class="nav nav-tabs nav-tabs-highlight">
             <li class="active" id="profile-tab"><a href="#profile" data-toggle="tab" class="legitRipple" aria-expanded="false">edit user profile</a></li>
-            <li class="" id="permissions-tab"><a href="#permissions" data-toggle="tab" class="legitRipple" aria-expanded="true">edit user permissions</a></li>
+            <li class="{% if not should_edit %} hidden {% endif %} " id="permissions-tab"><a href="#permissions" data-toggle="tab" class="legitRipple" aria-expanded="true">edit user permissions</a></li>
 
           </ul>
 
@@ -81,7 +81,10 @@
                 <div class="col-md-10">
                   <div class="form-group">
                     <label>Select Permissions Groups</label>
-                    <select multiple="" id="multiple" class="select-border-color border-warning select2-hidden-accessible" tabindex="-1" aria-hidden="true">
+                    <select multiple="" id="multiple"
+                            class="select-border-color border-warning select2-hidden-accessible"
+                            tabindex="-1"
+                            aria-hidden="true" {% if not should_edit %} disabled {% endif %} >
                         {% if groups %}
                           {% for group in groups %}
                               {% if group in user_groups %}
@@ -102,7 +105,14 @@
                 <div class="col-md-6">
                   <div class="form-group">
                     <label for="name">Full Names</label>
-                    <input type="text" class="form-control" autocomplete='off' placeholder="Full Names" name="fullname" id="fullname" value="{{ user.fullname}}">
+                    <input type="text"
+                           class="form-control"
+                           autocomplete='off'
+                           placeholder="Full Names"
+                           name="fullname" id="fullname"
+                           value="{{ user.fullname}}"
+                           {% if not should_edit %} disabled {% endif %}
+                    />
                   </div>
                   <div class="form-group">
                     <label for="name">Username</label>
@@ -114,7 +124,12 @@
                    </div>
                    <div class="form-group">
                     <label for="exampleInputPassword1">National ID No:</label>
-                    <input type="text" class="form-control" autocomplete='off' name="nid" id="nid" value="{% if user.nid %}{{ user.nid}}{% else %}******{% endif %}">
+                    <input type="text" class="form-control"
+                           autocomplete='off' name="nid"
+                           id="nid"
+                           value="{% if user.nid %}{{ user.nid}}{% else %}******{% endif %}"
+                           {% if not should_edit %} disabled {% endif %}
+                    />
                    </div>
                   <div class="form-group">
                     <label for="name">Code</label>
@@ -124,11 +139,20 @@
                 <div class="col-md-6">
                    <div class="form-group">
                       <label for="email">Email address</label>
-                      <input type="email" class="form-control" autocomplete='off' name="email" id="email" value="{{ user.email}}">
+                      <input type="email" class="form-control"
+                             autocomplete='off'
+                             name="email" id="email"
+                             value="{{ user.email}}"
+                        {% if not should_edit %} disabled {% endif %}
+                      />
                    </div>
                    <div class="form-group">
                     <label for="mobile">Phone</label>
-                    <input type="text" class="form-control" name="mobile" data-mask="(+254)-999-999-999" id="mobile" value="{% if user.mobile %}{{ user.mobile}} {% else %} ****** {% endif %}">
+                    <input type="text" class="form-control" name="mobile"
+                           data-mask="(+254)-999-999-999" id="mobile"
+                           value="{% if user.mobile %}{{ user.mobile}} {% else %} ****** {% endif %}"
+                    {% if not should_edit %} disabled {% endif %}
+                    />
                    </div>
                    <div class="form-group">
                     <label for="confirm_password">Confirm Password</label>
@@ -136,7 +160,12 @@
                    </div>
                    <div class="form-group">
                       <label for="email">Job Title</label>
-                      <input type="text" class="form-control" name="job_title" id="id_job_title" value="{{user.job_title}}" placeholder="Job title (e.g Cashier)">
+                      <input type="text" class="form-control"
+                             name="job_title" id="job_title"
+                             value="{{user.job_title}}"
+                             placeholder="Job title (e.g Cashier)"
+                             {% if not should_edit %} disabled {% endif %}
+                      />
                    </div>
                 </div>
                 <div class="col-md-12">
@@ -1045,7 +1074,12 @@ $(document).ready(function(){
                         header: 'Well done!',
                         theme: 'bg-success',
                         beforeClose: function(){
+                        {% if perms.userprofile.view_user %}
                             window.location = "{% url 'dashboard:users' %}";
+                        {% else %}
+                            window.location.reload();
+                        {% endif %}
+
                         }
                      }, 100);
                   },
