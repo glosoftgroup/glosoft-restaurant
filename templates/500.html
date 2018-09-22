@@ -55,10 +55,17 @@
       <div class="content-wrapper">
         <!-- Content area -->
         <div class="content">
-            {% csrf_token %} 
-              <div id="status" class="col-md-6 col-md-offset-3 alert bg-danger animated slideInUp">
-                <span class="status_text">Oops! Something went wrong.</span>
+            {% csrf_token %}
+            <div class="panel">
+              <div class="panel panel-body col-md-6 col-md-offset-3 animated bounceIn bg-slate-800">
+                  <div class="pb-10">
+                    <i class="icon-warning22 text-warning mr-10" style="font-size:60px;"></i>
+                    <span style="font-size:25px;color: #CFDBE1 !important;">Oops! Something went wrong.</span>
+                  </div>
+                  <button class="btn bg-teal-400" onclick="window.history.back()">Go Back</button>
               </div>
+            </div>
+
         </div>
         <!-- /content area -->
       </div>
