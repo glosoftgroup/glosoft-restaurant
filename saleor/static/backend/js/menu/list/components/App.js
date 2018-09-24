@@ -16,7 +16,7 @@ export default class App extends Component {
       <div className="row">
         <div className="col-md-12">
           <FilterBlock />
-          <div className="panel panel-body">
+          <div className="panel panel-body inner-z-index">
             <ItemList />
             <PaginationBlock />
           </div>

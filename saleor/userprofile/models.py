@@ -122,6 +122,9 @@ class User(PermissionsMixin, AbstractBaseUser, index.Indexed):
     is_active = models.BooleanField(
         pgettext_lazy('User field', 'active'),
         default=True)
+    is_new_code = models.BooleanField(
+        pgettext_lazy('User field', 'new code checker'),
+        default=True)
     send_mail = models.BooleanField(
         pgettext_lazy('User field', 'send mail'),
         default=True)
@@ -155,6 +158,9 @@ class User(PermissionsMixin, AbstractBaseUser, index.Indexed):
     class Meta:
         verbose_name = pgettext_lazy('User model', 'user')
         verbose_name_plural = pgettext_lazy('User model', 'users')
+        permissions = [(
+            ("generate_code", "Can generate Code")
+        )]
 
     def get_full_name(self):
         return self.email

@@ -180,7 +180,7 @@
                     </li>
                     {% endif %}
                     {% if perms.userprofile.view_usertrail %}
-                      <li class="{% block menu_trail_class %}{% endblock %}">
+                    <li class="{% block menu_trail_class %}{% endblock %}">
                       <a href="{% url 'dashboard:user_trail' %}"><i class='icon-history'></i>User Trail</a>
                     </li>
                     {% endif  %}
@@ -242,13 +242,11 @@
                     </li>
                     {% endif %}
                       {% if perms.product.view_category %}
-                    <!-- categories -->
                      <li class="{% block menu_categories_class %}{% endblock %}">
                     <a href="{% url 'dashboard:category-list' %}"><i class='icon-package'></i> {% trans "Categories" context "Dashboard categories list" %}</a>
                     </li>
                       {% endif %}
                       {% if perms.product.view_productclass %}
-                    <!-- product type -->
                     <li class="{% block menu_product_classes_class %}{% endblock %}">
                     <a href="{% url 'dashboard:product-class-list' %}">
                       <i class="icon-books"></i>
@@ -257,7 +255,6 @@
                     </li>
                       {% endif %}
                       {% if perms.product.view_productattribute %}
-                    <!-- product attributes -->
                     <li class="{% block menu_attributes_class %}{% endblock %}">
                     <a href="{% url 'dashboard:product-attributes' %}">
                       <i class="icon-stack2"></i>
@@ -266,13 +263,11 @@
                     </li>
                       {% endif %}
                       {% if perms.product.view_stocklocation %}
-                    <!-- stock location -->
                     <li class="{% block menu_location_class %}{% endblock %}">
                     <a href="{% url 'dashboard:product-stock-location-list' %}"><i class="icon-location4"></i>
                        {% trans "Stock locations" context "Dashboard stock locations list" %}
                     </a>
                     </li>
-                    <!-- stock reorder -->
                       {% endif %}
                        {% if perms.product.view_stock %}
                     <li class="{% block menu_reorder_class %}{% endblock %}">
@@ -612,7 +607,7 @@
                   </a>
 
                   <ul>
-                    <li class="{% block menu_payments %}{% endblock %}">
+                      <li class="{% block menu_payments %}{% endblock %}">
                           <a href="{% url 'dashboard:rent-payments'%}">
                            <i class="icon-typewriter"></i>Payments
                           </a>
@@ -622,7 +617,7 @@
                            <i class="icon-toggle"></i>Maintenance
                           </a>
                       </li>
-                      <ul>
+
                       <li>
                         <a href="javascript:;">
                             <i class="icon-align-center-vertical"></i>
