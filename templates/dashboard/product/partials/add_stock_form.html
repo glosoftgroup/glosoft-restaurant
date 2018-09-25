@@ -154,19 +154,23 @@
                                 </td>
                                 <!--cost price-->
                                 <td>
-                                    <input v-model="item.cost_price" style="width: 65px;" type="number" placeholder="cost" class="form-control">
+                                    <input v-model="item.cost_price" style="width: 65px;" type="number" placeholder="cost" class="form-control"
+                                    onfocus="this.value == 0 ? this.value='' : null" />
                                 </td>
                                 <!--retail price-->
                                 <td>
-                                    <input v-model="item.price_override" style="width: 65px;" type="number" placeholder="retail price" class="form-control price_override">
+                                    <input v-model="item.price_override" style="width: 65px;" type="number" placeholder="retail price" class="form-control price_override"
+                                    onfocus="this.value == 0 ? this.value='' : null" />
                                 </td>
                                 <!--wholesale price-->
                                 <td>
-                                    <input v-model="item.wholesale_override" style="width: 65px;" type="number" placeholder="{{'wholesale_name'|model_settings}} price" class="form-control">
+                                    <input v-model="item.wholesale_override" style="width: 65px;" type="number" placeholder="{{'wholesale_name'|model_settings}} price" class="form-control"
+                                    onfocus="this.value == 0 ? this.value='' : null" />
                                 </td>
                                 <!--minimum price-->
                                 <td>
-                                    <input v-model="item.minimum_price" style="width: 65px;" type="number" placeholder="minimum_price" class="form-control">
+                                    <input v-model="item.minimum_price" style="width: 65px;" type="number" placeholder="minimum_price" class="form-control"
+                                    onfocus="this.value == 0 ? this.value='' : null" />
                                 </td>
                                 <!--options-->
                                 <td>
