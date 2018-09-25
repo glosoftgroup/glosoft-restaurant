@@ -104,11 +104,6 @@
                             <input type="text" class="form-control" name="nid" id="nid" placeholder="Id No">
                            </div>
 
-                          <div class="form-group">
-                            <label for="name">Code</label>
-                            <input type="text" class="form-control" autocomplete='off' placeholder="User Code" name="code" id="code">
-                          </div>
-
                         </div>
                         <div class="col-md-6">
                            <div class="form-group">
@@ -127,6 +122,22 @@
                               <label for="email">Job Title</label>
                               <input type="text" class="form-control" name="job_title" id="id_job_title" placeholder="Job title (e.g Cashier)">
                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="form-group">
+                            <label>Code: </label>
+                                <div class="btn-group" style="display: block">
+                                    <button type="button" class="btn bg-slate-800 legitRipple"
+                                            id="generate_code">
+                                        Generate Code
+                                    </button>
+                                    <button type="button" class="btn bg-slate-800 ml-15"
+                                            id="display_code"
+                                            disabled="disabled">
+                                         *****
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                       </div>
                       
@@ -631,8 +642,24 @@
 {% block custom_js %}
   <script type="text/javascript" src="{% static 'backend/js/plugins/forms/selects/bootstrap_multiselect.js' %}"></script> 
   <script type="text/javascript" src="{% static 'backend/js/pages/form_multiselect.js' %}"></script>
+
 <script type="text/javascript">
-/* mask phone numbre */
+
+/* alert function */
+function notification(bg='bg-danger', msg='something went wrong', header=null){
+    $.jGrowl(msg, {
+        header: header,
+        theme: bg
+    });
+}
+
+/* generate code */
+$('#generate_code').on('click', function(){
+    var code = Math.floor(Math.random()*90000) + 10000;;
+    $('#display_code').text(code);
+});
+
+/* mask phone number */
 $('#mobisdle').inputmask({
   mask: '(254)-000-000-000'
 })
@@ -739,9 +766,6 @@ $( ".check" ).on( "click", function(){
         fullname: {
           required:true
         },
-        code: {
-          required:true
-        },
         email:{
           required: true,
           email:true
@@ -788,10 +812,18 @@ $( ".check" ).on( "click", function(){
                return $(this).val();
             }).get();
 
+      code_from_button = $('#display_code').text();
+
+      if(code_from_button.indexOf('*') > -1){
+            notification('bg-danger', 'Please generate a code');
+            return;
+      }
+
       if(file != ''){
           var f = document.getElementById('user-details');
           var formData = new FormData(f);
           formData.append("image", file);
+          formData.append("code", code_from_button);
           for (var i = 0; i < raw_groups.length; i++) {
               formData.append('groups[]', raw_groups[i]);
           }
@@ -806,7 +838,7 @@ $( ".check" ).on( "click", function(){
                     success:function(data){
                        console.log(data);
                        $("#fullname").val('');
-                       $("#code").val('');
+                       $("#code_from_button").text('*****');
                        $("#name").val('');
                        $("#email").val('');
                        $("#password").val('');
@@ -825,11 +857,8 @@ $( ".check" ).on( "click", function(){
                       $('.user_id').val(localStorage.getItem("user_id"));
                     },
                     error:function(error){
-                      console.log(error);
-                      $.jGrowl('Change a few things up and try submitting again', {
-                          header: 'Oh snap!',
-                          theme: 'bg-danger'
-                      });
+                      var msg = error.responseJSON.message;
+                      notification('bg-danger', msg);
                     }
                 });
             } 

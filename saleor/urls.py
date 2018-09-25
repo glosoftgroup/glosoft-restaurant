@@ -19,6 +19,7 @@ from .api.credit.urls import urlpatterns as api_credit_urls
 from .api.notification.urls import urlpatterns as api_notification_urls
 from .api.order.urls import urlpatterns as api_order_urls
 from .api.order_number.urls import urlpatterns as api_order_number_urls
+from .api.generate_code.urls import urlpatterns as api_generate_code_urls
 from .api.payment.urls import urlpatterns as api_payment_urls
 from .api.product.urls import urlpatterns as api_urls
 from .api.property.urls import urlpatterns as api_property_urls
@@ -94,6 +95,7 @@ urlpatterns = [
     url(r'^api/sms/', include(api_sms_urls, namespace='sms-api')),
     url(r'^api/table/', include(api_table_urls, namespace='table-api')),
     url(r'^api/terminal/', include(api_terminal_urls, namespace='terminal-api')),
+    url(r'^api/user/code/generate', include(api_generate_code_urls, namespace='user-generate-code-api')),
     url(r'^api/variant/', include(api_variant_urls, namespace='variant-api')),
     url(r'^cart/', include(cart_urls, namespace='cart')),
     url(r'^checkout/', include(checkout_urls, namespace='checkout')),

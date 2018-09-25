@@ -7,7 +7,6 @@
 {% load site_settings %}
 {% load model_settings %}
 
-
 {% block title %}
   {% if product.pk %}
     {{ product }}
@@ -1520,9 +1519,20 @@ $('#form-product').validate({
         var data = JSON.parse(data);
         var newitemnum = data.supplier_id;
         var newitemdesc = data.supplier_name;
-        selector.append('<option value="'+newitemnum+'" selected="selected">'+newitemdesc+'</option>');
+
+        /* destroy first and rebuild the selector again to maintain the
+         * icons and to remove the option duplication
+         */
+        selector.selectpicker("destroy");
+        selector.selectpicker({
+            iconBase: 'fa',
+            addIcon:'fa-plus-circle'
+        });
+
+        selector.prepend('<option value="'+newitemnum+'" selected="selected">'+newitemdesc+'</option>');
         selector.selectpicker("refresh");
-        stock_selector.append('<option value="'+newitemnum+'" selected="selected">'+newitemdesc+'</option>');
+
+        stock_selector.prepend('<option value="'+newitemnum+'" selected="selected">'+newitemdesc+'</option>');
         stock_selector.selectpicker("refresh");
         parent.supplier = newitemnum;
     });
