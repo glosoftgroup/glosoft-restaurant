@@ -34,6 +34,7 @@ export class TransferButton extends Component {
     e.preventDefault();
     var props = { ...this.props };
     var transferDate = props.date ? props.date.date : moment().format('YYYY-MM-DD');
+
     if (!this.props.counter) {
       $.jGrowl('Please select Counter !', {
         header: 'Counter required',

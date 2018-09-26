@@ -296,7 +296,7 @@ def create_items(instance, items):
             single = query.first()
             single.qty = int(single.qty) + int(item['qty'])
             single.transferred_qty = int(single.transferred_qty) + int(item['qty'])
-            single.expected_qty = single.qty
+            single.expected_qty = int(single.qty)
             single.closed = False
             single.price = Decimal(single.price) + Decimal(item['price'])
             if single.qty > 0:
@@ -308,9 +308,9 @@ def create_items(instance, items):
             single.price = item['price']
             single.name = item['name']
             single.menu = item['menu']
-            single.qty = item['qty']
-            single.transferred_qty = single.qty
-            single.expected_qty = single.qty
+            single.qty = int(item['qty'])
+            single.transferred_qty = int(single.qty)
+            single.expected_qty = int(single.qty)
             single.category = item['category']['name']
             single.category_id = item['category']['id']
             if single.qty > 0:

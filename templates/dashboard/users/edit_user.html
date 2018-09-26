@@ -1073,7 +1073,12 @@ $(document).ready(function(){
 
         var valid = fullName && userName && email && nationalId && mobile ;
 
-        if(!valid){
+        var password_val = $('#password').val();
+        var confirm_password_val = $('#confirm_password').val();
+
+        var password_not_match = (password_val !=='' || confirm_password_val !== '') && (password_val !== confirm_password_val)
+
+        if(!valid || password_not_match){
             notification('bg-danger', 'Please fill in the required fields');
             return;
         }

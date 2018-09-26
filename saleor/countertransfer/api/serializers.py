@@ -319,6 +319,7 @@ def create_items(instance, items):
             if single.qty > 0:
                 single.save()
         else:
+
             single = Item()
             single.transfer = instance
             single.counter = instance.counter
@@ -329,15 +330,11 @@ def create_items(instance, items):
             single.product_category = item['product_category']
             single.productName = item['productName']
             single.stock = item['stock']
-            single.qty = item['qty']
-            single.transferred_qty = single.qty
-            single.expected_qty = single.qty
+            single.qty = int(item['qty'])
+            single.transferred_qty = int(single.qty)
+            single.expected_qty = int(single.qty)
             single.sku = item['sku']
-            print single.price
-            print single.unit_price
-            print single.discount
-            print single.tax
-            print single.qty
+
             if single.qty > 0:
                 single.save()
 
@@ -354,6 +351,7 @@ class CreateListSerializer(serializers.ModelSerializer):
         fields = fields + ('counter_transfer_items',)
 
     def create(self, validated_data):
+        print validated_data
         instance = Table()
         instance.name = validated_data.get('name')
         instance.counter = validated_data.get('counter')
