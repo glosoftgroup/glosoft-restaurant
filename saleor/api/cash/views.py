@@ -56,7 +56,6 @@ def login(request):
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
-
 @api_view(['GET', 'POST'])
 def lock_login(request):
     serializer = UserLockAuthorizationSerializer(data=request.data)
@@ -85,12 +84,18 @@ def lock_login(request):
                         permissions.append('set_ready')
                     if user.has_perm('sales.set_collected'):
                         permissions.append('set_collected')
-                    userResponse = {"user":
-                        { "id":user.id, "name":user.name, 
-                        "email":user.email, "code":user.code, 
-                        "position":user.job_title, "permissions":permissions}
+                    user_response = {"user":
+                        {
+                            "id": user.id,
+                            "name": user.name,
+                            "email": user.email,
+                            "code": user.code,
+                            "is_new_code": user.is_new_code,
+                            "position": user.job_title,
+                            "permissions": permissions
                         }
-                    return Response(userResponse, status=status.HTTP_202_ACCEPTED)
+                    }
+                    return Response(user_response, status=status.HTTP_202_ACCEPTED)
                 else:
                     return Response({'message':'Permission Denied!'}, status=status.HTTP_401_UNAUTHORIZED)
             except Exception as e:
@@ -99,6 +104,7 @@ def lock_login(request):
             return Response(serializer.errors, status=status.HTTP_403_FORBIDDEN)
     elif request.method == 'GET':
             return Response(status=status.HTTP_400_BAD_REQUEST)
+
 
 def record_trail(loggedin, user, terminal):
     trail = str(user.name)+' '+\

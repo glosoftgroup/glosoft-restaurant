@@ -5,7 +5,7 @@ from django.contrib.auth import update_session_auth_hash
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404
 from django.template.response import TemplateResponse
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_protect
 from django.contrib.auth.hashers import make_password
 from django.core.paginator import Paginator, PageNotAnInteger, InvalidPage, EmptyPage
@@ -26,13 +26,13 @@ error_logger = logging.getLogger('error_logger')
 
 @staff_member_required
 @permission_decorator('userprofile.view_usertrail')
-def user_trails(request):   
+def user_trails(request):
     try:
         users = UserTrail.objects.all().order_by('-now')
         paginator = Paginator(users, 10)
         page = request.GET.get('page', 1)
         user_trail(request.user.name, 'accessed user trail page', 'view')
-        info_logger.info('User: '+str(request.user.name)+' accessed the user trail page')
+        info_logger.info('User: ' + str(request.user.name) + ' accessed the user trail page')
 
         try:
             users = paginator.page(page)
@@ -43,7 +43,7 @@ def user_trails(request):
         except EmptyPage:
             users = paginator.page(paginator.num_pages)
 
-        return TemplateResponse(request, 'dashboard/users/trail.html', {'users':users, 'pn':paginator.num_pages})
+        return TemplateResponse(request, 'dashboard/users/trail.html', {'users': users, 'pn': paginator.num_pages})
     except TypeError as e:
         error_logger.error(e)
         return HttpResponse('error accessing users')
@@ -65,12 +65,14 @@ def users(request):
             users = paginator.page(1)
         except EmptyPage:
             users = paginator.page(paginator.num_pages)
-        user_trail(request.user.name, 'accessed users list page','view')
-        info_logger.info('User: '+str(request.user.name)+' accessed the view users page')
-        return TemplateResponse(request, 'dashboard/users/users.html', {'groups':groups,'users':users, 'pn': paginator.num_pages})
+        user_trail(request.user.name, 'accessed users list page', 'view')
+        info_logger.info('User: ' + str(request.user.name) + ' accessed the view users page')
+        return TemplateResponse(request, 'dashboard/users/users.html',
+                                {'groups': groups, 'users': users, 'pn': paginator.num_pages})
     except TypeError as e:
         error_logger.error(e)
         return HttpResponse('error accessing users')
+
 
 @staff_member_required
 def usertrail_paginate(request):
@@ -90,11 +92,13 @@ def usertrail_paginate(request):
                 if p2_sz and gid:
                     paginator = Paginator(users, int(p2_sz))
                     users = paginator.page(page)
-                    return TemplateResponse(request,'dashboard/users/trail/paginate.html',{'users':users, 'gid':date})
+                    return TemplateResponse(request, 'dashboard/users/trail/paginate.html',
+                                            {'users': users, 'gid': date})
 
                 paginator = Paginator(users, 10)
                 users = paginator.page(page)
-                return TemplateResponse(request,'dashboard/users/trail/p2.html',{'users':users, 'pn':paginator.num_pages,'sz':10,'gid':date})
+                return TemplateResponse(request, 'dashboard/users/trail/p2.html',
+                                        {'users': users, 'pn': paginator.num_pages, 'sz': 10, 'gid': date})
 
             except ValueError as e:
                 return HttpResponse(e)
@@ -105,11 +109,13 @@ def usertrail_paginate(request):
                 if p2_sz and gid:
                     paginator = Paginator(users, int(p2_sz))
                     users = paginator.page(page)
-                    return TemplateResponse(request,'dashboard/users/trail/paginate.html',{'users':users, 'gid':action})
+                    return TemplateResponse(request, 'dashboard/users/trail/paginate.html',
+                                            {'users': users, 'gid': action})
 
                 paginator = Paginator(users, 10)
                 users = paginator.page(page)
-                return TemplateResponse(request,'dashboard/users/trail/p2.html',{'users':users, 'pn':paginator.num_pages,'sz':10,'gid':action})
+                return TemplateResponse(request, 'dashboard/users/trail/p2.html',
+                                        {'users': users, 'pn': paginator.num_pages, 'sz': 10, 'gid': action})
 
             except ValueError as e:
                 return HttpResponse(e)
@@ -118,13 +124,14 @@ def usertrail_paginate(request):
         if list_sz:
             paginator = Paginator(users, int(list_sz))
             users = paginator.page(page)
-            return TemplateResponse(request,'dashboard/users/trail/p2.html',{'users':users, 'pn':paginator.num_pages,'sz':list_sz, 'gid':0})
+            return TemplateResponse(request, 'dashboard/users/trail/p2.html',
+                                    {'users': users, 'pn': paginator.num_pages, 'sz': list_sz, 'gid': 0})
         else:
             paginator = Paginator(users, 10)
         if p2_sz:
             paginator = Paginator(users, int(p2_sz))
             users = paginator.page(page)
-            return TemplateResponse(request,'dashboard/users/trail/paginate.html',{'users':users})
+            return TemplateResponse(request, 'dashboard/users/trail/paginate.html', {'users': users})
 
         if date:
             try:
@@ -132,11 +139,13 @@ def usertrail_paginate(request):
                 if p2_sz:
                     paginator = Paginator(users, int(p2_sz))
                     users = paginator.page(page)
-                    return TemplateResponse(request,'dashboard/users/trail/paginate.html',{'users':users, 'gid':date})
+                    return TemplateResponse(request, 'dashboard/users/trail/paginate.html',
+                                            {'users': users, 'gid': date})
 
                 paginator = Paginator(users, 10)
                 users = paginator.page(page)
-                return TemplateResponse(request,'dashboard/users/trail/p2.html',{'users':users, 'pn':paginator.num_pages,'sz':10,'gid':date})
+                return TemplateResponse(request, 'dashboard/users/trail/p2.html',
+                                        {'users': users, 'pn': paginator.num_pages, 'sz': 10, 'gid': date})
 
             except ValueError as e:
                 return HttpResponse(e)
@@ -147,15 +156,16 @@ def usertrail_paginate(request):
                 if p2_sz:
                     paginator = Paginator(users, int(p2_sz))
                     users = paginator.page(page)
-                    return TemplateResponse(request,'dashboard/users/trail/paginate.html',{'users':users, 'gid':action})
+                    return TemplateResponse(request, 'dashboard/users/trail/paginate.html',
+                                            {'users': users, 'gid': action})
 
                 paginator = Paginator(users, 10)
                 users = paginator.page(page)
-                return TemplateResponse(request,'dashboard/users/trail/p2.html',{'users':users, 'pn':paginator.num_pages,'sz':10,'gid':action})
+                return TemplateResponse(request, 'dashboard/users/trail/p2.html',
+                                        {'users': users, 'pn': paginator.num_pages, 'sz': 10, 'gid': action})
 
             except ValueError as e:
                 return HttpResponse(e)
-
 
         try:
             users = paginator.page(page)
@@ -165,7 +175,8 @@ def usertrail_paginate(request):
             groups = paginator.page(1)
         except EmptyPage:
             users = paginator.page(paginator.num_pages)
-        return TemplateResponse(request,'dashboard/users/trail/paginate.html',{'users':users})
+        return TemplateResponse(request, 'dashboard/users/trail/paginate.html', {'users': users})
+
 
 @staff_member_required
 def user_paginate(request):
@@ -179,29 +190,33 @@ def user_paginate(request):
         if p2_sz:
             paginator = Paginator(users, int(p2_sz))
             users = paginator.page(page)
-            return TemplateResponse(request,'dashboard/users/paginate.html',{'users':users})
+            return TemplateResponse(request, 'dashboard/users/paginate.html', {'users': users})
 
         if list_sz:
             paginator = Paginator(users, int(list_sz))
             users = paginator.page(page)
-            return TemplateResponse(request,'dashboard/users/p2.html',{'users':users, 'pn':paginator.num_pages,'sz':list_sz, 'gid':request.GET.get('gid')})
+            return TemplateResponse(request, 'dashboard/users/p2.html',
+                                    {'users': users, 'pn': paginator.num_pages, 'sz': list_sz,
+                                     'gid': request.GET.get('gid')})
 
         paginator = Paginator(users, 10)
         users = paginator.page(page)
-        return TemplateResponse(request,'dashboard/users/p2.html',{'users':users, 'pn':paginator.num_pages,'sz':10,'gid':request.GET.get('gid')})
+        return TemplateResponse(request, 'dashboard/users/p2.html',
+                                {'users': users, 'pn': paginator.num_pages, 'sz': 10, 'gid': request.GET.get('gid')})
 
     else:
         users = User.objects.all().order_by('-id')
         if list_sz:
             paginator = Paginator(users, int(list_sz))
             users = paginator.page(page)
-            return TemplateResponse(request,'dashboard/users/p2.html',{'users':users, 'pn':paginator.num_pages,'sz':list_sz, 'gid':0})
+            return TemplateResponse(request, 'dashboard/users/p2.html',
+                                    {'users': users, 'pn': paginator.num_pages, 'sz': list_sz, 'gid': 0})
         else:
             paginator = Paginator(users, 10)
         if p2_sz:
             paginator = Paginator(users, int(p2_sz))
             users = paginator.page(page)
-            return TemplateResponse(request,'dashboard/users/paginate.html',{'users':users})
+            return TemplateResponse(request, 'dashboard/users/paginate.html', {'users': users})
 
         try:
             users = paginator.page(page)
@@ -211,7 +226,8 @@ def user_paginate(request):
             groups = paginator.page(1)
         except EmptyPage:
             users = paginator.page(paginator.num_pages)
-        return TemplateResponse(request,'dashboard/users/paginate.html',{'users':users})
+        return TemplateResponse(request, 'dashboard/users/paginate.html', {'users': users})
+
 
 @staff_member_required
 @permission_decorator('userprofile.add_user')
@@ -220,16 +236,17 @@ def user_add(request):
         permissions = Permission.objects.all()
         groups = Group.objects.all()
         user_trail(request.user.name, 'accessed add users page', 'view')
-        info_logger.info('User: '+str(request.user.name)+' accessed user create page')
-        return TemplateResponse(request, 'dashboard/users/add_user.html',{'permissions':permissions, 'groups':groups})
+        info_logger.info('User: ' + str(request.user.name) + ' accessed user create page')
+        return TemplateResponse(request, 'dashboard/users/add_user.html',
+                                {'permissions': permissions, 'groups': groups})
     except TypeError as e:
         error_logger.error(e)
         return HttpResponse('error accessing add users page')
 
+
 @staff_member_required
 @csrf_protect
 def user_process(request):
-    user = User.objects.all()
     if request.method == 'POST':
         name = (request.POST.get('name')).lower()
         fullname = request.POST.get('fullname')
@@ -237,12 +254,43 @@ def user_process(request):
         password = request.POST.get('password')
         encr_password = make_password(password)
         nid = request.POST.get('nid')
-        mobile = request.POST.get('mobile').replace(' ','').replace('(','').replace(')','').replace('-','')
-        image= request.FILES.get('image')
+        mobile = request.POST.get('mobile').replace(' ', '').replace('(', '').replace(')', '').replace('-', '')
+        image = request.FILES.get('image')
         groups = request.POST.getlist('groups[]')
         job_title = request.POST.get('job_title')
         code = request.POST.get('code')
         rest_code = (request.POST.get('password')).lower()
+
+        """ to be used for response """
+        message = None
+        explanation = None
+        status_code = 400
+
+        if '*' in code:
+
+            """ check if code has been generated """
+
+            message = 'Please generate the code'
+            explanation = 'That code should be provided'
+            return JsonResponse(
+                {'message': message, 'explanation': explanation},
+                status=status_code)
+        else:
+
+            """ check if that code exists """
+
+            try:
+                check_code = User.objects.get(code=code)
+                if check_code:
+                    message = 'That code already exists'
+                    explanation = 'That code should be unique'
+                    return JsonResponse(
+                        {'message': message, 'explanation': explanation},
+                        status=status_code)
+            except Exception as e:
+                print 'code doesn\'t exist'
+                pass
+
         new_user = User(
             name=name,
             fullname=fullname,
@@ -255,14 +303,19 @@ def user_process(request):
             code=code,
             rest_code=rest_code
         )
+
         try:
             new_user.save()
         except IntegrityError:
             error_logger.info('Error when saving ')
-            return HttpResponse('user exists with those details')
+            message = 'User exists with those details'
+            explanation = 'Please check the details and change accordingly'
+            return JsonResponse(
+                {'message': message, 'explanation': explanation},
+                status=status_code)
         except Exception, e:
             error_logger.error(e)
-            
+
         last_id = User.objects.latest('id')
         if groups:
             permissions = Permission.objects.filter(group__name__in=groups)
@@ -270,8 +323,8 @@ def user_process(request):
             gps = Group.objects.filter(name__in=groups)
             last_id.groups.add(*gps)
             last_id.save()
-        user_trail(request.user.name, 'added user: '+str(name), 'add')
-        info_logger.info('User: '+str(request.user.name)+' created user:'+str(name))
+        user_trail(request.user.name, 'added user: ' + str(name), 'add')
+        info_logger.info('User: ' + str(request.user.name) + ' created user:' + str(name))
         return HttpResponse(last_id.id)
 
 
@@ -293,8 +346,8 @@ def user_detail(request, pk):
         'groups': groups
     }
     if request.user == user:
-        user_trail(request.user.name, 'viewed self profile ','view')
-        info_logger.info('User: '+str(request.user)+' viewed self profile')
+        user_trail(request.user.name, 'viewed self profile ', 'view')
+        info_logger.info('User: ' + str(request.user) + ' viewed self profile')
         return TemplateResponse(request, 'dashboard/users/detail.html', ctx)
     else:
 
@@ -314,7 +367,7 @@ def user_delete(request, pk):
     user = get_object_or_404(User, pk=pk)
     if request.method == 'POST':
         user.delete()
-        user_trail(request.user.name, 'deleted user: '+ str(user.name),'delete')
+        user_trail(request.user.name, 'deleted user: ' + str(user.name), 'delete')
         return HttpResponse('success')
 
 
@@ -326,6 +379,7 @@ def user_edit(request, pk):
     user_groups = user.groups.all()
     user_permissions = Permission.objects.filter(user=user)
     should_edit = False
+    self_account = False
 
     """ check if the request user matches the
         fetched user details else 
@@ -338,10 +392,12 @@ def user_edit(request, pk):
         'user_permissions': user_permissions,
         'groups': groups,
         'user_groups': user_groups,
-        'should_edit': should_edit
+        'should_edit': should_edit,
+        'self_account': self_account
     }
 
     if request.user == user:
+        ctx['self_account'] = True
         if request.user.has_perm('userprofile.change_user'):
             ctx['should_edit'] = True
         user_trail(request.user.name, 'accessed edit page for user ' + str(user.name), 'view')
@@ -367,7 +423,9 @@ def user_update(request, pk):
         user = get_object_or_404(User, pk=pk)
     except Exception as e:
         print e
+
     user_permissions = Permission.objects.filter(user=user)
+
     user_groups = user.groups.all()
     permissions_in_user_groups = Permission.objects.filter(group__in=[group for group in user_groups])
 
@@ -377,17 +435,42 @@ def user_update(request, pk):
         email = request.POST.get('user_email')
         password = request.POST.get('user_password')
         nid = request.POST.get('user_nid')
-        mobile = request.POST.get('user_mobile').replace(' ','').replace('(','').replace(')','').replace('-','')
-        image= request.FILES.get('image')
+        mobile = request.POST.get('user_mobile').replace(' ', '').replace('(', '').replace(')', '').replace('-', '')
+        image = request.FILES.get('image')
         job_title = request.POST.get('job_title')
-        code = request.POST.get('code')
+        code = request.POST.get('code_from_button')
+
         rest_code = (request.POST.get('user_password')).lower()
         groups = request.POST.getlist('groups[]')
+
+        """ to be used for response """
+        message = None
+        explanation = None
+        status_code = 400
+
+        if '*' not in code:
+
+            """ check if code matches with the set code """
+
+            if code == user.code:
+                user.is_new_code = False
+            else:
+                try:
+                    user.code = code
+                    user.is_new_code = True
+                except Exception as e:
+                    message = 'That code already exists'
+                    explanation = 'That code should be unique'
+                    return JsonResponse(
+                        {'message': message, 'explanation': explanation},
+                        status=status_code)
 
         if password == user.password:
             encr_password = user.password
         else:
             encr_password = make_password(password)
+            user.rest_code = rest_code
+
         if image:
             user.image = image
         user.name = name
@@ -397,15 +480,13 @@ def user_update(request, pk):
         user.nid = nid
         user.mobile = mobile
         user.job_title = job_title
-        user.code = code
-        user.rest_code = rest_code
         user.save()
 
         """ update the user session """
         update_session_auth_hash(request, user)
 
-        user_trail(request.user.name, 'updated user: '+ str(user.name), 'update')
-        info_logger.info('User: '+str(request.user.name)+' updated user: '+str(user.name))
+        user_trail(request.user.name, 'updated user: ' + str(user.name), 'update')
+        info_logger.info('User: ' + str(request.user.name) + ' updated user: ' + str(user.name))
 
         if groups:
             th_groups2 = Group.objects.filter(name__in=[group for group in groups])
@@ -422,6 +503,7 @@ def user_update(request, pk):
                 return HttpResponse("groups removed")
         return HttpResponse("success with image")
 
+
 @staff_member_required
 @csrf_protect
 def user_assign_permission(request):
@@ -436,8 +518,11 @@ def user_assign_permission(request):
             user.is_active = False
             user.user_permissions.remove(*user_has_permissions)
             user.save()
-            user_trail(request.user.name, 'deactivated and removed all permissions for user: '+ str(user.name), 'delete')
-            info_logger.info('User: '+str(request.user.name)+' deactivated and removed all permissions for user: '+str(user.name))
+            user_trail(request.user.name, 'deactivated and removed all permissions for user: ' + str(user.name),
+                       'delete')
+            info_logger.info(
+                'User: ' + str(request.user.name) + ' deactivated and removed all permissions for user: ' + str(
+                    user.name))
             return HttpResponse('deactivated')
         else:
             if user_has_permissions in permission_list:
@@ -446,8 +531,8 @@ def user_assign_permission(request):
                 user.is_active = True
                 user.user_permissions.add(*not_in_user_permissions)
                 user.save()
-                user_trail(request.user.name, 'assigned permissions for user: '+ str(user.name),'add')
-                info_logger.info('User: '+str(request.user)+' assigned permissions for user: '+str(user.name))
+                user_trail(request.user.name, 'assigned permissions for user: ' + str(user.name), 'add')
+                info_logger.info('User: ' + str(request.user) + ' assigned permissions for user: ' + str(user.name))
                 return HttpResponse('permissions added')
             else:
                 not_in_user_permissions = list(set(permission_list) - set(user_has_permissions))
@@ -456,31 +541,31 @@ def user_assign_permission(request):
                 user.user_permissions.remove(*user_has_permissions)
                 user.user_permissions.add(*not_in_user_permissions)
                 user.save()
-                user_trail(request.user.name, 'assigned permissions for user: '+ str(user.name),'add')
-                info_logger.info('User: '+str(request.user.name)+' assigned permissions for user: '+str(user.name))
+                user_trail(request.user.name, 'assigned permissions for user: ' + str(user.name), 'add')
+                info_logger.info(
+                    'User: ' + str(request.user.name) + ' assigned permissions for user: ' + str(user.name))
                 return HttpResponse('permissions updated')
 
-@staff_member_required
-def user_search( request ):
 
+@staff_member_required
+def user_search(request):
     if request.is_ajax():
         page = request.GET.get('page', 1)
         list_sz = request.GET.get('size')
         p2_sz = request.GET.get('psize')
-        q = request.GET.get( 'q' )
+        q = request.GET.get('q')
         if list_sz == 0 or list_sz is None:
             sz = 10
         else:
             sz = list_sz
 
-
         if q is not None:
             users = User.objects.filter(
-                Q( name__icontains = q ) |
-                Q( fullname__icontains = q ) |
-                Q( code__icontains = q ) |
-                Q( email__icontains = q ) | 
-                Q( mobile__icontains = q ) ).order_by('-id' )
+                Q(name__icontains=q) |
+                Q(fullname__icontains=q) |
+                Q(code__icontains=q) |
+                Q(email__icontains=q) |
+                Q(mobile__icontains=q)).order_by('-id')
 
             if request.GET.get('gid'):
                 users = users.filter(groups__id=request.GET.get('gid'))
@@ -493,7 +578,8 @@ def user_search( request ):
                     paginator = Paginator(users, int(list_sz))
                     users = paginator.page(page)
                     return TemplateResponse(request, 'dashboard/users/search.html',
-                                            {'users': users, 'pn': paginator.num_pages, 'sz': list_sz, 'gid':request.GET.get('gid'),'q':q})
+                                            {'users': users, 'pn': paginator.num_pages, 'sz': list_sz,
+                                             'gid': request.GET.get('gid'), 'q': q})
 
                 paginator = Paginator(users, 10)
                 users = paginator.page(page)
@@ -506,7 +592,8 @@ def user_search( request ):
                     paginator = Paginator(users, int(list_sz))
                     users = paginator.page(page)
                     return TemplateResponse(request, 'dashboard/users/search.html',
-                                            {'users': users, 'pn': paginator.num_pages, 'sz': list_sz, 'gid': 0,'q':q})
+                                            {'users': users, 'pn': paginator.num_pages, 'sz': list_sz, 'gid': 0,
+                                             'q': q})
 
                 if p2_sz:
                     paginator = Paginator(users, int(p2_sz))
@@ -522,16 +609,17 @@ def user_search( request ):
                     users = paginator.page(1)
                 except EmptyPage:
                     users = paginator.page(paginator.num_pages)
-                return TemplateResponse(request, 'dashboard/users/search.html', {'users':users, 'pn':paginator.num_pages,'sz':sz,'q':q})
+                return TemplateResponse(request, 'dashboard/users/search.html',
+                                        {'users': users, 'pn': paginator.num_pages, 'sz': sz, 'q': q})
+
 
 @staff_member_required
-def usertrail_search( request ):
-
+def usertrail_search(request):
     if request.is_ajax():
         page = request.GET.get('page', 1)
-        list_sz = request.GET.get('size',10)
+        list_sz = request.GET.get('size', 10)
         p2_sz = request.GET.get('psize')
-        q = request.GET.get( 'q' )
+        q = request.GET.get('q')
         if list_sz is None:
             sz = 10
         else:
@@ -539,8 +627,8 @@ def usertrail_search( request ):
 
         if q is not None:
             users = UserTrail.objects.filter(
-                Q( name__icontains = q ) |
-                Q( action__icontains = q ) | Q( date__icontains = q ) ).order_by( '-now' )
+                Q(name__icontains=q) |
+                Q(action__icontains=q) | Q(date__icontains=q)).order_by('-now')
             paginator = Paginator(users, 10)
             try:
                 users = paginator.page(page)
@@ -552,9 +640,11 @@ def usertrail_search( request ):
                 users = paginator.page(paginator.num_pages)
             if p2_sz:
                 users = paginator.page(page)
-                return TemplateResponse(request,'dashboard/users/trail/paginate.html',{'users':users})
+                return TemplateResponse(request, 'dashboard/users/trail/paginate.html', {'users': users})
 
-            return TemplateResponse(request, 'dashboard/users/trail/search.html', {'users':users, 'pn':paginator.num_pages,'sz':sz,'q':q})
+            return TemplateResponse(request, 'dashboard/users/trail/search.html',
+                                    {'users': users, 'pn': paginator.num_pages, 'sz': sz, 'q': q})
+
 
 @staff_member_required
 def users_pdf(request):
@@ -565,20 +655,21 @@ def users_pdf(request):
         'today': date.today(),
         'users': users,
         'puller': request.user,
-        'name':name,
-        'image':img,
-        }
+        'name': name,
+        'image': img,
+    }
     pdf = render_to_pdf('dashboard/users/pdf/users.html', data)
     return HttpResponse(pdf, content_type='application/pdf')
 
+
 @staff_member_required
 def users_export_csv(request):
-    pdfname = 'users'+str(random.random())
+    pdfname = 'users' + str(random.random())
     response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = 'attachment; filename="'+pdfname+'.csv"'
+    response['Content-Disposition'] = 'attachment; filename="' + pdfname + '.csv"'
     qs = User.objects.all()
     writer = csv.writer(response, csv.excel)
-    response.write(u'\ufeff'.encode('utf8')) # BOM (optional...Excel needs it to open UTF-8 file properly)
+    response.write(u'\ufeff'.encode('utf8'))  # BOM (optional...Excel needs it to open UTF-8 file properly)
     writer.writerow([
         smart_str(u"ID"),
         smart_str(u"Name"),
@@ -593,11 +684,3 @@ def users_export_csv(request):
             smart_str(obj.job_title),
         ])
     return response
-
-
-
-
-
-
-
-

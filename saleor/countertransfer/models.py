@@ -489,14 +489,14 @@ class CounterTransferItems(models.Model):
                            verbose_name=pgettext_lazy('CounterTransfer field', 'sku'))
     product_category = models.CharField(max_length=60, blank=True, null=True,
                                         verbose_name=pgettext_lazy('CounterTransfer field', 'category'))
-    price = models.DecimalField(max_digits=11, decimal_places=2, default=Decimal(0),
+    price = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal(0),
                                 verbose_name=pgettext_lazy('CounterTransfer field', 'price'))
     unit_price = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal(0),
                                      verbose_name=pgettext_lazy('CounterTransfer field', 'unit price'))
 
     tax = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal(0),
                               verbose_name=pgettext_lazy('CounterTransfer field', 'tax'))
-    discount = models.DecimalField(max_digits=9, decimal_places=2, default=Decimal(0),
+    discount = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal(0),
                                    verbose_name=pgettext_lazy('CounterTransfer field', 'discount'))
     total = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal(0),
                                 verbose_name=pgettext_lazy('CounterTransfer field', 'total price'))

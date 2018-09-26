@@ -1,0 +1,17 @@
+/*
+    Algorithm:
+    random.randint(10000, 99999)
+    New Code
+
+    GET /api/user/code/generate
+
+    HTTP 200 OK
+    Allow: POST, OPTIONS, GET
+    Content-Type: application/json
+    Vary: Accept
+*/
+
+{
+  "code": "55555"
+}
+
