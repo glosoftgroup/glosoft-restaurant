@@ -45,7 +45,7 @@ def new_code(request):
 
 def generate_code():
 
-    code = str(random.randint(10000, 99999))
+    code = str(random.randint(1000, 9999))
 
     try:
 
