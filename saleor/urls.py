@@ -61,6 +61,7 @@ from .counter_transfer_report.urls import urlpatterns as counter_transfer_report
 from .kitchen_transfer_report.urls import urlpatterns as kitchen_transfer_report_urls
 from .menu_transfer_report.urls import urlpatterns as menu_transfer_report_urls
 from .menutransfer.urls import urlpatterns as menutransfer_urls
+from .mpesa_transactions.urls import urlpatterns as mpesa_transactions_urls
 from .return_sale.urls import urlpatterns as return_sale_urls
 from .return_purchase.urls import urlpatterns as return_purchase_urls
 import notifications.urls
@@ -123,6 +124,7 @@ urlpatterns = [
     url(r'^menu/transfer/report/', include(menu_transfer_report_urls, namespace='menu_transfer_report')),
     url(r'^kitchen/transfer/', include(kitchentransfer_urls, namespace='kitchentransfer')),
     url(r'^menu/transfer/', include(menutransfer_urls, namespace='menutransfer')),
+    url(r'^mpesa/transactions/', include(mpesa_transactions_urls, namespace='mpesatransactions')),
     url(r'^return/sale/', include(return_sale_urls, namespace='return_sale')),
     url(r'^return/purchase/', include(return_purchase_urls, namespace='return_purchase')),
     url(r'^sitemap\.xml$', sitemap, {'sitemaps': sitemaps},

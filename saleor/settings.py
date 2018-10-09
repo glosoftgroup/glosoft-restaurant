@@ -229,6 +229,7 @@ INSTALLED_APPS = [
     'saleor.menu_transfer_report',
     'saleor.kitchentransfer',
     'saleor.menutransfer',
+    'saleor.mpesa_transactions',
     'saleor.propertytype',
     'saleor.counter',
     'saleor.orders',
