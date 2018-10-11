@@ -1,54 +1,78 @@
 # site settings rest api serializers
 
 from rest_framework import serializers
-from saleor.counter.models import Counter as Table
+from saleor.mpesa_transactions.models import MpesaTransactions, MpesaTransactionsTest
+
+Table = MpesaTransactionsTest
 
 
 class TableListSerializer(serializers.ModelSerializer):
-    update_url = serializers.HyperlinkedIdentityField(view_name='counter:api-update')
-    delete_url = serializers.HyperlinkedIdentityField(view_name='counter:api-delete')
-    text = serializers.SerializerMethodField()
-    is_closed = serializers.SerializerMethodField()
-    last_open = serializers.SerializerMethodField()
+
+    update_url = serializers.HyperlinkedIdentityField(view_name='mpesatransactions:api-update')
+    delete_url = serializers.HyperlinkedIdentityField(view_name='mpesatransactions:api-delete')
 
     class Meta:
         model = Table
-        fields = ('id',
-                  'name',
-                  'text',
-                  'is_closed',
-                  'last_open',
-                  'description',
-                  'update_url',
-                  'delete_url'
-                 )
-
-    def get_text(self, obj):
-        try:
-            return obj.name
-        except:
-            return ''
-
-    def get_is_closed(self, obj):
-        return obj.is_closed()
-
-    def get_last_open(self, obj):
-        return obj.last_open()
+        fields = (
+            'id',
+            'msisdn',
+            'first_name',
+            'middle_name',
+            'last_name',
+            'trans_time',
+            'trans_id',
+            'trans_amount',
+            'org_account_balance',
+            'invoice_number',
+            'bill_ref_number',
+            'third_party_transID',
+            'business_short_code',
+            'transaction_type',
+            'status',
+            'is_picked_status',
+            'update_url',
+            'delete_url'
+        )
 
 
 class CreateListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Table
-        fields = ('id',
-                  'name',
-                  'description',
-                 )
+        fields = (
+            'id',
+            'msisdn',
+            'first_name',
+            'middle_name',
+            'last_name',
+            'trans_time',
+            'trans_id',
+            'trans_amount',
+            'org_account_balance',
+            'invoice_number',
+            'bill_ref_number',
+            'third_party_transID',
+            'business_short_code',
+            'transaction_type',
+            'status',
+            'is_picked_status'
+        )
 
     def create(self, validated_data):
         instance = Table()
-        instance.name = validated_data.get('name')
-        if validated_data.get('description'):
-            instance.description = validated_data.get('description')
+        instance.msisdn = validated_data.get('msisdn')
+        instance.first_name = validated_data.get('first_name')
+        instance.middle_name = validated_data.get('middle_name')
+        instance.last_name = validated_data.get('last_name')
+        instance.trans_time = validated_data.get('trans_time')
+        instance.trans_id = validated_data.get('trans_id')
+        instance.trans_amount = validated_data.get('trans_amount')
+        instance.org_account_balance = validated_data.get('org_account_balance')
+        instance.invoice_number = validated_data.get('invoice_number')
+        instance.bill_ref_number = validated_data.get('bill_ref_number')
+        instance.third_party_transID = validated_data.get('third_party_transID')
+        instance.business_short_code = validated_data.get('business_short_code')
+        instance.transaction_type = validated_data.get('transaction_type')
+        instance.is_picked_status = validated_data.get('is_picked_status')
         instance.save()
 
         return instance
@@ -57,14 +81,42 @@ class CreateListSerializer(serializers.ModelSerializer):
 class UpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Table
-        fields = ('id',
-                  'name',
-                  'description',
-                 )
+        fields = (
+            'id',
+            'msisdn',
+            'first_name',
+            'middle_name',
+            'last_name',
+            'trans_time',
+            'trans_id',
+            'trans_amount',
+            'org_account_balance',
+            'invoice_number',
+            'bill_ref_number',
+            'third_party_transID',
+            'business_short_code',
+            'transaction_type',
+            'status',
+            'is_picked_status'
+        )
 
     def update(self, instance, validated_data):
-        instance.name = validated_data.get('name', instance.name)
-        instance.description = validated_data.get('description', instance.description)
+        instance.msisdn = validated_data.get('msisdn', instance.msisdn)
+        instance.first_name = validated_data.get('first_name', instance.first_name)
+        instance.middle_name = validated_data.get('middle_name', instance.middle_name)
+        instance.last_name = validated_data.get('last_name', instance.last_name)
+        instance.trans_time = validated_data.get('trans_time', instance.trans_time)
+        instance.trans_id = validated_data.get('trans_id', instance.trans_id)
+        instance.trans_amount = validated_data.get('trans_amount', instance.trans_amount)
+        instance.org_account_balance = validated_data.get('org_account_balance', instance.org_account_balance)
+        instance.invoice_number = validated_data.get('invoice_number', instance.invoice_number)
+        instance.bill_ref_number = validated_data.get('bill_ref_number', instance.bill_ref_number)
+        instance.third_party_transID = validated_data.get('third_party_transID', instance.third_party_transID)
+        instance.business_short_code = validated_data.get('business_short_code', instance.business_short_code)
+        instance.transaction_type = validated_data.get('transaction_type', instance.transaction_type)
+        instance.status = validated_data.get('status', instance.status)
+        instance.is_picked_status = validated_data.get('is_picked_status', instance.is_picked_status)
 
         instance.save()
+
         return instance

@@ -4,8 +4,7 @@ from django.contrib.auth import get_user_model
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework import pagination
 from .pagination import PostLimitOffsetPagination
-import datetime
-from saleor.counter.models import Counter as Table
+from saleor.mpesa_transactions.models import MpesaTransactions
 from .serializers import (
     CreateListSerializer,
     TableListSerializer,
@@ -13,6 +12,7 @@ from .serializers import (
      )
 
 User = get_user_model()
+Table = MpesaTransactions
 
 
 class CreateAPIView(generics.CreateAPIView):
@@ -68,7 +68,7 @@ class UpdateAPIView(generics.RetrieveUpdateAPIView):
         @:method PUT
 
         PUT /api/house/update/
-        payload Json: /payload/update.json
+        payload Json: /payload/settings.json
     """
     queryset = Table.objects.all()
     serializer_class = UpdateSerializer

@@ -1,0 +1,19 @@
+//GET /api/setting/
+
+[
+    {
+        "BusinessShortCode": "600520",
+        "BillRefNumber": "testapi",
+        "TransID": "MJB51H6Z3X",
+        "OrgAccountBalance": "521553.00",
+        "MiddleName": "J.",
+        "TransTime": "20181011115220",
+        "InvoiceNumber": "",
+        "MSISDN": "254708374149",
+        "LastName": "Doe",
+        "TransactionType": "Pay Bill",
+        "ThirdPartyTransID": "0",
+        "TransAmount": "150.00",
+        "FirstName": "John"
+    }
+]
