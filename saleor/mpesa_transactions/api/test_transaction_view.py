@@ -1,31 +1,14 @@
 from rest_framework import generics
-from django.db.models import Q
-from django.contrib.auth import get_user_model
+from rest_framework.response import Response
+from rest_framework.decorators import api_view
+from rest_framework import status
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework import pagination
 from .pagination import PostLimitOffsetPagination
 
-from saleor.mpesa_transactions.models import MpesaTransactions, MpesaTransactionsTest
-from .serializers import (
-    TableListSerializer,
-    UpdateSerializer
-     )
+from saleor.mpesa_transactions.models import MpesaTransactionsTest
+from .serializers import TableListSerializer, UpdateSerializer
 
-User = get_user_model()
-Table = MpesaTransactions
-
-
-class UpdateAPIView(generics.RetrieveUpdateAPIView):
-    """
-        update instance details
-        @:param pk house id
-        @:method PUT
-
-        PUT /api/house/update/
-        payload Json: /payload/settings.json
-    """
-    queryset = Table.objects.all()
-    serializer_class = UpdateSerializer
 
 
 """ TODO: delete this functionality after completion of implementation """
@@ -52,28 +35,18 @@ class TestListAPIView(generics.ListAPIView):
         return {"date": None, 'request': self.request}
 
     def get_queryset(self, *args, **kwargs):
-        try:
-            if self.kwargs['pk']:
-                queryset_list = MpesaTransactionsTest.objects.filter(pk=self.kwargs['pk'])
-            else:
-                queryset_list = MpesaTransactionsTest.objects.filter()
-        except Exception as e:
-            queryset_list = MpesaTransactionsTest.objects.all()
 
-        if self.request.GET.get('is_picked_status') and self.request.GET.get('is_picked_status').lower() == 'true':
-            is_picked_status = True
-        else:
-            is_picked_status = False
+        queryset_list = MpesaTransactionsTest.objects.all()
 
         if self.request.GET.get('status'):
             try:
-                status = int(self.request.GET.get('status'))
+                picked_status = int(self.request.GET.get('status'))
             except (ValueError, Exception) as e:
-                status = 0
+                picked_status = 0
         else:
-            status = 0
+            picked_status = 0
 
-        queryset_list = queryset_list.filter(is_picked_status=is_picked_status, status=status)
+        queryset_list = queryset_list.filter(status=picked_status)
 
         page_size = 'page_size'
 
@@ -82,8 +55,40 @@ class TestListAPIView(generics.ListAPIView):
         else:
             pagination.PageNumberPagination.page_size = 10
 
-        query = self.request.GET.get('q')
-        if query:
-            queryset_list = queryset_list.filter(
-                Q(invoice_number__icontains=query))
+        """ if queryset exists then update the status field of all records """
+
+        if queryset_list.exists():
+
+            q_ids = [i.id for i in queryset_list]
+            """ update the status of all the records """
+            queryset_list.update(status=1)
+            """ filter the new queryset since it has changed during the update """
+            queryset_list = MpesaTransactionsTest.objects.filter(pk__in=[i for i in q_ids])
+
         return queryset_list.order_by('-id')
+
+
+@api_view(['GET', 'POST'])
+def change_transactions_status(request):
+    if request.method == 'POST':
+        return Response({'message': 'success'}, status=status.HTTP_200_OK)
+    elif request.method == 'GET':
+        queryset = MpesaTransactionsTest.objects.all()
+
+        if request.GET.get('status'):
+            try:
+                picked_status = int(request.GET.get('status'))
+            except (ValueError, Exception) as e:
+                picked_status = 0
+        else:
+            picked_status = 0
+
+        queryset = queryset.filter(status=picked_status)
+
+        if queryset.exists():
+            ql = [i.id for i in queryset]
+            queryset.update(status=1)
+            queryset = MpesaTransactionsTest.objects.filter(pk__in=[i for i in ql])
+
+        serializer = TableListSerializer(queryset, many=True)
+        return Response(serializer.data)

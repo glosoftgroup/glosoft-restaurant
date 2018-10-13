@@ -8,9 +8,6 @@ Table = MpesaTransactionsTest
 
 class TableListSerializer(serializers.ModelSerializer):
 
-    update_url = serializers.HyperlinkedIdentityField(view_name='mpesatransactions:api-update')
-    delete_url = serializers.HyperlinkedIdentityField(view_name='mpesatransactions:api-delete')
-
     class Meta:
         model = Table
         fields = (
@@ -25,13 +22,10 @@ class TableListSerializer(serializers.ModelSerializer):
             'org_account_balance',
             'invoice_number',
             'bill_ref_number',
-            'third_party_transID',
+            'third_party_transid',
             'business_short_code',
             'transaction_type',
-            'status',
-            'is_picked_status',
-            'update_url',
-            'delete_url'
+            'status'
         )
 
 
@@ -50,11 +44,10 @@ class CreateListSerializer(serializers.ModelSerializer):
             'org_account_balance',
             'invoice_number',
             'bill_ref_number',
-            'third_party_transID',
+            'third_party_transid',
             'business_short_code',
             'transaction_type',
-            'status',
-            'is_picked_status'
+            'status'
         )
 
     def create(self, validated_data):
@@ -69,10 +62,9 @@ class CreateListSerializer(serializers.ModelSerializer):
         instance.org_account_balance = validated_data.get('org_account_balance')
         instance.invoice_number = validated_data.get('invoice_number')
         instance.bill_ref_number = validated_data.get('bill_ref_number')
-        instance.third_party_transID = validated_data.get('third_party_transID')
+        instance.third_party_transid = validated_data.get('third_party_transid')
         instance.business_short_code = validated_data.get('business_short_code')
         instance.transaction_type = validated_data.get('transaction_type')
-        instance.is_picked_status = validated_data.get('is_picked_status')
         instance.save()
 
         return instance
@@ -93,11 +85,10 @@ class UpdateSerializer(serializers.ModelSerializer):
             'org_account_balance',
             'invoice_number',
             'bill_ref_number',
-            'third_party_transID',
+            'third_party_transid',
             'business_short_code',
             'transaction_type',
-            'status',
-            'is_picked_status'
+            'status'
         )
 
     def update(self, instance, validated_data):
@@ -111,11 +102,10 @@ class UpdateSerializer(serializers.ModelSerializer):
         instance.org_account_balance = validated_data.get('org_account_balance', instance.org_account_balance)
         instance.invoice_number = validated_data.get('invoice_number', instance.invoice_number)
         instance.bill_ref_number = validated_data.get('bill_ref_number', instance.bill_ref_number)
-        instance.third_party_transID = validated_data.get('third_party_transID', instance.third_party_transID)
+        instance.third_party_transid = validated_data.get('third_party_transid', instance.third_party_transid)
         instance.business_short_code = validated_data.get('business_short_code', instance.business_short_code)
         instance.transaction_type = validated_data.get('transaction_type', instance.transaction_type)
         instance.status = validated_data.get('status', instance.status)
-        instance.is_picked_status = validated_data.get('is_picked_status', instance.is_picked_status)
 
         instance.save()
 

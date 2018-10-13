@@ -6,55 +6,54 @@ from django.utils.timezone import now
 
 
 class MpesaTransactions(models.Model):
-
     msisdn = models.CharField(
-        pgettext_lazy('MpesaTransactions field', 'MSISDN (e.g 254708374149)'),
+        pgettext_lazy('MpesaTransactionsTest field', 'MSISDN (e.g 254708374149)'),
         blank=True, null=True, max_length=255)
     first_name = models.CharField(
-        pgettext_lazy('MpesaTransactions field', 'FirstName'),
+        pgettext_lazy('MpesaTransactionsTest field', 'FirstName'),
         blank=True, null=True, max_length=255)
     middle_name = models.CharField(
-        pgettext_lazy('MpesaTransactions field', 'MiddleName'),
+        pgettext_lazy('MpesaTransactionsTest field', 'MiddleName'),
         blank=True, null=True, max_length=255)
     last_name = models.CharField(
-        pgettext_lazy('MpesaTransactions field', 'LastName'),
+        pgettext_lazy('MpesaTransactionsTest field', 'LastName'),
         blank=True, null=True, max_length=255)
     trans_time = models.CharField(
-        pgettext_lazy('MpesaTransactions field', 'TransTime (e.g 20181009075311)'),
+        pgettext_lazy('MpesaTransactionsTest field', 'TransTime (e.g 20181009075311)'),
         blank=True, null=True, max_length=255)
     trans_id = models.CharField(
-        pgettext_lazy('MpesaTransactions field', 'TransID (e.g MJ951H6YF7)'),
-        blank=True, null=True, max_length=255)
+        pgettext_lazy('MpesaTransactionsTest field', 'TransID (e.g MJ951H6YF7)'),
+        blank=True, null=True, max_length=255, unique=True)
     trans_amount = models.CharField(
-        pgettext_lazy('MpesaTransactions field', 'TransAmount (e.g 100.00)'),
+        pgettext_lazy('MpesaTransactionsTest field', 'TransAmount (e.g 100.00)'),
         blank=True, null=True, max_length=255)
     org_account_balance = models.CharField(
-        pgettext_lazy('MpesaTransactions field', 'OrgAccountBalance (e.g 518663.00)'),
+        pgettext_lazy('MpesaTransactionsTest field', 'OrgAccountBalance (e.g 518663.00)'),
         blank=True, null=True, max_length=255)
     invoice_number = models.CharField(
-        pgettext_lazy('MpesaTransactions field', 'InvoiceNumber'),
+        pgettext_lazy('MpesaTransactionsTest field', 'InvoiceNumber'),
         blank=True, null=True, max_length=255)
     bill_ref_number = models.CharField(
-        pgettext_lazy('MpesaTransactions field', 'BillRefNumber e.g(account name - testapi)'),
+        pgettext_lazy('MpesaTransactionsTest field', 'BillRefNumber e.g(account name - testapi)'),
         blank=True, null=True, max_length=255)
-    third_party_transID = models.CharField(
-        pgettext_lazy('MpesaTransactions field', 'ThirdPartyTransID'),
+    third_party_transid = models.CharField(
+        pgettext_lazy('MpesaTransactionsTest field', 'ThirdPartyTransID'),
         blank=True, null=True, max_length=255)
     business_short_code = models.CharField(
-        pgettext_lazy('MpesaTransactions field', 'BusinessShortCode (e.g 600520)'),
+        pgettext_lazy('MpesaTransactionsTest field', 'BusinessShortCode (e.g 600520)'),
         blank=True, null=True, max_length=255)
     transaction_type = models.CharField(
-        pgettext_lazy('MpesaTransactions field', 'TransactionType (e.g Pay Bill)'),
+        pgettext_lazy('MpesaTransactionsTest field', 'TransactionType (e.g Pay Bill)'),
         blank=True, null=True, max_length=255)
-    is_picked_status = models.BooleanField(
-        pgettext_lazy('MpesaTransactions field', 'IS PICKED(e.g Pay Bill)'),
-        default=False)
+    status = models.IntegerField(
+        pgettext_lazy('MpesaTransactionsTest field', 'IS PICKED(e.g Pay Bill)'),
+        default=0)
 
     updated_at = models.DateTimeField(
         pgettext_lazy('MpesaTransactions field', 'updated at'),
         auto_now=True, null=True)
 
-    created = models.DateTimeField(pgettext_lazy('Counter field', 'created'),
+    created_at = models.DateTimeField(pgettext_lazy('Counter field', 'created'),
                                    default=now, editable=False)
 
     class Meta:
@@ -98,7 +97,7 @@ class MpesaTransactionsTest(models.Model):
     bill_ref_number = models.CharField(
         pgettext_lazy('MpesaTransactionsTest field', 'BillRefNumber e.g(account name - testapi)'),
         blank=True, null=True, max_length=255)
-    third_party_transID = models.CharField(
+    third_party_transid = models.CharField(
         pgettext_lazy('MpesaTransactionsTest field', 'ThirdPartyTransID'),
         blank=True, null=True, max_length=255)
     business_short_code = models.CharField(
@@ -107,9 +106,6 @@ class MpesaTransactionsTest(models.Model):
     transaction_type = models.CharField(
         pgettext_lazy('MpesaTransactionsTest field', 'TransactionType (e.g Pay Bill)'),
         blank=True, null=True, max_length=255)
-    is_picked_status = models.BooleanField(
-        pgettext_lazy('MpesaTransactionsTest field', 'IS PICKED(e.g Pay Bill)'),
-        default=False)
     status = models.IntegerField(
         pgettext_lazy('MpesaTransactionsTest field', 'IS PICKED(e.g Pay Bill)'),
         default=0)
@@ -118,7 +114,7 @@ class MpesaTransactionsTest(models.Model):
         pgettext_lazy('MpesaTransactionsTest field', 'updated at'),
         auto_now=True, null=True)
 
-    created = models.DateTimeField(pgettext_lazy('Counter field', 'created'),
+    created_at = models.DateTimeField(pgettext_lazy('Counter field', 'created'),
                                    default=now, editable=False)
 
     class Meta:

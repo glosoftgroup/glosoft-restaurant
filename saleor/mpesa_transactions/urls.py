@@ -13,7 +13,8 @@ urlpatterns = [
     url(r'^api/delete/(?P<pk>[0-9]+)/$', DestroyView.as_view(), name='api-delete'),
     url(r'^api/list/$', ListAPIView.as_view(), name='api-list'),
 
-    url(r'^api/list/test/$', TestListAPIView.as_view(), name='api-list-test'),
+    url(r'^api/list/mconnect/$', TestListAPIView.as_view(), name='api-list-test'),
+    url(r'^api/list/mconnect/status/$', change_transactions_status, name='api-list-test'),
 
     url(r'^api/update/(?P<pk>[0-9]+)/$', UpdateAPIView.as_view(), name='api-update'),
     url(r'^add/$', TemplateView.as_view(template_name="mpesa_transactions/form.html"), name='add'),
