@@ -124,7 +124,7 @@ urlpatterns = [
     url(r'^menu/transfer/report/', include(menu_transfer_report_urls, namespace='menu_transfer_report')),
     url(r'^kitchen/transfer/', include(kitchentransfer_urls, namespace='kitchentransfer')),
     url(r'^menu/transfer/', include(menutransfer_urls, namespace='menutransfer')),
-    url(r'^mpesa/transactions/', include(mpesa_transactions_urls, namespace='mpesatransactions')),
+    url(r'^mpesa/transactions/', include(mpesa_transactions_urls, namespace='mpesa_transactions')),
     url(r'^return/sale/', include(return_sale_urls, namespace='return_sale')),
     url(r'^return/purchase/', include(return_purchase_urls, namespace='return_purchase')),
     url(r'^sitemap\.xml$', sitemap, {'sitemaps': sitemaps},

@@ -378,6 +378,7 @@ class OrderSerializer(serializers.ModelSerializer):
 
 class OrderUpdateSerializer(serializers.ModelSerializer):
     ordered_items = ItemSerializer(many=True)
+    payment_data = JSONField()
 
     class Meta:
         model = Orders
@@ -395,6 +396,7 @@ class OrderUpdateSerializer(serializers.ModelSerializer):
                   'discount_amount',
                   'debt',
                   'ordered_items',
+                  'payment_data'
                   )
 
     def validate_status(self, value):
@@ -413,6 +415,11 @@ class OrderUpdateSerializer(serializers.ModelSerializer):
             return value
         else:
             raise ValidationError('Enter correct Status. Expecting either fully-paid/payment-pending or cancelled')
+
+    def validate_payment_data(self, value):
+        data = self.get_initial()
+        dictionary_value = dict(data.get('payment_data'))
+        return value
 
     def validate_total_net(self, value):
         data = self.get_initial()
@@ -460,6 +467,7 @@ class OrderUpdateSerializer(serializers.ModelSerializer):
         instance.amount_paid = instance.amount_paid + validated_data.get('amount_paid', instance.amount_paid)
         if instance.amount_paid >= instance.total_net:
             instance.status = 'fully-paid'
+            instance.payment_data = validated_data.get('payment_data')
         else:
             instance.status = validated_data.get('status', instance.status)
         instance.last_status_change = now()

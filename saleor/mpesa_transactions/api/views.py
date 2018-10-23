@@ -1,27 +1,12 @@
 from rest_framework import generics
 from django.db.models import Q
-from django.contrib.auth import get_user_model
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework import pagination
 from .pagination import PostLimitOffsetPagination
 from saleor.mpesa_transactions.models import MpesaTransactions
-from .serializers import (
-    CreateListSerializer,
-    TableListSerializer,
-    UpdateSerializer
-     )
+from .serializers import TableListSerializer
 
-User = get_user_model()
 Table = MpesaTransactions
-
-
-class CreateAPIView(generics.CreateAPIView):
-    queryset = Table.objects.all()
-    serializer_class = CreateListSerializer
-
-
-class DestroyView(generics.DestroyAPIView):
-    queryset = Table.objects.all()
 
 
 class ListAPIView(generics.ListAPIView):
@@ -40,9 +25,9 @@ class ListAPIView(generics.ListAPIView):
     def get_queryset(self, *args, **kwargs):
         try:
             if self.kwargs['pk']:
-                queryset_list = Table.objects.filter(customer__pk=self.kwargs['pk']).order_by('car').distinct('car').select_related()
+                queryset_list = Table.objects.filter(pk=self.kwargs['pk'])
             else:
-                queryset_list = Table.objects.all.select_related()
+                queryset_list = Table.objects.all()
         except Exception as e:
             queryset_list = Table.objects.all()
 
@@ -52,23 +37,18 @@ class ListAPIView(generics.ListAPIView):
         else:
             pagination.PageNumberPagination.page_size = 10
         if self.request.GET.get('date'):
-            queryset_list = queryset_list.filter(created__icontains=self.request.GET.get('date'))
+            queryset_list = queryset_list.filter(created_at__icontains=self.request.GET.get('date'))
 
         query = self.request.GET.get('q')
         if query:
             queryset_list = queryset_list.filter(
-                Q(name__icontains=query))
+                Q(msisdn__icontains=query) |
+                Q(trans_id__icontains=query) |
+                Q(first_name__icontains=query) |
+                Q(middle_name__icontains=query) |
+                Q(last_name__icontains=query) |
+                Q(invoice_number__icontains=query) |
+                Q(business_short_code__icontains=query) |
+                Q(transaction_type__icontains=query) |
+                Q(created_at__icontains=query))
         return queryset_list.order_by('-id')
-
-
-class UpdateAPIView(generics.RetrieveUpdateAPIView):
-    """
-        update instance details
-        @:param pk house id
-        @:method PUT
-
-        PUT /api/house/update/
-        payload Json: /payload/settings.json
-    """
-    queryset = Table.objects.all()
-    serializer_class = UpdateSerializer
