@@ -24,7 +24,7 @@
                           <th>Receipt No</th>
                           <th>Table/Room</th>
                           <th>Cashier</th>
-                          <th class="hidden">Payment Mode</th>
+                          <th class="hiddens">Payment Mode</th>
                           <th>Quantity</th>
                           <th>Total Sales (KShs)</th>
                             <th class="text-center">Total Tax (KShs)</th>
@@ -44,7 +44,7 @@
                              {% else %} Take Away {% endif %}
                             </td>
                             <td class="td" data-href="{% url 'dashboard:sale-detail' pk=sale.pk point=point_pk %}">{% if sale.user.name %}{{sale.user.name}}{% else %}{{sale.user.email}}{% endif %}</td>
-                            <td class="td hidden" data-href="{% url 'dashboard:sale-detail' pk=sale.pk point=point_pk %}">
+                            <td class="td hiddens" data-href="{% url 'dashboard:sale-detail' pk=sale.pk point=point_pk %}">
                                 {% if sale.payment_options %}
                                   {{sale.payment_options.all|join:", "}}
                                 {% else %} ---

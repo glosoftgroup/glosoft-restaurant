@@ -14,7 +14,7 @@
          {% else %} Take Away {% endif %}
         </td>
         <td class="td" data-href="{% url 'dashboard:sale-detail' pk=sale.pk point=point_pk %}">{% if sale.user.name %}{{sale.user.name}}{% else %}{{sale.user.email}}{% endif %}</td>
-        <td class="td hidden" data-href="{% url 'dashboard:sale-detail' pk=sale.pk point=point_pk %}">
+        <td class="td hiddens" data-href="{% url 'dashboard:sale-detail' pk=sale.pk point=point_pk %}">
             {% if sale.payment_options %}
               {{sale.payment_options.all|join:", "}}
             {% else %} ---

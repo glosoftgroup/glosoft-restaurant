@@ -75,6 +75,7 @@ var config = {
     kitchen_transferred_items_close: './saleor/static/backend/js/kitchen_transfer_close/items/index.js',
     kitchen_transferred_items_close_view: './saleor/static/backend/js/kitchen_transfer_close/items_view/index.js',
     kitchen_transferred_items_view: './saleor/static/backend/js/kitchen_transfer/items_view/index.js',
+    mconnect: './saleor/static/backend/js/mconnect/list/index.js',
     menu: './saleor/static/backend/js/menu/list/index.js',
     menu_report: './saleor/static/backend/js/menu_report/list/index.js',
     menu_report_item: './saleor/static/backend/js/menu_report/items_view/index.js',

@@ -11,7 +11,8 @@ from ...sale.models import (
                             SoldItem,
                             Terminal,
                             TerminalHistoryEntry,
-                            DrawerCash
+                            DrawerCash,
+                            PaymentOption
                             )
 
 from .serializers import (
@@ -393,6 +394,7 @@ def send_to_sale(credit):
     sale.terminal = credit.terminal
     sale.amount_paid = credit.amount_paid
     sale.status = credit.status
+    sale.payment_data = credit.payment_data
 
     try:
         sale.table = credit.table
@@ -403,6 +405,14 @@ def send_to_sale(credit):
         print e
     sale.total_tax = credit.total_tax
     sale.save()
+
+    for option in credit.payment_data:
+        try:
+            pay_opt = PaymentOption.objects.get(pk=int(option['payment_id']))
+            sale.payment_options.add(pay_opt)
+        except Exception as e:
+            print (e)
+            error_logger.error("error adding options " + str(e))
 
     for item in credit.items():
         new_item = SoldItem.objects.create(

@@ -5,23 +5,19 @@ from rest_framework.serializers import (
                 )
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from ...orders.models import (
-            Orders,
-            OrderedItem,
-            )
 from ...sale.models import (
+            PaymentOption,
             Terminal,
             Sales,
             SoldItem)
-from ...product.models import (
-            Stock,
-            )
 from saleor.countertransfer.models import CounterTransferItems as Item
 from decimal import Decimal
 from django.utils.formats import localize
-
+import logging
 
 User = get_user_model()
+
+error_logger = logging.getLogger('error_logger')
 
 
 class ItemSerializer(serializers.ModelSerializer):
@@ -53,6 +49,7 @@ class ListSaleSerializer(serializers.ModelSerializer):
     solditems = ItemSerializer(many=True)
     update_url = HyperlinkedIdentityField(view_name='order-api:update-order')
     created = serializers.SerializerMethodField()
+    payment_options = serializers.SerializerMethodField()
 
     class Meta:
         model = Sales
@@ -71,6 +68,7 @@ class ListSaleSerializer(serializers.ModelSerializer):
                   'mobile',
                   'customer_name',
                   'payment_data',
+                  'payment_options',
                   'status',
                   'total_tax',
                   'discount_amount',
@@ -79,6 +77,19 @@ class ListSaleSerializer(serializers.ModelSerializer):
 
     def get_created(self, obj):
         return localize(obj.created)
+
+    def get_payment_options(self, obj):
+        options = []
+        if obj.payment_data:
+            for option in obj.payment_data:
+                try:
+                    pay_opt = PaymentOption.objects.get(pk=int(option['payment_id']))
+                    options.append({"name": pay_opt.name, "amount": option['value']})
+                except Exception as e:
+                    options.append({"name": option['payment_id'], "amount": option['value']})
+                    error_logger.error("error getting payments " + str(e))
+
+        return options
 
 
 class CreateSaleSerializer(serializers.ModelSerializer):

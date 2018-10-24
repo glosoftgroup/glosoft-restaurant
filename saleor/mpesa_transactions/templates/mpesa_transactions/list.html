@@ -1,0 +1,75 @@
+{% extends "dashboard/base.html" %}
+{% load render_bundle from webpack_loader %}
+{% load staticfiles %}
+{% load i18n %}
+
+{% block title %}
+  Mpesa Transactions
+{% endblock %}
+
+ {% block breadcrumbs %}
+     <li>Reports</li>
+     <li class="active"><a href="{% url 'mpesa_transactions:index'%}"> Mpesa Transactions</a></li>
+ {% endblock %}
+
+
+ {% block menu_mpesa_payments %}active{% endblock %}
+
+ {% render_bundle 'menu' 'css' %}
+ {% block custom_css %}
+<style>
+          .theme_xbox .pace_activity, .theme_xbox .pace_activity::after, .theme_xbox .pace_activity::before, .theme_xbox_sm .pace_activity, .theme_xbox_sm .pace_activity::after, .theme_xbox_sm .pace_activity::before, .theme_xbox_xs .pace_activity, .theme_xbox_xs .pace_activity::after, .theme_xbox_xs .pace_activity::before {
+        border-radius: 50%;
+        border: 1px solid transparent;
+            border-top-width: 1px;
+            border-right-width: 1px;
+            border-bottom-width: 1px;
+            border-left-width: 1px;
+            border-top-color: transparent;
+        border-top-color: #1649fc;
+    }
+    .pace-demo {
+        background-color:#fff;
+    }
+    @media print {
+       #printBtn {
+          display: none;
+       }
+       #addPayment {
+          display: none;
+       }
+       .media-none {
+          display: none;
+       }
+       #media-none {
+          display: none;
+       }
+    }
+
+    .inner-z-index { z-index: -1; }
+
+    .Select.is-open { position: relative; z-index: 99999; }
+
+    .test-body{background-color:lightblue;opacity:0.7}
+
+</style>
+ {% endblock %}
+
+{% block content %}
+
+ <div class="row animated " id="root">
+
+ </div>
+
+<input type="hidden" class="pageUrls"
+  data-listurl="{% url 'mpesa_transactions:api-list' %}"
+  data-createurl="/mpesa/transactions/api/create/"
+>
+{% endblock%}
+{% block custom_js %}
+
+<!--<script src="https://../popper.js/1.12.3/umd/popper.min.js"></script>-->
+<!--<script src="https://../bootstrap/4.0.0-beta.2/js/bootstrap.min.js"></script>-->
+{% render_bundle 'vendor' 'js' %}
+{% render_bundle 'mconnect' 'js' %}
+{% endblock %}
