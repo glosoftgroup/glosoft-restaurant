@@ -5,8 +5,10 @@ from rest_framework import pagination
 from .pagination import PostLimitOffsetPagination
 from saleor.mpesa_transactions.models import MpesaTransactions
 from .serializers import TableListSerializer
+import logging
 
 Table = MpesaTransactions
+error_logger = logging.getLogger('error_logger')
 
 
 class ListAPIView(generics.ListAPIView):
@@ -38,6 +40,13 @@ class ListAPIView(generics.ListAPIView):
             pagination.PageNumberPagination.page_size = 10
         if self.request.GET.get('date'):
             queryset_list = queryset_list.filter(created_at__icontains=self.request.GET.get('date'))
+
+        if self.request.GET.get('status'):
+            try:
+                status = int(self.request.GET.get('status'))
+                queryset_list = queryset_list.filter(status=status)
+            except Exception as e:
+                error_logger.error('Error converting string to int ' + str(e))
 
         query = self.request.GET.get('q')
         if query:

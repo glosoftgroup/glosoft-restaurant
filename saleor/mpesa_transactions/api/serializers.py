@@ -5,6 +5,7 @@ Table = MpesaTransactions
 
 
 class TableListSerializer(serializers.ModelSerializer):
+    created = serializers.SerializerMethodField()
 
     class Meta:
         model = Table
@@ -24,5 +25,10 @@ class TableListSerializer(serializers.ModelSerializer):
             'business_short_code',
             'transaction_type',
             'status',
-            'created_at'
+            'created_at',
+            'created'
         )
+
+    def get_created(self, obj):
+        time = obj.created_at.time().strftime('%H:%M %p')
+        return time
