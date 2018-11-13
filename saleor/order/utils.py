@@ -1,4 +1,3 @@
-import logging
 from functools import wraps
 
 from django.dispatch import receiver
@@ -11,7 +10,9 @@ from ..userprofile.utils import store_user_address
 from .models import Order
 from . import OrderStatus
 
-logger = logging.getLogger(__name__)
+from structlog import get_logger
+
+logger = get_logger(__name__)
 
 
 def check_order_status(func):

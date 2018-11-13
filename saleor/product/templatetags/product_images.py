@@ -1,12 +1,13 @@
-import logging
 import re
 import warnings
 
 from django import template
 from django.conf import settings
 from django.contrib.staticfiles.templatetags.staticfiles import static
+from structlog import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
+
 register = template.Library()
 
 

@@ -1,5 +1,4 @@
 import datetime
-import logging
 from rest_framework import generics
 from django.db.models import Q
 from django.contrib.auth import get_user_model
@@ -20,15 +19,17 @@ from .serializers import (
     TableListSerializer,
     UpdateSerializer,
     SearchTransferredStockListSerializer
-     )
+)
+from structlog import get_logger
+
+logger = get_logger(__name__)
 
 User = get_user_model()
 request = APIRequestFactory().get('/')
 serializer_context = {
     'request': Request(request),
 }
-logger = logging.getLogger(__name__)
-info_logger = logging.getLogger('info_logger')
+
 
 class CreateAPIView(generics.CreateAPIView):
     queryset = Table.objects.all()
@@ -66,7 +67,7 @@ class ListAPIView(generics.ListAPIView):
                 Q(variant__sku__icontains=query) |
                 Q(variant__product__name__icontains=query) |
                 Q(variant__product__description__icontains=query)
-                ).distinct()
+            ).distinct()
         return queryset_list
 
 
@@ -81,6 +82,7 @@ class UpdateAPIView(generics.RetrieveUpdateAPIView):
     """
     queryset = Table.objects.all()
     serializer_class = UpdateSerializer
+
 
 class SearchTransferredStockListAPIView(APIView):
     def get(self, request):
@@ -97,9 +99,9 @@ class SearchTransferredStockListAPIView(APIView):
         """ get the counter stocks """
         try:
             counter_stock = CounterItems.objects.filter(
-                    Q(transfer__date=today) |
-                    Q(transfer__date=yesterday)
-                ).filter(qty__gte=1).distinct('stock').select_related()
+                Q(transfer__date=today) |
+                Q(transfer__date=yesterday)
+            ).filter(qty__gte=1).distinct('stock').select_related()
 
             if query:
                 counter_stock = counter_stock.filter(
@@ -117,9 +119,8 @@ class SearchTransferredStockListAPIView(APIView):
 
         except Exception as e:
             """ log error """
-            info_logger.info('Error in getting counter stock: ' + str(e))
+            logger.info('Error in getting counter stock: ' + str(e))
             pass
-
 
         """ get the menu stocks """
         try:
@@ -132,10 +133,9 @@ class SearchTransferredStockListAPIView(APIView):
                 menu_stock = menu_stock.filter(
                     Q(menu__category__name__icontains=query) |
                     Q(name__icontains=query) |
-                    Q(counter__name__icontains=query)|
-                    Q(menu__name__icontains=query)|
+                    Q(counter__name__icontains=query) |
+                    Q(menu__name__icontains=query) |
                     Q(menu__id__icontains=query)).order_by('menu')
-
 
             if menu_stock.exists():
                 for i in menu_stock:
@@ -147,7 +147,7 @@ class SearchTransferredStockListAPIView(APIView):
 
         except Exception as e:
             """ log error """
-            info_logger.info('Error in getting menu stock: ' + str(e))
+            logger.info('Error in getting menu stock: ' + str(e))
             pass
 
         serializer = SearchTransferredStockListSerializer(all_counter_menu_stock, many=True)
@@ -155,6 +155,8 @@ class SearchTransferredStockListAPIView(APIView):
 
 
 """ set the counter items json """
+
+
 def getCounterItemsJsonData(obj):
     """ id """
     id = obj.id
@@ -217,13 +219,15 @@ def getCounterItemsJsonData(obj):
         "tax": tax,
         "discount": discount,
         "counter": counter,
-        "kitchen":None
+        "kitchen": None
     }
 
     return json_data
 
 
 """ set the menu items json """
+
+
 def getMenuItemsJsonData(obj):
     """ id """
     id = obj.id
@@ -280,7 +284,7 @@ def getMenuItemsJsonData(obj):
         "tax": tax,
         "discount": discount,
         "kitchen": kitchen,
-        "counter":None
+        "counter": None
     }
 
     return json_data

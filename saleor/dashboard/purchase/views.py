@@ -1,7 +1,6 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django.template.response import TemplateResponse
-from django.http import HttpResponse, JsonResponse
-import logging
+from django.http import HttpResponse
 import json
 from decimal import Decimal
 
@@ -14,9 +13,10 @@ from ...decorators import permission_decorator
 from ...supplier.models import Supplier
 from saleor.payment.models import PaymentOption
 
-debug_logger = logging.getLogger('debug_logger')
-info_logger = logging.getLogger('info_logger')
-error_logger = logging.getLogger('error_logger')
+from structlog import get_logger
+
+logger = get_logger(__name__)
+
 table_name = 'Purchases'
 
 
@@ -35,7 +35,7 @@ def allocate_list(request):
 def single_list(request, pk=None):
     global table_name
     if not pk:
-        return HttpResponse(table_name+' pk required')
+        return HttpResponse(table_name + ' pk required')
     name = ''
     try:
         name = Table.objects.get(pk=pk).supplier.name
@@ -54,10 +54,10 @@ def single_list(request, pk=None):
 def allocate_detail(request, pk=None):
     try:
         sale = Table.objects.get(pk=pk)
-        items = {} #AllocatedItem.objects.filter(allocate=sale)
+        items = {}  # AllocatedItem.objects.filter(allocate=sale)
         return TemplateResponse(request, 'dashboard/reports/car/details.html', {'items': items, "sale": sale})
     except ObjectDoesNotExist as e:
-        error_logger.error(e)
+        logger.error(e)
         return HttpResponse('No items found')
 
 
@@ -107,7 +107,7 @@ def report_items(request):
 def report_single(request, pk=None):
     global table_name
     if not pk:
-        return HttpResponse(table_name+' pk required')
+        return HttpResponse(table_name + ' pk required')
     name = ''
     try:
         name = PurchaseVariant.objects.get(pk=pk).supplier.name
@@ -128,9 +128,10 @@ def report_detail(request, pk=None):
         sale = PurchaseVariant.objects.get(pk=pk)
         items = Item.objects.filter(purchase=sale)
         history = History.objects.filter(purchase=sale)
-        return TemplateResponse(request, 'dashboard/purchase/reports/details.html', {'items': items, "sale":sale, 'history':history})
+        return TemplateResponse(request, 'dashboard/purchase/reports/details.html',
+                                {'items': items, "sale": sale, 'history': history})
     except ObjectDoesNotExist as e:
-        error_logger.error(e)
+        logger.error(e)
 
 
 @staff_member_required
@@ -161,11 +162,11 @@ def update_detail(request, pk=None):
                 sale.amount_paid = sale.total_net
                 sale.balance = 0
             sale.save()
-            result = json.dumps({'results':{
-                                        'amount_paid': str(sale.amount_paid),
-                                        'balance': str(sale.balance)
-                                      }
-                                 })
+            result = json.dumps({'results': {
+                'amount_paid': str(sale.amount_paid),
+                'balance': str(sale.balance)
+            }
+            })
             return HttpResponse(result)
         return HttpResponse('payment history expected')
     return HttpResponse('Invalid method')

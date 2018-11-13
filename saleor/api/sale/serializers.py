@@ -13,11 +13,11 @@ from ...sale.models import (
 from saleor.countertransfer.models import CounterTransferItems as Item
 from decimal import Decimal
 from django.utils.formats import localize
-import logging
+from structlog import get_logger
+
+logger = get_logger(__name__)
 
 User = get_user_model()
-
-error_logger = logging.getLogger('error_logger')
 
 
 class ItemSerializer(serializers.ModelSerializer):
@@ -87,7 +87,7 @@ class ListSaleSerializer(serializers.ModelSerializer):
                     options.append({"name": pay_opt.name, "amount": option['value']})
                 except Exception as e:
                     options.append({"name": option['payment_id'], "amount": option['value']})
-                    error_logger.error("error getting payments " + str(e))
+                    logger.error("error getting payments " + str(e))
 
         return options
 

@@ -1,10 +1,8 @@
 from django.utils.formats import localize
 from rest_framework.serializers import (
-                ModelSerializer,
-                HyperlinkedIdentityField,
-                SerializerMethodField,
-                ValidationError,
-                )
+    HyperlinkedIdentityField,
+    SerializerMethodField,
+)
 
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
@@ -12,11 +10,10 @@ from django.contrib.auth import get_user_model
 from ...purchase.models import PurchaseProduct as Table
 from saleor.payment.models import PaymentOption
 
-import logging
+from structlog import get_logger
 
-debug_logger = logging.getLogger('debug_logger')
-info_logger = logging.getLogger('info_logger')
-error_logger = logging.getLogger('error_logger')
+logger = get_logger(__name__)
+
 User = get_user_model()
 
 
@@ -112,18 +109,18 @@ class DistinctTableListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Table
         fields = (
-                 'id',
-                 'invoice_number',
-                 'product_name',
-                 'variant',
-                 'quantity',
-                 'unit_cost',
-                 'total_cost',
-                 'total_quantity',
-                 'supplier_name',
-                 'date',
-                 'purchase_url'
-                 )
+            'id',
+            'invoice_number',
+            'product_name',
+            'variant',
+            'quantity',
+            'unit_cost',
+            'total_cost',
+            'total_quantity',
+            'supplier_name',
+            'date',
+            'purchase_url'
+        )
 
     def get_product_name(self, obj):
         return obj.stock.variant.display_product()
@@ -164,12 +161,12 @@ class PaymentOptionListSerializer(serializers.ModelSerializer):
     class Meta:
         model = PaymentOption
         fields = (
-                'id',
-                'name',
-                'transaction_number',
-                'payment_name',
-                'tendered'
-                )
+            'id',
+            'name',
+            'transaction_number',
+            'payment_name',
+            'tendered'
+        )
 
     def get_transaction_number(self, obj):
         return ''

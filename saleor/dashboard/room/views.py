@@ -1,4 +1,4 @@
-from django.shortcuts import get_object_or_404, redirect, render_to_response
+from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.http import HttpResponse
 from django.core.paginator import Paginator, PageNotAnInteger, InvalidPage, EmptyPage
@@ -12,19 +12,17 @@ from ..views import staff_member_required
 from saleor.room.models import Room as Table
 from saleor.booking.models import Book, BookingHistory
 from saleor.room.models import RoomAmenity, RoomImage, Package, Pricing, Maintenance
-from saleor.site.models import SiteSettings
 from saleor.wing.models import Wing
 from saleor.propertytype.models import PropertyType
 from .forms import RoomImageForm
 from ...decorators import user_trail
-import logging
 import json
 import datetime
 import random
 
-debug_logger = logging.getLogger('debug_logger')
-info_logger = logging.getLogger('info_logger')
-error_logger = logging.getLogger('error_logger')
+from structlog import get_logger
+
+logger = get_logger(__name__)
 
 # global variables
 table_name = 'Rooms'
@@ -129,7 +127,7 @@ def add_image(request, pk=None):
 @staff_member_required
 def delete_image(request, pk=None):
     if request.method == 'DELETE' and pk:
-        #instance = RoomImage.objects.all().delete()
+        # instance = RoomImage.objects.all().delete()
         instance = RoomImage.objects.get(pk=pk)
 
         # Deletes Image Renditions
@@ -151,7 +149,7 @@ def add_amenities(request):
                 try:
                     RoomAmenity.objects.create(name=choice)
                 except Exception as e:
-                    error_logger.info(e)
+                    logger.info(e)
             return HttpResponse(json.dumps({'success': choice}), content_type='application/json')
         return HttpResponse(json.dumps({'message': 'Amenities required'}), content_type='application/json')
     else:
@@ -176,7 +174,7 @@ def clone(request, pk=None):
                 if floor == '0':
                     obj.name = 'G' + str(floor) + '-' + str(i) + str(instance)
                 else:
-                    obj.name = 'F'+str(floor) + '-' + str(i) + str(instance)
+                    obj.name = 'F' + str(floor) + '-' + str(i) + str(instance)
                 obj.is_booked = False
                 try:
                     obj.save()
@@ -197,11 +195,11 @@ def delete(request, pk=None):
     if request.method == 'POST' or request.method == 'DELETE':
         try:
             option.delete()
-            user_trail(request.user.name, 'deleted room : '+ str(option.name), 'delete')
-            info_logger.info('deleted room: '+ str(option.name))
+            user_trail(request.user.name, 'deleted room : ' + str(option.name), 'delete')
+            logger.info('deleted room: ' + str(option.name))
             return HttpResponse('success')
         except Exception, e:
-            error_logger.error(e)
+            logger.error(e)
             return HttpResponse(e)
 
 
@@ -215,7 +213,7 @@ def detail(request, pk=None):
             ctx = {'room': room, 'book': book, 'history': history}
             return TemplateResponse(request, 'dashboard/room/detail.html', ctx)
         except Exception, e:
-            error_logger.error(e)
+            logger.error(e)
             return TemplateResponse(request, 'dashboard/room/detail.html', {'error': e})
 
 
@@ -233,13 +231,13 @@ def edit(request, pk=None):
             if request.POST.get('price'):
                 room.number = request.POST.get('price')
                 room.save()
-                user_trail(request.user.name, 'updated room : '+ str(room.name),'edit')
-                info_logger.info('updated room : '+ str(room.name))
+                user_trail(request.user.name, 'updated room : ' + str(room.name), 'edit')
+                logger.info('updated room : ' + str(room.name))
                 return HttpResponse('success')
             else:
                 return HttpResponse('invalid response')
         except Exception, e:
-            error_logger.error(e)
+            logger.error(e)
             print e
             return HttpResponse(e)
 
@@ -282,17 +280,17 @@ def list(request):
             options = paginator.page(paginator.num_pages)
         data = {
             "table_name": table_name,
-            "options": options,            
+            "options": options,
             "pn": paginator.num_pages
         }
-        user_trail(request.user.name, 'accessed '+table_name+' List', 'views')
-        info_logger.info('User: ' + str(request.user.name) + 'accessed '+table_name+' List Page')
+        user_trail(request.user.name, 'accessed ' + table_name + ' List', 'views')
+        logger.info('User: ' + str(request.user.name) + 'accessed ' + table_name + ' List Page')
         if request.GET.get('initial'):
             return HttpResponse(paginator.num_pages)
         else:
             return TemplateResponse(request, 'dashboard/room/list.html', data)
     except TypeError as e:
-        error_logger.error(e)
+        logger.error(e)
         return HttpResponse('error accessing payment options')
 
 
@@ -307,7 +305,7 @@ def paginate(request):
         if p2_sz:
             paginator = Paginator(options, int(p2_sz))
             options = paginator.page(page)
-            return TemplateResponse(request,'dashboard/room/paginate.html',{'options':options})
+            return TemplateResponse(request, 'dashboard/room/paginate.html', {'options': options})
 
         if list_sz:
             paginator = Paginator(options, int(list_sz))
@@ -316,7 +314,7 @@ def paginate(request):
                     'pn': paginator.num_pages,
                     'sz': list_sz,
                     'gid': request.GET.get('gid')}
-            return TemplateResponse(request, 'dashboard/room/p2.html',data)
+            return TemplateResponse(request, 'dashboard/room/p2.html', data)
 
         paginator = Paginator(options, 10)
         options = paginator.page(page)
@@ -324,7 +322,7 @@ def paginate(request):
                 'pn': paginator.num_pages,
                 'sz': 10,
                 'gid': request.GET.get('gid')}
-        return TemplateResponse(request,'dashboard/room/p2.html', data)
+        return TemplateResponse(request, 'dashboard/room/p2.html', data)
     else:
         try:
             options = Table.objects.all().order_by('-id')
@@ -422,26 +420,28 @@ def searchs(request):
                 options = paginator.page(paginator.num_pages)
             if p2_sz:
                 options = paginator.page(page)
-                return TemplateResponse(request, 'dashboard/room/paginate.html', {'options': options,'sz':sz})
+                return TemplateResponse(request, 'dashboard/room/paginate.html', {'options': options, 'sz': sz})
             data = {'options': options,
                     'pn': paginator.num_pages,
                     'sz': sz,
                     'q': q}
             return TemplateResponse(request, 'dashboard/room/search.html', data)
 
+
 '''
 ------------------
 Maintenance
 ------------------'''
 
+
 @staff_member_required
 def add_room_issue(request, pk=None):
     room = Table.objects.get(pk=pk)
 
-    if request.method == 'GET':   
+    if request.method == 'GET':
         try:
             pricing = Pricing.objects.get(room__pk=room.pk)
-            issues = Maintenance.objects.filter(room=room)      
+            issues = Maintenance.objects.filter(room=room)
             ctx = {'table_name': table_name, 'room': room, 'pricing': pricing, 'issues': issues}
             return TemplateResponse(request, 'dashboard/room/maintenance/maintain.html', ctx)
         except Exception as e:
@@ -461,7 +461,7 @@ def add_room_issue(request, pk=None):
                 issues.balance = request.POST.get('cost')
 
             if request.POST.get('paid_by') == 'tenant':
-                try:             
+                try:
                     book = Book.objects.get(room=room.pk, active=True)
                     book.service_charges = request.POST.get('cost')
                     book.save()
@@ -473,14 +473,15 @@ def add_room_issue(request, pk=None):
                 issues.paid_by = request.POST.get('paid_by')
 
             issues.save()
-            user_trail(request.user.name, 'added an issue : '+ str(issues.issue),'edit')
-            info_logger.info('added an issue : '+ str(issues.issue))
+            user_trail(request.user.name, 'added an issue : ' + str(issues.issue), 'edit')
+            logger.info('added an issue : ' + str(issues.issue))
             return HttpResponse('success')
         except Exception, e:
-            error_logger.error(e)
+            logger.error(e)
             return HttpResponse(e)
     else:
         return HttpResponse('invalid response')
+
 
 @staff_member_required
 def room_maintenance(request):
@@ -489,15 +490,16 @@ def room_maintenance(request):
     ctx = {'table_name': table_name}
     return TemplateResponse(request, 'dashboard/room/maintenance/list.html', ctx)
 
+
 @staff_member_required
 def fix_issue(request, pk=None):
     if request.method == 'POST' and pk:
         instance = get_object_or_404(Maintenance, pk=pk)
         try:
-            instance.invoice_number = 'inv/fx/0'+str(Maintenance.objects.latest('id').id)
+            instance.invoice_number = 'inv/fx/0' + str(Maintenance.objects.latest('id').id)
             instance.invoice_number += ''.join(random.choice('0123456789ABCDEF') for i in range(4))
         except Exception as e:
-            instance.invoice_number = 'inv/fx/1'+''.join(random.choice('0123456789ABCDEF') for i in range(4))
+            instance.invoice_number = 'inv/fx/1' + ''.join(random.choice('0123456789ABCDEF') for i in range(4))
 
         instance.is_fixed = True
         instance.date_resolved = datetime.datetime.today().strftime('%Y-%m-%d')
@@ -506,6 +508,7 @@ def fix_issue(request, pk=None):
     else:
         return HttpResponse('Invalid method or PK')
 
+
 @staff_member_required
 def fix_issue_invoice(request, pk=None):
     if request.method == 'GET':
@@ -513,10 +516,10 @@ def fix_issue_invoice(request, pk=None):
         instance = get_object_or_404(Maintenance, pk=pk)
         if not instance.invoice_number:
             try:
-                instance.invoice_number = 'inv/fx/0'+str(Maintenance.objects.latest('id').id)
+                instance.invoice_number = 'inv/fx/0' + str(Maintenance.objects.latest('id').id)
                 instance.invoice_number += ''.join(random.choice('0123456789ABCDEF') for i in range(4))
             except Exception as e:
-                instance.invoice_number = 'inv/fx/1'+''.join(random.choice('0123456789ABCDEF') for i in range(4))
+                instance.invoice_number = 'inv/fx/1' + ''.join(random.choice('0123456789ABCDEF') for i in range(4))
             instance.save()
 
         if instance.paid_by == 'tenant':
@@ -525,7 +528,7 @@ def fix_issue_invoice(request, pk=None):
             except:
                 customer = None
 
-        ctx = {'table_name': table_name, 'instance': instance, 'customer':customer}
+        ctx = {'table_name': table_name, 'instance': instance, 'customer': customer}
         return TemplateResponse(request, 'dashboard/room/maintenance/invoice.html', ctx)
     if request.method == 'POST':
         try:
@@ -533,14 +536,15 @@ def fix_issue_invoice(request, pk=None):
             issues.room = room
             if request.POST.get('issue'):
                 issues.issue = request.POST.get('issue')
-                user_trail(request.user.name, 'updated issue : '+ str(issues.issue),'edit')
-                info_logger.info('updated issue : '+ str(issues.issue))
+                user_trail(request.user.name, 'updated issue : ' + str(issues.issue), 'edit')
+                logger.info('updated issue : ' + str(issues.issue))
                 return HttpResponse('success')
             else:
                 return HttpResponse('invalid response')
         except Exception, e:
-            error_logger.error(e)
+            logger.error(e)
             return HttpResponse(e)
+
 
 @staff_member_required
 def delete_issue(request, pk=None):
@@ -550,7 +554,3 @@ def delete_issue(request, pk=None):
         return HttpResponse('deleted successfully')
     else:
         return HttpResponse('Invalid method or PK')
-
-   
-
-

@@ -1,5 +1,4 @@
 from django.db.models import Q, F
-from rest_framework.response import Response
 from rest_framework import generics
 from django.contrib.auth import get_user_model
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
@@ -13,14 +12,13 @@ from .serializers import (
     ItemSerializer
 )
 
-import logging
 from rest_framework.request import Request
 from rest_framework.test import APIRequestFactory
+from structlog import get_logger
+
+logger = get_logger(__name__)
 
 User = get_user_model()
-debug_logger = logging.getLogger('debug_logger')
-info_logger = logging.getLogger('info_logger')
-error_logger = logging.getLogger('error_logger')
 
 factory = APIRequestFactory()
 request = factory.get('/')
@@ -38,20 +36,20 @@ class SaleCreateAPIView(generics.CreateAPIView):
     queryset = Sales.objects.all()
     serializer_class = CreateSaleSerializer
 
-    def perform_create(self, serializer):              
-        serializer.save(user=self.request.user)      
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
 
-        
+
 class SaleListAPIView(generics.ListAPIView):
     serializer_class = ListSaleSerializer
 
-    def get_queryset(self, *args, **kwargs):        
+    def get_queryset(self, *args, **kwargs):
         queryset_list = Sales.objects.all()
         query = self.request.GET.get('q')
         if query:
             queryset_list = queryset_list.filter(
-                Q(invoice_number__icontains=query)               
-                ).distinct()
+                Q(invoice_number__icontains=query)
+            ).distinct()
         return queryset_list
 
 
@@ -72,7 +70,8 @@ class ListAPIView(generics.ListAPIView):
     def get_queryset(self, *args, **kwargs):
         try:
             if self.kwargs['pk']:
-                queryset_list = Sales.objects.filter(customer__pk=self.kwargs['pk']).order_by('car').distinct('car').select_related()
+                queryset_list = Sales.objects.filter(customer__pk=self.kwargs['pk']).order_by('car').distinct(
+                    'car').select_related()
             else:
                 queryset_list = Sales.objects.all.select_related()
         except Exception as e:
@@ -131,6 +130,3 @@ class ListItemAPIView(generics.ListAPIView):
                 Q(sku__icontains=query)
             )
         return queryset_list.order_by('-id')
-
-
-

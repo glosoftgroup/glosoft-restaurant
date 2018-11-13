@@ -3,40 +3,42 @@ from django.template.response import TemplateResponse
 from django.http import HttpResponse
 from django.core.paginator import Paginator, EmptyPage, InvalidPage, PageNotAnInteger
 from django.db.models import Q
-import logging
 from ..views import staff_member_required
 from ...hr.models import *
 from ...decorators import permission_decorator, user_trail
 
-debug_logger = logging.getLogger('debug_logger')
-info_logger = logging.getLogger('info_logger')
-error_logger = logging.getLogger('error_logger')
+from structlog import get_logger
+
+logger = get_logger(__name__)
+
 
 @staff_member_required
 @permission_decorator('hr.view_employee')
 def employees(request):
-	try:
-		data = Employee.objects.all().order_by('-id')
-		departments = Department.objects.all()
-		roles = UserRole.objects.all()
-		paginator = Paginator(data, 10)
-		try:
-			data = paginator.page(1)
-		except PageNotAnInteger:
-			data = paginator.page(1)
-		except InvalidPage:
-			data = paginator.page(1)
-		except EmptyPage:
-			data = paginator.page(paginator.num_pages)
-		ctx = {'data': data, 'roles': roles, 'departments':departments}
-		return TemplateResponse(request, 'dashboard/hr/employee/list.html', ctx)
-	except TypeError as e:
-		error_logger.error(e)
-		return HttpResponse('error accessing users')
+    try:
+        data = Employee.objects.all().order_by('-id')
+        departments = Department.objects.all()
+        roles = UserRole.objects.all()
+        paginator = Paginator(data, 10)
+        try:
+            data = paginator.page(1)
+        except PageNotAnInteger:
+            data = paginator.page(1)
+        except InvalidPage:
+            data = paginator.page(1)
+        except EmptyPage:
+            data = paginator.page(paginator.num_pages)
+        ctx = {'data': data, 'roles': roles, 'departments': departments}
+        return TemplateResponse(request, 'dashboard/hr/employee/list.html', ctx)
+    except TypeError as e:
+        logger.error(e)
+        return HttpResponse('error accessing users')
+
 
 def detail(request):
     status = 'read'
     return TemplateResponse(request, 'dashboard/hr/employee/employee.html', {})
+
 
 def add(request):
     try:
@@ -45,17 +47,18 @@ def add(request):
         banks = Bank.objects.all()
         branches = BankBranch.objects.all()
         data = {
-            "roles":roles,
-            "departments":departments,
-            "banks":banks,
-			"branches":branches
+            "roles": roles,
+            "departments": departments,
+            "banks": banks,
+            "branches": branches
         }
-        info_logger.info('User: ' + str(request.user.name) + 'viewed add employee page')
+        logger.info('User: ' + str(request.user.name) + 'viewed add employee page')
         # return TemplateResponse(request, 'dashboard/hr/employee/add_employee.html', data)
         return TemplateResponse(request, 'dashboard/hr/employee/test2.html', data)
     except Exception, e:
-        error_logger.error(e)
+        logger.error(e)
         return HttpResponse(e)
+
 
 def add_process(request):
     name = request.POST.get('name')
@@ -79,84 +82,89 @@ def add_process(request):
     marital_status = request.POST.get('marital_status')
     image = request.FILES.get('image')
     if image:
-        new_staff = Employee( name=name, email=email, gender=gender,
-                      dob=dob, date_joined=doj, mobile=mobile,
-                      national_id=nid, work_time=work_time, role=role,
-                      department=department, image=image, account=account,
-                      bank_name=bank, bank_branch=branch, pin=krapin,
-                      nssf=nssf, nhif=nhif, location=location,
-                      religion=religion, marital_status=marital_status)
+        new_staff = Employee(name=name, email=email, gender=gender,
+                             dob=dob, date_joined=doj, mobile=mobile,
+                             national_id=nid, work_time=work_time, role=role,
+                             department=department, image=image, account=account,
+                             bank_name=bank, bank_branch=branch, pin=krapin,
+                             nssf=nssf, nhif=nhif, location=location,
+                             religion=religion, marital_status=marital_status)
     else:
         new_staff = Employee(name=name, email=email, gender=gender,
-                         dob=dob, date_joined=doj, mobile=mobile,
-                         national_id=nid, work_time=work_time, role=role,
-                         department=department, account=account,
-                         bank_name=bank, bank_branch=branch, pin=krapin,
-                         nssf=nssf, nhif=nhif, location=location,
-                         religion=religion, marital_status=marital_status)
+                             dob=dob, date_joined=doj, mobile=mobile,
+                             national_id=nid, work_time=work_time, role=role,
+                             department=department, account=account,
+                             bank_name=bank, bank_branch=branch, pin=krapin,
+                             nssf=nssf, nhif=nhif, location=location,
+                             religion=religion, marital_status=marital_status)
     try:
         new_staff.save()
         user_trail(request.user.name, 'created employee : ' + str(name), 'add')
-        info_logger.info('User: ' + str(request.user.name) + 'created employee:' + str(ame))
+        logger.info('User: ' + str(request.user.name) + 'created employee:' + str(ame))
         return HttpResponse('success')
     except Exception as e:
-        error_logger.info('Error when saving ')
-        error_logger.error('Error when saving ')
+        logger.info('Error when saving ')
+        logger.error('Error when saving ')
         return HttpResponse(e)
+
 
 def edit(request, pk=None):
     return TemplateResponse(request, 'dashboard/hr/employee/edit_employee.html', {})
 
+
 @staff_member_required
 @permission_decorator('userprofile.delete_staff')
 def delete(request, pk=None):
-	user = get_object_or_404(Employee, pk=pk)
-	if request.method == 'POST':
-		user.delete()
-		user_trail(request.user.name, 'deleted employee: '+ str(user.name),'delete')
-        info_logger.info(request.user.name, 'deleted employee: '+ str(user.name),'delete')
-        return HttpResponse('success')
+    user = get_object_or_404(Employee, pk=pk)
+    if request.method == 'POST':
+        user.delete()
+        user_trail(request.user.name, 'deleted employee: ' + str(user.name), 'delete')
+    logger.info(request.user.name, 'deleted employee: ' + str(user.name), 'delete')
+    return HttpResponse('success')
 
 
 @staff_member_required
 def paginate(request):
-	page = int(request.GET.get('page', 1))
-	list_sz = request.GET.get('size')
-	p2_sz = request.GET.get('psize')
-	select_sz = request.GET.get('select_size')
-	if request.GET.get('gid'):
-		users = Employee.objects.filter(role=request.GET.get('gid'))
-		if p2_sz:
-			paginator = Paginator(users, int(p2_sz))
-			users = paginator.page(page)
-			return TemplateResponse(request,'dashboard/hr/employee/paginate.html',{'users':users})
+    page = int(request.GET.get('page', 1))
+    list_sz = request.GET.get('size')
+    p2_sz = request.GET.get('psize')
+    select_sz = request.GET.get('select_size')
+    if request.GET.get('gid'):
+        users = Employee.objects.filter(role=request.GET.get('gid'))
+        if p2_sz:
+            paginator = Paginator(users, int(p2_sz))
+            users = paginator.page(page)
+            return TemplateResponse(request, 'dashboard/hr/employee/paginate.html', {'users': users})
 
-		paginator = Paginator(users, 10)
-		users = paginator.page(page)
-		return TemplateResponse(request,'dashboard/hr/employee/p2.html',{'users':users, 'pn':paginator.num_pages,'sz':10,'gid':request.GET.get('gid')})
+        paginator = Paginator(users, 10)
+        users = paginator.page(page)
+        return TemplateResponse(request, 'dashboard/hr/employee/p2.html',
+                                {'users': users, 'pn': paginator.num_pages, 'sz': 10, 'gid': request.GET.get('gid')})
 
-	else:
-		users = Employee.objects.all().order_by('-id')
-		if list_sz:
-			paginator = Paginator(users, int(list_sz))
-			users = paginator.page(page)
-			return TemplateResponse(request,'dashboard/hr/employee/p2.html',{'users':users, 'pn':paginator.num_pages,'sz':list_sz, 'gid':0})
-		else:
-			paginator = Paginator(users, 10)
-		if p2_sz:
-			paginator = Paginator(users, int(p2_sz))
-			users = paginator.page(page)
-			return TemplateResponse(request,'dashboard/hr/employee/paginate.html',{'users':users})
+    else:
+        users = Employee.objects.all().order_by('-id')
+        if list_sz:
+            paginator = Paginator(users, int(list_sz))
+            users = paginator.page(page)
+            return TemplateResponse(request, 'dashboard/hr/employee/p2.html',
+                                    {'users': users, 'pn': paginator.num_pages, 'sz': list_sz, 'gid': 0})
+        else:
+            paginator = Paginator(users, 10)
+        if p2_sz:
+            paginator = Paginator(users, int(p2_sz))
+            users = paginator.page(page)
+            return TemplateResponse(request, 'dashboard/hr/employee/paginate.html', {'users': users})
 
-		try:
-			users = paginator.page(page)
-		except PageNotAnInteger:
-			users = paginator.page(1)
-		except InvalidPage:
-			groups = paginator.page(1)
-		except EmptyPage:
-			users = paginator.page(paginator.num_pages)
-		return TemplateResponse(request,'dashboard/hr/employee/paginate.html',{'users':users})
+        try:
+            users = paginator.page(page)
+        except PageNotAnInteger:
+            users = paginator.page(1)
+        except InvalidPage:
+            groups = paginator.page(1)
+        except EmptyPage:
+            users = paginator.page(paginator.num_pages)
+        return TemplateResponse(request, 'dashboard/hr/employee/paginate.html', {'users': users})
+
 
 def search(request):
     if request.is_ajax():

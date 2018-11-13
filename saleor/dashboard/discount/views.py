@@ -11,13 +11,12 @@ import json
 
 from ...discount.models import Sale, Voucher
 from ...product.models import ProductVariant
-from ...decorators import permission_decorator, user_trail
+from ...decorators import user_trail
 from . import forms
-import logging
+from structlog import get_logger
 
-debug_logger = logging.getLogger('debug_logger')
-info_logger = logging.getLogger('info_logger')
-error_logger = logging.getLogger('error_logger')
+logger = get_logger(__name__)
+
 
 @staff_member_required
 def sale_list(request):
@@ -34,13 +33,14 @@ def sale_list(request):
         except EmptyPage:
             sales = paginator.page(paginator.num_pages)
         user_trail(request.user.name, 'accessed discount page', 'view')
-        info_logger.info('User: ' + str(request.user.name) + 'accessed discount page')
+        logger.info('User: ' + str(request.user.name) + 'accessed discount page')
 
         return TemplateResponse(request, 'dashboard/discount/sale_list.html',
-                                    {'sales': sales, 'pn': paginator.num_pages})
+                                {'sales': sales, 'pn': paginator.num_pages})
     except TypeError as e:
-        error_logger.error(e)
+        logger.error(e)
         return TemplateResponse(request, 'dashboard/discount/sale_list.html', {})
+
 
 def disc_paginate(request):
     page = int(request.GET.get('page', 1))
@@ -53,13 +53,13 @@ def disc_paginate(request):
         paginator = Paginator(sales, int(list_sz))
         sales = paginator.page(page)
         return TemplateResponse(request, 'dashboard/discount/pagination/p2.html',
-                            {'sales':sales, 'pn': paginator.num_pages, 'sz': list_sz, 'gid': 0})
+                                {'sales': sales, 'pn': paginator.num_pages, 'sz': list_sz, 'gid': 0})
     else:
         paginator = Paginator(sales, 10)
     if p2_sz:
         paginator = Paginator(sales, int(p2_sz))
         sales = paginator.page(page)
-        return TemplateResponse(request, 'dashboard/discount/pagination/paginate.html', {"sales":sales})
+        return TemplateResponse(request, 'dashboard/discount/pagination/paginate.html', {"sales": sales})
 
     try:
         sales = paginator.page(page)
@@ -69,7 +69,8 @@ def disc_paginate(request):
         sales = paginator.page(1)
     except EmptyPage:
         sales = paginator.page(paginator.num_pages)
-    return TemplateResponse(request, 'dashboard/discount/pagination/paginate.html', {"sales":sales})
+    return TemplateResponse(request, 'dashboard/discount/pagination/paginate.html', {"sales": sales})
+
 
 @staff_member_required
 def disc_search(request):
@@ -102,13 +103,14 @@ def disc_search(request):
             sales = queryset_list
             if p2_sz:
                 users = paginator.page(page)
-                return TemplateResponse(request, 'dashboard/discount/pagination/paginate.html', {"sales":sales})
+                return TemplateResponse(request, 'dashboard/discount/pagination/paginate.html', {"sales": sales})
 
             return TemplateResponse(request, 'dashboard/discount/pagination/search.html',
-            {"sales":sales, 'pn': paginator.num_pages, 'sz': sz, 'q': q})
+                                    {"sales": sales, 'pn': paginator.num_pages, 'sz': sz, 'q': q})
+
 
 @staff_member_required
-def discount_detail(request,pk=None):
+def discount_detail(request, pk=None):
     if request.method == 'GET':
         if pk:
             try:
@@ -126,14 +128,16 @@ def discount_detail(request,pk=None):
                 except EmptyPage:
                     products = paginator.page(paginator.num_pages)
                 user_trail(request.user.name, 'accessed discount detail page for ' + str(instance.name), 'view')
-                info_logger.info(
+                logger.info(
                     'User: ' + str(request.user.name) + 'accessed discount detail page for ' + str(instance.name))
 
                 return TemplateResponse(request, 'dashboard/discount/discount_detail.html',
-                                        {'product_results':products,'discount':instance, 'pn': paginator.num_pages, 'pk':pk})
+                                        {'product_results': products, 'discount': instance, 'pn': paginator.num_pages,
+                                         'pk': pk})
             except TypeError as e:
-                error_logger.error(e)
+                logger.error(e)
                 return TemplateResponse(request, 'dashboard/customer/discount_detail.html', {})
+
 
 def disc_products_paginate(request):
     page = int(request.GET.get('page', 1))
@@ -148,13 +152,15 @@ def disc_products_paginate(request):
         paginator = Paginator(products, int(list_sz))
         products = paginator.page(page)
         return TemplateResponse(request, 'dashboard/discount/detail_pagination/p2.html',
-                            {'product_results':products, 'pn': paginator.num_pages, 'sz': list_sz, 'gid': 0, 'pk':pk})
+                                {'product_results': products, 'pn': paginator.num_pages, 'sz': list_sz, 'gid': 0,
+                                 'pk': pk})
     else:
         paginator = Paginator(products, 10)
     if p2_sz:
         paginator = Paginator(products, int(p2_sz))
         products = paginator.page(page)
-        return TemplateResponse(request, 'dashboard/discount/detail_pagination/paginate.html', {"product_results":products, 'pk':pk})
+        return TemplateResponse(request, 'dashboard/discount/detail_pagination/paginate.html',
+                                {"product_results": products, 'pk': pk})
 
     try:
         products = paginator.page(page)
@@ -164,7 +170,9 @@ def disc_products_paginate(request):
         products = paginator.page(1)
     except EmptyPage:
         products = paginator.page(paginator.num_pages)
-    return TemplateResponse(request, 'dashboard/discount/detail_pagination/paginate.html', {"product_results":products, 'pk':pk})
+    return TemplateResponse(request, 'dashboard/discount/detail_pagination/paginate.html',
+                            {"product_results": products, 'pk': pk})
+
 
 @staff_member_required
 def disc_products_search(request):
@@ -200,10 +208,13 @@ def disc_products_search(request):
             sales = queryset_list
             if p2_sz:
                 users = paginator.page(page)
-                return TemplateResponse(request, 'dashboard/discount/detail_pagination/paginate.html', {"product_results":products, 'pk':pk})
+                return TemplateResponse(request, 'dashboard/discount/detail_pagination/paginate.html',
+                                        {"product_results": products, 'pk': pk})
 
             return TemplateResponse(request, 'dashboard/discount/detail_pagination/search.html',
-            {"product_results":products, 'pn': paginator.num_pages, 'sz': sz, 'q': q, 'pk':pk})
+                                    {"product_results": products, 'pn': paginator.num_pages, 'sz': sz, 'q': q,
+                                     'pk': pk})
+
 
 @staff_member_required
 def sale_edit(request, pk=None):
@@ -217,10 +228,10 @@ def sale_edit(request, pk=None):
         instance = form.save()
         msg = pgettext_lazy(
             'Sale (discount) message', 'Updated sale') if pk else pgettext_lazy(
-                'Sale (discount) message', 'Added sale')
+            'Sale (discount) message', 'Added sale')
         messages.success(request, msg)
         user_trail(request.user.name, 'updated discount : ' + str(instance.name), 'update')
-        info_logger.info('User: ' + str(request.user.name) + ' updated discount:' + str(instance.name))
+        logger.info('User: ' + str(request.user.name) + ' updated discount:' + str(instance.name))
         return redirect('dashboard:sale-update', pk=instance.pk)
     ctx = {'sale': instance, 'form': form}
     return TemplateResponse(request, 'dashboard/discount/sale_form.html', ctx)
@@ -233,7 +244,7 @@ def create_discount(request):
         if request.POST.get('variants'):
             variants = json.loads(request.POST.get('variants'))
         if request.POST.get('customers'):
-            customers = json.loads(request.POST.get('customers'))        
+            customers = json.loads(request.POST.get('customers'))
         if request.POST.get('type'):
             discount.type = request.POST.get('type')
         if request.POST.get('value'):
@@ -252,10 +263,10 @@ def create_discount(request):
                 discount.customers.add(customer)
         except:
             pass
-        return HttpResponse(json.dumps({'message':discount.name}))
+        return HttpResponse(json.dumps({'message': discount.name}))
     else:
-        return HttpResponse(json.dumps({'message':'Invalid method'}))
-        
+        return HttpResponse(json.dumps({'message': 'Invalid method'}))
+
 
 @staff_member_required
 def sale_delete(request, pk):
@@ -266,7 +277,7 @@ def sale_delete(request, pk):
             request,
             pgettext_lazy('Sale (discount) message', 'Deleted sale %s') % (instance.name,))
         user_trail(request.user.name, 'deleted discount : ' + str(instance.name), 'delete')
-        info_logger.info('User: ' + str(request.user.name) + ' deleted discount:' + str(instance.name))
+        logger.info('User: ' + str(request.user.name) + ' deleted discount:' + str(instance.name))
         return redirect('dashboard:sale-list')
     ctx = {'sale': instance}
     return TemplateResponse(
@@ -312,7 +323,7 @@ def voucher_edit(request, pk=None):
         if form_type is None or form_type.is_valid():
             msg = pgettext_lazy(
                 'Voucher message', 'Updated voucher') if pk else pgettext_lazy(
-                    'Voucher message', 'Added voucher')
+                'Voucher message', 'Added voucher')
             messages.success(request, msg)
             return redirect('dashboard:voucher-update', pk=instance.pk)
     ctx = {
@@ -335,10 +346,11 @@ def voucher_delete(request, pk):
     return TemplateResponse(
         request, 'dashboard/discount/voucher_modal_confirm_delete.html', ctx)
 
+
 @staff_member_required
 def token_variants(request):
     search = request.GET.get('search')
-    group = request.GET.get('group')    
+    group = request.GET.get('group')
     variants = ProductVariant.objects.all().filter(
         Q(name__icontains=search) |
         Q(sku__icontains=search) |
@@ -346,7 +358,6 @@ def token_variants(request):
         Q(product__name__icontains=search)
     ).order_by('-id')[:10:1]
     l = []
-    for variant in variants:        
-        l.append({'text':variant.display_product(),'value': variant.pk})
+    for variant in variants:
+        l.append({'text': variant.display_product(), 'value': variant.pk})
     return HttpResponse(json.dumps(l), content_type='application/json')
-

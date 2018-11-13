@@ -7,15 +7,14 @@ from django.utils.translation import ugettext_lazy as _
 from django.template.response import TemplateResponse
 from django.http import HttpResponse
 from django.shortcuts import redirect
-import logging
 import datetime
 from .forms import SignupForm, SetPasswordForm
 from saleor.decorators import user_trail
 from django.views.decorators.csrf import csrf_protect
 
-debug_logger = logging.getLogger('debug_logger')
-info_logger = logging.getLogger('info_logger')
-error_logger = logging.getLogger('error_logger')
+from structlog import get_logger
+
+logger = get_logger(__name__)
 
 
 @csrf_protect
@@ -28,7 +27,7 @@ def login(request):
         if user.is_active:
             auth.login(request, user)
             user_trail(request.user, "logged in ", "login")
-            info_logger.info(str(request.user) + ' logged in at ' + str(datetime.datetime.now()))
+            logger.info(str(request.user) + ' logged in at ' + str(datetime.datetime.now()))
             return HttpResponse('success')
         else:
             return HttpResponse('cannot login')
@@ -39,7 +38,7 @@ def login(request):
 @login_required
 def logout(request):
     user_trail(request.user.name, 'logged out', 'logout')
-    info_logger.info(str(request.user) + ' logged out at ' + str(datetime.datetime.now()))
+    logger.info(str(request.user) + ' logged out at ' + str(datetime.datetime.now()))
     auth.logout(request)
     messages.success(request, _('You have been successfully logged out.'))
     return redirect(settings.LOGIN_REDIRECT_URL)
