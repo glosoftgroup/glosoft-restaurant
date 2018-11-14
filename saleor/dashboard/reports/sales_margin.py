@@ -11,12 +11,10 @@ from ..views import staff_member_required
 from ...sale.models import Sales, SoldItem
 from ...product.models import ProductVariant
 from ...decorators import permission_decorator, user_trail
-import logging
 import datetime
+from structlog import get_logger
 
-debug_logger = logging.getLogger('debug_logger')
-info_logger = logging.getLogger('info_logger')
-error_logger = logging.getLogger('error_logger')
+logger = get_logger(__name__)
 
 
 @staff_member_required
@@ -76,7 +74,7 @@ def sales_list(request):
         except EmptyPage:
             total_sales = paginator.page(paginator.num_pages)
         user_trail(request.user.name, 'accessed sales reports', 'view')
-        info_logger.info('User: ' + str(request.user.name) + ' accessed the view sales report page')
+        logger.info('User: ' + str(request.user.name) + ' accessed the view sales report page')
         data = {
             'pn': paginator.num_pages,
             'sales': total_sales,
@@ -88,7 +86,7 @@ def sales_list(request):
         return TemplateResponse(request, 'dashboard/reports/sales_margin2/sales_list.html', data)
     except Exception as e:
         print e
-        error_logger.error(e)
+        logger.error(e)
         return TemplateResponse(request, 'dashboard/reports/sales_margin2/sales_list.html', {})
 
 
@@ -402,7 +400,7 @@ def sales_reports(request):
         except EmptyPage:
             items = paginator.page(paginator.num_pages)
         user_trail(request.user.name, 'accessed sales reports', 'view')
-        info_logger.info('User: ' + str(request.user.name) + ' accessed the view sales report page')
+        logger.info('User: ' + str(request.user.name) + ' accessed the view sales report page')
         if request.GET.get('initial'):
             return HttpResponse(paginator.num_pages)
         else:
@@ -410,7 +408,7 @@ def sales_reports(request):
                                     {'items': items, 'total_sales': total_sales, 'total_tax': total_tax, 'ts': ts,
                                      'tsum': tsum})
     except TypeError as e:
-        error_logger.error(e)
+        logger.error(e)
         return TemplateResponse(request, 'dashboard/reports/sales_margin2/sales.html', {})
 
 
@@ -452,7 +450,7 @@ def pdf_sale_tax_detail(request, pk=None):
         pdf = render_to_pdf('dashboard/reports/sales_margin2/pdf/pdf.html', data)
         return HttpResponse(pdf, content_type='application/pdf')
     except ObjectDoesNotExist as e:
-        error_logger.error(e)
+        logger.error(e)
 
 
 @staff_member_required

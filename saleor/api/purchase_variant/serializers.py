@@ -1,13 +1,11 @@
 from django.utils.formats import localize
-import logging
 import random
 from rest_framework.serializers import (
-                ModelSerializer,
-                HyperlinkedIdentityField,
-                SerializerMethodField,
-                ValidationError,
-                JSONField
-                )
+    HyperlinkedIdentityField,
+    SerializerMethodField,
+    ValidationError,
+    JSONField
+)
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from ...purchase.models import PurchaseVariant as Table
@@ -15,16 +13,14 @@ from saleor.purchase.models import PurchasedItem as Item
 from saleor.purchase.models import PurchaseVariantHistoryEntry as HistoryEntry
 
 from ...product.models import (
-            Stock,
-            ProductVariant
-            )
+    Stock,
+    ProductVariant
+)
+from structlog import get_logger
 
+logger = get_logger(__name__)
 
 User = get_user_model()
-
-debug_logger = logging.getLogger('debug_logger')
-info_logger = logging.getLogger('info_logger')
-error_logger = logging.getLogger('error_logger')
 
 
 class ItemSerializer(serializers.ModelSerializer):
@@ -36,19 +32,19 @@ class ItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = Item
         fields = (
-                'id',
-                'order',
-                'sku',
-                'quantity',
-                'max_quantity',
-                'stock_quantity',
-                'stock_id',
-                'unit_cost',
-                'total_cost',
-                'unit_purchase',
-                'total_purchase',
-                'product_name',
-                 )
+            'id',
+            'order',
+            'sku',
+            'quantity',
+            'max_quantity',
+            'stock_quantity',
+            'stock_id',
+            'unit_cost',
+            'total_cost',
+            'unit_purchase',
+            'total_purchase',
+            'product_name',
+        )
 
     def get_quantity(self, obj):
         quantity = obj.returnable_quantity() if obj.returnable_quantity() < obj.get_quantity() else obj.get_quantity()
@@ -77,12 +73,12 @@ class HistorySerializer(serializers.ModelSerializer):
     class Meta:
         model = HistoryEntry
         fields = (
-                'tendered',
-                'balance',
-                'payment_name',
-                'transaction_number',
-                'date'
-                 )
+            'tendered',
+            'balance',
+            'payment_name',
+            'transaction_number',
+            'date'
+        )
 
     def get_date(self, obj):
         return localize(obj.created)
@@ -101,17 +97,17 @@ class TableCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Table
         fields = (
-                 'id',
-                 'user',
-                 'supplier',
-                 'status',
-                 'quantity',
-                 'total_net',
-                 'amount_paid',
-                 'balance',
-                 'item',
-                 'history'
-                )
+            'id',
+            'user',
+            'supplier',
+            'status',
+            'quantity',
+            'total_net',
+            'amount_paid',
+            'balance',
+            'item',
+            'history'
+        )
 
     def create(self, validated_data):
         # new purchase instance
@@ -122,7 +118,7 @@ class TableCreateSerializer(serializers.ModelSerializer):
             invoice_number = Table.objects.latest('id').id
         except:
             invoice_number = 1
-        invoice_number = 'INV/'+str(invoice_number)+str(random.randint(2, 10))
+        invoice_number = 'INV/' + str(invoice_number) + str(random.randint(2, 10))
 
         # detect credit & fully paid transaction
         if validated_data.get('amount_paid') < validated_data.get('total_net'):
@@ -146,7 +142,7 @@ class TableCreateSerializer(serializers.ModelSerializer):
 
         # create history
         # try:
-        #histories = json.loads(validated_data.pop('purchase_history'))
+        # histories = json.loads(validated_data.pop('purchase_history'))
         histories = validated_data['history']
         for item in histories:
             # create history
@@ -235,7 +231,7 @@ class TableCreateSerializer(serializers.ModelSerializer):
                     update_all_stock_price_override(stock.variant, item.get('price_override', 0))
                     new_stock = stock
 
-                error_logger.error(e)
+                logger.error(e)
             # create purchased items
             single_item = Item()
             single_item.stock = new_stock
@@ -270,25 +266,25 @@ class TableListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Table
         fields = (
-                 'id',
-                 'user',
-                 'instance_status',
-                 'supplier_name',
-                 'total_net',
-                 'amount_paid',
-                 'invoice_number',
-                 'balance',
-                 'quantity',
-                 'total_cost',
-                 'total_quantity',
-                 'total_purchases',
-                 'total_credit',
-                 'single_url',
-                 'detail_url',
-                 'purchased_item',
-                 'purchase_history',
-                 'date'
-                )
+            'id',
+            'user',
+            'instance_status',
+            'supplier_name',
+            'total_net',
+            'amount_paid',
+            'invoice_number',
+            'balance',
+            'quantity',
+            'total_cost',
+            'total_quantity',
+            'total_purchases',
+            'total_credit',
+            'single_url',
+            'detail_url',
+            'purchased_item',
+            'purchase_history',
+            'date'
+        )
 
     def get_instance_status(self, obj):
         if obj.status == 'fully-paid':

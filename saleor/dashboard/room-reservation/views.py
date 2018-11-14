@@ -15,12 +15,11 @@ from saleor.room.models import RoomAmenity, RoomImage, Package, Pricing
 from saleor.site.models import SiteSettings
 from .forms import RoomImageForm
 from ...decorators import user_trail
-import logging
 import json
+from structlog import get_logger
 
-debug_logger = logging.getLogger('debug_logger')
-info_logger = logging.getLogger('info_logger')
-error_logger = logging.getLogger('error_logger')
+logger = get_logger(__name__)
+
 
 # global variables
 table_name = 'Rooms'
@@ -126,7 +125,7 @@ def add_amenities(request):
                 try:
                     RoomAmenity.objects.create(name=choice)
                 except Exception as e:
-                    error_logger.info(e)
+                    logger.info(e)
             return HttpResponse(json.dumps({'success': choice}), content_type='application/json')
         return HttpResponse(json.dumps({'message': 'Amenities required'}), content_type='application/json')
     else:
@@ -173,10 +172,10 @@ def delete(request, pk=None):
         try:
             option.delete()
             user_trail(request.user.name, 'deleted room : '+ str(option.name), 'delete')
-            info_logger.info('deleted room: '+ str(option.name))
+            logger.info('deleted room: '+ str(option.name))
             return HttpResponse('success')
         except Exception, e:
-            error_logger.error(e)
+            logger.error(e)
             return HttpResponse(e)
 
 
@@ -190,7 +189,7 @@ def detail(request, pk=None):
             ctx = {'room': room, 'book': book, 'history': history}
             return TemplateResponse(request, 'dashboard/room/detail.html', ctx)
         except Exception, e:
-            error_logger.error(e)
+            logger.error(e)
             return TemplateResponse(request, 'dashboard/room/detail.html', {'error': e})
 
 
@@ -209,12 +208,12 @@ def edit(request, pk=None):
                 room.number = request.POST.get('price')
                 room.save()
                 user_trail(request.user.name, 'updated room : '+ str(room.name),'edit')
-                info_logger.info('updated room : '+ str(room.name))
+                logger.info('updated room : '+ str(room.name))
                 return HttpResponse('success')
             else:
                 return HttpResponse('invalid response')
         except Exception, e:
-            error_logger.error(e)
+            logger.error(e)
             print e
             return HttpResponse(e)
 
@@ -252,13 +251,13 @@ def list(request):
             "pn": paginator.num_pages
         }
         user_trail(request.user.name, 'accessed '+table_name+' List', 'views')
-        info_logger.info('User: ' + str(request.user.name) + 'accessed '+table_name+' List Page')
+        logger.info('User: ' + str(request.user.name) + 'accessed '+table_name+' List Page')
         if request.GET.get('initial'):
             return HttpResponse(paginator.num_pages)
         else:
             return TemplateResponse(request, 'dashboard/room/list.html', data)
     except TypeError as e:
-        error_logger.error(e)
+        logger.error(e)
         return HttpResponse('error accessing payment options')
 
 

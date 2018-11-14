@@ -6,15 +6,14 @@ from rest_framework import pagination
 from notifications.models import Notification
 from .pagination import PostLimitOffsetPagination
 from .serializers import (
-     MessagesListSerializer,
-     )
+    MessagesListSerializer,
+)
 
-import logging
+from structlog import get_logger
+
+logger = get_logger(__name__)
 
 User = get_user_model()
-debug_logger = logging.getLogger('debug_logger')
-info_logger = logging.getLogger('info_logger')
-error_logger = logging.getLogger('error_logger')
 
 
 class MessagesListAPIView(generics.ListAPIView):
@@ -33,7 +32,7 @@ class MessagesListAPIView(generics.ListAPIView):
             else:
                 queryset_list = Notification.objects.all.select_related()
         except Exception as e:
-            queryset_list = self.request.user.notifications # Notification.objects.all()
+            queryset_list = self.request.user.notifications  # Notification.objects.all()
             query = self.request.GET.get('q')
         page_size = 'page_size'
         if self.request.GET.get(page_size):
@@ -60,5 +59,5 @@ class MessagesListAPIView(generics.ListAPIView):
                 Q(verb__icontains=query) |
                 Q(description__icontains=query) |
                 Q(recipient__name__icontains=query)
-                )
+            )
         return queryset_list.order_by('-id')

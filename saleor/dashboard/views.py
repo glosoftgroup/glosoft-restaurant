@@ -9,24 +9,22 @@ from ..product.models import Category, Stock
 from ..credit.models import Credit
 from django.db.models import Count, Sum
 from django.core.paginator import Paginator, EmptyPage, InvalidPage, PageNotAnInteger
-from django.core.exceptions import ObjectDoesNotExist
 from .reports.hours_chart import get_item_results, get_category_results
 from django.utils.dateformat import DateFormat
 from decimal import Decimal
 import datetime
-import logging
 import random
 import calendar
 import dateutil.relativedelta
 
+from structlog import get_logger
 
-debug_logger = logging.getLogger('debug_logger')
-info_logger = logging.getLogger('info_logger')
-error_logger = logging.getLogger('error_logger')
+logger = get_logger(__name__)
 
 
 def staff_member_required(f):
     return _staff_member_required(f, login_url='home')
+
 
 @staff_member_required
 def index(request):
@@ -48,7 +46,7 @@ def index(request):
         payments = Payment.objects.filter(
             status=PaymentStatus.PREAUTH).order_by('-created')
         payments = payments.select_related('order', 'order__user')
-        #top categories
+        # top categories
         if period:
             cat = top_categories(month, year, period)
         else:
@@ -66,10 +64,10 @@ def index(request):
         ctx = {'preauthorized_payments': payments,
                'orders_to_ship': orders_to_ship,
                'low_stock': low_stock_order['low_stock'],
-               'pn':low_stock_order['pn'],
+               'pn': low_stock_order['pn'],
                'sz': low_stock_order['sz'],
                'gid': low_stock_order['gid'],
-               #top_cat
+               # top_cat
                "sales_by_category": cat['sales_by_category'],
                "categs": cat['categs'],
                "avg": cat['avg'],
@@ -80,7 +78,7 @@ def index(request):
                "no_of_customers": cat['no_of_customers'],
                "date_period": cat['date_period'],
 
-               #items
+               # items
                "sales_by_item": items['sales_by_item'],
                "items": items['items'],
                "items_avg": items['items_avg'],
@@ -98,9 +96,10 @@ def index(request):
             return TemplateResponse(request, 'dashboard/index.html', ctx)
     except BaseException as e:
         if period:
-            return TemplateResponse(request, 'dashboard/ajax.html', {"e":e, "date":date})
+            return TemplateResponse(request, 'dashboard/ajax.html', {"e": e, "date": date})
         else:
-            return TemplateResponse(request, 'dashboard/index.html', {"e":e, "date":date})
+            return TemplateResponse(request, 'dashboard/index.html', {"e": e, "date": date})
+
 
 @staff_member_required
 def landing_page(request):
@@ -129,24 +128,32 @@ def top_categories(month=None, year=None, period=None):
         lastyear = d - dateutil.relativedelta.relativedelta(years=1)
         y = str(lastyear.strftime("%Y"))
         month = str(datetime.datetime.strptime(month, "%m").strftime("%m"))
-        sales_by_category = SoldItem.objects.filter(sales__created__year__range=[y, year], sales__created__month__lte=month
+        sales_by_category = SoldItem.objects.filter(sales__created__year__range=[y, year],
+                                                    sales__created__month__lte=month
                                                     ).values('product_category'
-                                                    ).annotate(c=Count('product_category', distinct=True)
-                                                    ).annotate(Sum('total_cost')
-                                                    ).annotate(Sum('quantity')).order_by('-quantity__sum')[:5]
+                                                             ).annotate(c=Count('product_category', distinct=True)
+                                                                        ).annotate(Sum('total_cost')
+                                                                                   ).annotate(Sum('quantity')).order_by(
+            '-quantity__sum')[:5]
         sales_customers = Sales.objects.filter(created__year__range=[y, year], created__month__lte=month).count()
         credit_customers = Credit.objects.filter(created__year__range=[y, year], created__month__lte=month).count()
 
-        date_period = str(lastyear.strftime("%B"))+'/'+str(lastyear.strftime("%Y"))+' - '+str(datetime.datetime.strptime(month, "%m").strftime("%B"))+'/'+ str(year)
+        date_period = str(lastyear.strftime("%B")) + '/' + str(lastyear.strftime("%Y")) + ' - ' + str(
+            datetime.datetime.strptime(month, "%m").strftime("%B")) + '/' + str(year)
     elif period == 'month':
-        sales_by_category = SoldItem.objects.filter(sales__created__year=str(d.strftime("%Y")), sales__created__month=str(d.strftime("%m"))
+        sales_by_category = SoldItem.objects.filter(sales__created__year=str(d.strftime("%Y")),
+                                                    sales__created__month=str(d.strftime("%m"))
                                                     ).values('product_category'
-                                                    ).annotate(c=Count('product_category', distinct=True)
-                                                    ).annotate(Sum('total_cost')
-                                                    ).annotate(Sum('quantity')).order_by('-quantity__sum')[:5]
-        sales_customers = Sales.objects.filter(created__year=str(d.strftime("%Y")), created__month=str(d.strftime("%m"))).count()
-        credit_customers = Credit.objects.filter(created__year=str(d.strftime("%Y")), created__month=str(d.strftime("%m"))).count()
-        date_period = str(datetime.datetime.strptime(month, "%m").strftime("%B")) + '/' + str(datetime.datetime.strptime(year, "%Y").strftime("%Y"))
+                                                             ).annotate(c=Count('product_category', distinct=True)
+                                                                        ).annotate(Sum('total_cost')
+                                                                                   ).annotate(Sum('quantity')).order_by(
+            '-quantity__sum')[:5]
+        sales_customers = Sales.objects.filter(created__year=str(d.strftime("%Y")),
+                                               created__month=str(d.strftime("%m"))).count()
+        credit_customers = Credit.objects.filter(created__year=str(d.strftime("%Y")),
+                                                 created__month=str(d.strftime("%m"))).count()
+        date_period = str(datetime.datetime.strptime(month, "%m").strftime("%B")) + '/' + str(
+            datetime.datetime.strptime(year, "%Y").strftime("%Y"))
 
     elif period == 'quarter':
         p = d - dateutil.relativedelta.relativedelta(months=3)
@@ -154,13 +161,14 @@ def top_categories(month=None, year=None, period=None):
         sales_by_category = SoldItem.objects.filter(sales__created__year=str(p.strftime("%Y")),
                                                     sales__created__month__range=[str(p.strftime("%m")), month]
                                                     ).values('product_category'
-                                                    ).annotate(c=Count('product_category', distinct=True)
-                                                    ).annotate(Sum('total_cost')
-                                                    ).annotate(Sum('quantity')).order_by('-quantity__sum')[:5]
+                                                             ).annotate(c=Count('product_category', distinct=True)
+                                                                        ).annotate(Sum('total_cost')
+                                                                                   ).annotate(Sum('quantity')).order_by(
+            '-quantity__sum')[:5]
         sales_customers = Sales.objects.filter(created__year=str(p.strftime("%Y")),
-                                                    created__month__range=[str(p.strftime("%m")), month]).count()
+                                               created__month__range=[str(p.strftime("%m")), month]).count()
         credit_customers = Credit.objects.filter(created__year=str(p.strftime("%Y")),
-                                                    created__month__range=[str(p.strftime("%m")), month]).count()
+                                                 created__month__range=[str(p.strftime("%m")), month]).count()
         date_period = str(p.strftime("%B")) + '/' + str(p.strftime("%Y")) + ' - ' + str(
             datetime.datetime.strptime(month, "%m").strftime("%B")) + '/' + str(year)
 
@@ -194,7 +202,7 @@ def top_categories(month=None, year=None, period=None):
         labels = []
         for i in range(1, (today.month + 1), 1):
             if len(str(i)) == 1:
-                m =  str('0' + str(i))
+                m = str('0' + str(i))
             else:
                 m = str(i)
             amount = get_category_results(highest_category_sales, str(today.year), m)
@@ -220,12 +228,12 @@ def top_categories(month=None, year=None, period=None):
             "default": default,
             "hcateg": highest_category_sales,
             "date_total_sales": date_total_sales,
-            "no_of_customers":no_of_customers,
-            "date_period":date_period
+            "no_of_customers": no_of_customers,
+            "date_period": date_period
         }
         return data
-    except Exception,e:
-        error_logger.error(e)
+    except Exception, e:
+        logger.error(e)
         data = {
             "sales_by_category": None,
             "categs": None,
@@ -237,6 +245,7 @@ def top_categories(month=None, year=None, period=None):
             "no_of_customers": None,
         }
         return data
+
 
 def top_items(month=None, year=None, period=None):
     today = datetime.datetime.now()
@@ -259,29 +268,38 @@ def top_items(month=None, year=None, period=None):
         lastyear = d - dateutil.relativedelta.relativedelta(years=1)
         y = str(lastyear.strftime("%Y"))
         month = str(datetime.datetime.strptime(month, "%m").strftime("%m"))
-        sales_by_category = SoldItem.objects.filter(sales__created__year__range=[y, year], sales__created__month__lte=month).values(
-                                                        'product_name').annotate(
-                                                        c=Count('product_name', distinct=True)).annotate(
-                                                        Sum('total_cost')).annotate(Sum('quantity')).order_by(
-                                                        '-quantity__sum')[:5]
-        highest_item = SoldItem.objects.filter(sales__created__year__range=[y, year], sales__created__month__lte=month).values(
-                                                   'product_name').annotate(
-                                                   c=Count('product_name', distinct=False)).annotate(
-                                                   Sum('total_cost')).annotate(Sum('quantity')).order_by(
-                                                   '-quantity__sum')[:1]
-        lowest_item = SoldItem.objects.filter(sales__created__year__range=[y, year], sales__created__month__lte=month).values('product_name').annotate(
+        sales_by_category = SoldItem.objects.filter(sales__created__year__range=[y, year],
+                                                    sales__created__month__lte=month).values(
+            'product_name').annotate(
+            c=Count('product_name', distinct=True)).annotate(
+            Sum('total_cost')).annotate(Sum('quantity')).order_by(
+            '-quantity__sum')[:5]
+        highest_item = SoldItem.objects.filter(sales__created__year__range=[y, year],
+                                               sales__created__month__lte=month).values(
+            'product_name').annotate(
+            c=Count('product_name', distinct=False)).annotate(
+            Sum('total_cost')).annotate(Sum('quantity')).order_by(
+            '-quantity__sum')[:1]
+        lowest_item = SoldItem.objects.filter(sales__created__year__range=[y, year],
+                                              sales__created__month__lte=month).values('product_name').annotate(
             c=Count('product_name', distinct=True)).annotate(Sum('total_cost')).annotate(Sum('quantity')).order_by(
             'quantity__sum', 'total_cost__sum')[:1]
 
     elif period == 'month':
-        sales_by_category = SoldItem.objects.filter(sales__created__year=str(d.strftime("%Y")), sales__created__month=str(d.strftime("%m"))).values('product_name').annotate(
+        sales_by_category = SoldItem.objects.filter(sales__created__year=str(d.strftime("%Y")),
+                                                    sales__created__month=str(d.strftime("%m"))).values(
+            'product_name').annotate(
             c=Count('product_name', distinct=True)).annotate(Sum('total_cost')).annotate(Sum('quantity')).order_by(
             '-quantity__sum')[:5]
 
-        highest_item = SoldItem.objects.filter(sales__created__year=str(d.strftime("%Y")), sales__created__month=str(d.strftime("%m"))).values('product_name').annotate(
+        highest_item = SoldItem.objects.filter(sales__created__year=str(d.strftime("%Y")),
+                                               sales__created__month=str(d.strftime("%m"))).values(
+            'product_name').annotate(
             c=Count('product_name', distinct=False)).annotate(Sum('total_cost')).annotate(Sum('quantity')).order_by(
             '-quantity__sum')[:1]
-        lowest_item = SoldItem.objects.filter(sales__created__year=str(d.strftime("%Y")), sales__created__month=str(d.strftime("%m"))).values('product_name').annotate(
+        lowest_item = SoldItem.objects.filter(sales__created__year=str(d.strftime("%Y")),
+                                              sales__created__month=str(d.strftime("%m"))).values(
+            'product_name').annotate(
             c=Count('product_name', distinct=True)).annotate(Sum('total_cost')).annotate(Sum('quantity')).order_by(
             'quantity__sum', 'total_cost__sum')[:1]
 
@@ -289,15 +307,18 @@ def top_items(month=None, year=None, period=None):
         p = d - dateutil.relativedelta.relativedelta(months=3)
         month = str(datetime.datetime.strptime(month, "%m").strftime("%m"))
         sales_by_category = SoldItem.objects.filter(sales__created__year=str(p.strftime("%Y")),
-                                                    sales__created__month__range=[str(p.strftime("%m")), month]).values('product_name').annotate(
+                                                    sales__created__month__range=[str(p.strftime("%m")), month]).values(
+            'product_name').annotate(
             c=Count('product_name', distinct=True)).annotate(Sum('total_cost')).annotate(Sum('quantity')).order_by(
             '-quantity__sum')[:5]
         highest_item = SoldItem.objects.filter(sales__created__year=str(p.strftime("%Y")),
-                                                    sales__created__month__range=[str(p.strftime("%m")), month]).values('product_name').annotate(
+                                               sales__created__month__range=[str(p.strftime("%m")), month]).values(
+            'product_name').annotate(
             c=Count('product_name', distinct=False)).annotate(Sum('total_cost')).annotate(Sum('quantity')).order_by(
             '-quantity__sum')[:1]
         lowest_item = SoldItem.objects.filter(sales__created__year=str(p.strftime("%Y")),
-                                                    sales__created__month__range=[str(p.strftime("%m")), month]).values('product_name').annotate(
+                                              sales__created__month__range=[str(p.strftime("%m")), month]).values(
+            'product_name').annotate(
             c=Count('product_name', distinct=True)).annotate(Sum('total_cost')).annotate(Sum('quantity')).order_by(
             'quantity__sum', 'total_cost__sum')[:1]
 
@@ -349,12 +370,12 @@ def top_items(month=None, year=None, period=None):
             "items_labels": labels,
             "items_default": default,
             "items_hcateg": highest_category_sales,
-            "highest_item":highest_item,
-            "lowest_item":lowest_item,
+            "highest_item": highest_item,
+            "lowest_item": lowest_item,
         }
         return data
     except IndexError as e:
-        error_logger.error(e)
+        logger.error(e)
         data = {
             "sales_by_item": None,
             "items": None,
@@ -372,6 +393,7 @@ def top_items(month=None, year=None, period=None):
 def styleguide(request):
     return TemplateResponse(request, 'dashboard/styleguide/index.html', {})
 
+
 def dashbord_get_low_stock_products():
     products = Stock.objects.get_low_stock()
     paginator = Paginator(products, 10)
@@ -386,7 +408,7 @@ def dashbord_get_low_stock_products():
     data = {'low_stock': low_stock, 'pn': paginator.num_pages, 'sz': 10, 'gid': 0}
     return data
 
+
 def get_low_stock_products():
     products = Stock.objects.get_low_stock()
     return products
-

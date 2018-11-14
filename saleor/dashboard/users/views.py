@@ -16,12 +16,11 @@ from ...utils import render_to_pdf, image64
 import csv
 import random
 from django.utils.encoding import smart_str
-import logging
 from datetime import date
 
-debug_logger = logging.getLogger('debug_logger')
-info_logger = logging.getLogger('info_logger')
-error_logger = logging.getLogger('error_logger')
+from structlog import get_logger
+
+logger = get_logger(__name__)
 
 
 @staff_member_required
@@ -32,7 +31,7 @@ def user_trails(request):
         paginator = Paginator(users, 10)
         page = request.GET.get('page', 1)
         user_trail(request.user.name, 'accessed user trail page', 'view')
-        info_logger.info('User: ' + str(request.user.name) + ' accessed the user trail page')
+        logger.info('User: ' + str(request.user.name) + ' accessed the user trail page')
 
         try:
             users = paginator.page(page)
@@ -45,7 +44,7 @@ def user_trails(request):
 
         return TemplateResponse(request, 'dashboard/users/trail.html', {'users': users, 'pn': paginator.num_pages})
     except TypeError as e:
-        error_logger.error(e)
+        logger.error(e)
         return HttpResponse('error accessing users')
 
 
@@ -66,11 +65,11 @@ def users(request):
         except EmptyPage:
             users = paginator.page(paginator.num_pages)
         user_trail(request.user.name, 'accessed users list page', 'view')
-        info_logger.info('User: ' + str(request.user.name) + ' accessed the view users page')
+        logger.info('User: ' + str(request.user.name) + ' accessed the view users page')
         return TemplateResponse(request, 'dashboard/users/users.html',
                                 {'groups': groups, 'users': users, 'pn': paginator.num_pages})
     except TypeError as e:
-        error_logger.error(e)
+        logger.error(e)
         return HttpResponse('error accessing users')
 
 
@@ -236,11 +235,11 @@ def user_add(request):
         permissions = Permission.objects.all()
         groups = Group.objects.all()
         user_trail(request.user.name, 'accessed add users page', 'view')
-        info_logger.info('User: ' + str(request.user.name) + ' accessed user create page')
+        logger.info('User: ' + str(request.user.name) + ' accessed user create page')
         return TemplateResponse(request, 'dashboard/users/add_user.html',
                                 {'permissions': permissions, 'groups': groups})
     except TypeError as e:
-        error_logger.error(e)
+        logger.error(e)
         return HttpResponse('error accessing add users page')
 
 
@@ -307,14 +306,14 @@ def user_process(request):
         try:
             new_user.save()
         except IntegrityError:
-            error_logger.info('Error when saving ')
+            logger.info('Error when saving ')
             message = 'User exists with those details'
             explanation = 'Please check the details and change accordingly'
             return JsonResponse(
                 {'message': message, 'explanation': explanation},
                 status=status_code)
         except Exception, e:
-            error_logger.error(e)
+            logger.error(e)
 
         last_id = User.objects.latest('id')
         if groups:
@@ -324,7 +323,7 @@ def user_process(request):
             last_id.groups.add(*gps)
             last_id.save()
         user_trail(request.user.name, 'added user: ' + str(name), 'add')
-        info_logger.info('User: ' + str(request.user.name) + ' created user:' + str(name))
+        logger.info('User: ' + str(request.user.name) + ' created user:' + str(name))
         return HttpResponse(last_id.id)
 
 
@@ -347,7 +346,7 @@ def user_detail(request, pk):
     }
     if request.user == user:
         user_trail(request.user.name, 'viewed self profile ', 'view')
-        info_logger.info('User: ' + str(request.user) + ' viewed self profile')
+        logger.info('User: ' + str(request.user) + ' viewed self profile')
         return TemplateResponse(request, 'dashboard/users/detail.html', ctx)
     else:
 
@@ -357,7 +356,7 @@ def user_detail(request, pk):
             user_trail(request.user.name, 'viewed ' + str(user.name) + '`s profile', 'view')
             return TemplateResponse(request, 'dashboard/users/detail.html', ctx)
         else:
-            debug_logger.debug('status: 403, view permission denied for ' + str(request.user))
+            logger.debug('status: 403, view permission denied for ' + str(request.user))
             raise PermissionDenied()
 
 
@@ -401,7 +400,7 @@ def user_edit(request, pk):
         if request.user.has_perm('userprofile.change_user'):
             ctx['should_edit'] = True
         user_trail(request.user.name, 'accessed edit page for user ' + str(user.name), 'view')
-        info_logger.info('User: ' + str(request.user.name) + ' accessed edit page for user: ' + str(user.name))
+        logger.info('User: ' + str(request.user.name) + ' accessed edit page for user: ' + str(user.name))
         return TemplateResponse(request, 'dashboard/users/edit_user.html', ctx)
     else:
 
@@ -410,7 +409,7 @@ def user_edit(request, pk):
         if request.user.has_perm('userprofile.change_user'):
             ctx['should_edit'] = True
             user_trail(request.user.name, 'accessed edit page for user ' + str(user.name), 'view')
-            info_logger.info('User: ' + str(request.user.name) + ' accessed edit page for user: ' + str(user.name))
+            logger.info('User: ' + str(request.user.name) + ' accessed edit page for user: ' + str(user.name))
             return TemplateResponse(request, 'dashboard/users/edit_user.html', ctx)
         else:
             raise PermissionDenied()
@@ -486,7 +485,7 @@ def user_update(request, pk):
         update_session_auth_hash(request, user)
 
         user_trail(request.user.name, 'updated user: ' + str(user.name), 'update')
-        info_logger.info('User: ' + str(request.user.name) + ' updated user: ' + str(user.name))
+        logger.info('User: ' + str(request.user.name) + ' updated user: ' + str(user.name))
 
         if groups:
             th_groups2 = Group.objects.filter(name__in=[group for group in groups])
@@ -520,7 +519,7 @@ def user_assign_permission(request):
             user.save()
             user_trail(request.user.name, 'deactivated and removed all permissions for user: ' + str(user.name),
                        'delete')
-            info_logger.info(
+            logger.info(
                 'User: ' + str(request.user.name) + ' deactivated and removed all permissions for user: ' + str(
                     user.name))
             return HttpResponse('deactivated')
@@ -532,7 +531,7 @@ def user_assign_permission(request):
                 user.user_permissions.add(*not_in_user_permissions)
                 user.save()
                 user_trail(request.user.name, 'assigned permissions for user: ' + str(user.name), 'add')
-                info_logger.info('User: ' + str(request.user) + ' assigned permissions for user: ' + str(user.name))
+                logger.info('User: ' + str(request.user) + ' assigned permissions for user: ' + str(user.name))
                 return HttpResponse('permissions added')
             else:
                 not_in_user_permissions = list(set(permission_list) - set(user_has_permissions))
@@ -542,7 +541,7 @@ def user_assign_permission(request):
                 user.user_permissions.add(*not_in_user_permissions)
                 user.save()
                 user_trail(request.user.name, 'assigned permissions for user: ' + str(user.name), 'add')
-                info_logger.info(
+                logger.info(
                     'User: ' + str(request.user.name) + ' assigned permissions for user: ' + str(user.name))
                 return HttpResponse('permissions updated')
 

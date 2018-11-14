@@ -1,27 +1,26 @@
 from django.db.models import Q
 
-from .pagination import PostLimitOffsetPagination, PostPageNumberPagination
+from .pagination import PostLimitOffsetPagination
 
 from django.contrib.auth import get_user_model
 
 from .serializers import (
-     UserTransactionSerializer,
-     UserLockAuthorizationSerializer,
-     UserAuthorizationSerializer,
-	 TerminalListSerializerNoAuth,
-     TerminalListSerializer
-     )
-from rest_framework import generics 
+    UserTransactionSerializer,
+    UserLockAuthorizationSerializer,
+    UserAuthorizationSerializer,
+    TerminalListSerializerNoAuth,
+    TerminalListSerializer
+)
+from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from rest_framework import status
 from django.contrib import auth
 from ...decorators import user_trail
 from ...sale.models import Terminal
-import logging
-debug_logger = logging.getLogger('debug_logger')
-info_logger = logging.getLogger('info_logger')
-error_logger = logging.getLogger('error_logger')     
+from structlog import get_logger
+
+logger = get_logger(__name__)
 
 User = get_user_model()
 
@@ -43,17 +42,18 @@ def login(request):
                 kwargs = {'name': username}
             try:
                 user = get_user_model().objects.get(**kwargs)
-                if user.check_password(password) and user.has_perm('sale.add_drawercash') and user.has_perm('sale.change_drawercash'):
-                    record_trail(request.user.name,user,terminal)
+                if user.check_password(password) and user.has_perm('sale.add_drawercash') and user.has_perm(
+                        'sale.change_drawercash'):
+                    record_trail(request.user.name, user, terminal)
                     return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
                 else:
-                    return Response({'message':'Permission Denied!'}, status=status.HTTP_401_UNAUTHORIZED)
+                    return Response({'message': 'Permission Denied!'}, status=status.HTTP_401_UNAUTHORIZED)
             except:
                 return Response(serializer.errors, status=status.HTTP_403_FORBIDDEN)
         else:
             return Response(serializer.errors, status=status.HTTP_403_FORBIDDEN)
     elif request.method == 'GET':
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['GET', 'POST'])
@@ -73,11 +73,11 @@ def lock_login(request):
                     # record_trail(user.name,user,terminal)
                     trail = str(user.name) + ' ' + \
                             ' lock login in Terminal:'
-                    user_trail(user, trail,  'view')
+                    user_trail(user, trail, 'view')
                     print user
                     permissions = []
                     if user.has_perm('sales.make_sale'):
-                        permissions.append('make_sale') 
+                        permissions.append('make_sale')
                     if user.has_perm('sales.make_invoice'):
                         permissions.append('make_invoice')
                     if user.has_perm('sales.set_ready'):
@@ -97,20 +97,20 @@ def lock_login(request):
                     }
                     return Response(user_response, status=status.HTTP_202_ACCEPTED)
                 else:
-                    return Response({'message':'Permission Denied!'}, status=status.HTTP_401_UNAUTHORIZED)
+                    return Response({'message': 'Permission Denied!'}, status=status.HTTP_401_UNAUTHORIZED)
             except Exception as e:
                 return Response(serializer.errors, status=status.HTTP_403_FORBIDDEN)
         else:
             return Response(serializer.errors, status=status.HTTP_403_FORBIDDEN)
     elif request.method == 'GET':
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
 def record_trail(loggedin, user, terminal):
-    trail = str(user.name)+' '+\
-            str(user.email)+' logged in Terminal:'+\
-            str(terminal)+'. Session active '+str(loggedin)
-    user_trail(user,trail,'view')
+    trail = str(user.name) + ' ' + \
+            str(user.email) + ' logged in Terminal:' + \
+            str(terminal) + '. Session active ' + str(loggedin)
+    user_trail(user, trail, 'view')
 
 
 @api_view(['GET', 'POST'])
@@ -133,26 +133,25 @@ class UserAuthorizationAPIView(generics.CreateAPIView):
     serializer_class = UserAuthorizationSerializer
 
 
-class UserTransactionAPIView(generics.CreateAPIView,):
+class UserTransactionAPIView(generics.CreateAPIView, ):
     serializer_class = UserTransactionSerializer
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
-        user_trail(self.request.user,'Drawer Cash:#'+str(serializer.data['amount'])+' added ','add')
-        info_logger.info('User: '+str(self.request.user)+' Drawer Cash:'+str(serializer.data['amount']))
+        user_trail(self.request.user, 'Drawer Cash:#' + str(serializer.data['amount']) + ' added ', 'add')
+        logger.info('User: ' + str(self.request.user) + ' Drawer Cash:' + str(serializer.data['amount']))
 
 
 class TerminalListAPIView(generics.ListAPIView):
     pagination_class = PostLimitOffsetPagination
     serializer_class = TerminalListSerializer
 
-    def get_queryset(self, *args, **kwargs):        
+    def get_queryset(self, *args, **kwargs):
         queryset_list = Terminal.objects.all()
         query = self.request.GET.get('q')
         if query:
             queryset_list = queryset_list.filter(
-                Q(terminal_name__icontains=query)|
-                Q(terminal_number__icontains=query)               
-                ).order_by('-id')
+                Q(terminal_name__icontains=query) |
+                Q(terminal_number__icontains=query)
+            ).order_by('-id')
         return queryset_list
-

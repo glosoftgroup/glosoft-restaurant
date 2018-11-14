@@ -4,16 +4,15 @@ from rest_framework import generics
 from rest_framework import status
 from django.contrib.auth import get_user_model
 from ...orders.models import Orders, OrderedItem
-from ...table.models import Table
 from ...product.models import Stock
 from ...sale.models import (
-                            Sales,
-                            SoldItem,
-                            Terminal,
-                            TerminalHistoryEntry,
-                            DrawerCash,
-                            PaymentOption
-                            )
+    Sales,
+    SoldItem,
+    Terminal,
+    TerminalHistoryEntry,
+    DrawerCash,
+    PaymentOption
+)
 
 from .serializers import (
     ListOrderSerializer,
@@ -22,18 +21,17 @@ from .serializers import (
     ListOrderItemSerializer,
     OrderReadyOrCollectedSerializer,
     SearchListOrderSerializer
-     )
+)
 from ...decorators import user_trail
-import logging
 from rest_framework.request import Request
 from rest_framework.test import APIRequestFactory
 from saleor.countertransfer.models import CounterTransferItems as Item
 from saleor.menutransfer.models import TransferItems as MenuItem
+from structlog import get_logger
+
+logger = get_logger(__name__)
 
 User = get_user_model()
-debug_logger = logging.getLogger('debug_logger')
-info_logger = logging.getLogger('info_logger')
-error_logger = logging.getLogger('error_logger')
 
 factory = APIRequestFactory()
 request = factory.get('/')
@@ -87,17 +85,17 @@ class OrderCreateAPIView(generics.CreateAPIView):
         if serializer.data['status'] == 'fully-paid':
             send_to_sale(instance)
 
-        
+
 class OrderListAPIView(generics.ListAPIView):
     serializer_class = ListOrderSerializer
 
-    def get_queryset(self, *args, **kwargs):        
+    def get_queryset(self, *args, **kwargs):
         queryset_list = Orders.objects.all()
         query = self.request.GET.get('q')
         if query:
             queryset_list = queryset_list.filter(
-                Q(invoice_number__icontains=query)               
-                ).distinct()
+                Q(invoice_number__icontains=query)
+            ).distinct()
         return queryset_list
 
 
@@ -110,7 +108,7 @@ class OrderItemsListAPIView(generics.ListAPIView):
         if query:
             queryset_list = queryset_list.filter(
                 Q(product_name__icontains=query)
-                ).distinct()
+            ).distinct()
         return queryset_list
 
 
@@ -123,7 +121,7 @@ class OrderStatusListAPIView(generics.ListAPIView):
         if query:
             queryset_list = queryset_list.filter(
                 Q(status=query)
-                ).distinct()
+            ).distinct()
         return queryset_list
 
 
@@ -171,7 +169,7 @@ class SalePointNextOrdersListAPIView(generics.ListAPIView):
                 status=query,
                 sale_point__pk=pk,
                 pk__gt=order_pk
-                )
+            )
 
         serializer = ListOrderSerializer(queryset, many=True, context=serializer_context)
         return Response(serializer.data)
@@ -243,9 +241,9 @@ class SearchOrdersListAPIView(generics.ListAPIView):
         serializer_context = {
             'request': Request(request),
             'pk': pk,
-            'counter':self.request.GET.get('counter', ""),
-            'point':self.request.GET.get('point'),
-            'status':self.request.GET.get('status')
+            'counter': self.request.GET.get('counter', ""),
+            'point': self.request.GET.get('point'),
+            'status': self.request.GET.get('status')
         }
         # Note the use of `get_queryset()` instead of `self.queryset`
         queryset = Orders.objects.all()
@@ -263,13 +261,14 @@ class SearchOrdersListAPIView(generics.ListAPIView):
                 set_orders = []
                 for i in queryset:
                     if point == "counter":
-                        products_count = OrderedItem.objects.filter(orders=i, collected=collectedStatusBoolean, counter__pk=counter).count()
+                        products_count = OrderedItem.objects.filter(orders=i, collected=collectedStatusBoolean,
+                                                                    counter__pk=counter).count()
                     elif point == "kitchen":
                         products_count = OrderedItem.objects.filter(orders=i, collected=collectedStatusBoolean,
                                                                     kitchen__pk=counter).count()
                     else:
                         products_count = OrderedItem.objects.filter(orders=i, collected=collectedStatusBoolean).count()
-                    if products_count>=1:
+                    if products_count >= 1:
                         set_orders.append(i.pk)
 
                 queryset = queryset.filter(pk__in=set_orders)
@@ -289,7 +288,7 @@ class SearchOrdersListAPIView(generics.ListAPIView):
                                                                     kitchen__pk=counter).count()
                     else:
                         products_count = OrderedItem.objects.filter(orders=i, ready=readyStatusBoolean).count()
-                    if products_count>=1:
+                    if products_count >= 1:
                         set_orders.append(i.pk)
 
                 queryset = queryset.filter(pk__in=set_orders)
@@ -300,8 +299,8 @@ class SearchOrdersListAPIView(generics.ListAPIView):
             queryset = queryset.filter(
                 Q(status='pending-payment') |
                 (Q(status='fully-paid') & Q(table__isnull=True) & Q(room__isnull=True)) |
-                Q(invoice_number__icontains=query) | 
-                Q(room__name__icontains=query) | 
+                Q(invoice_number__icontains=query) |
+                Q(room__name__icontains=query) |
                 Q(table__name__icontains=query) |
                 Q(user__name__icontains=query)).distinct()
         else:
@@ -362,7 +361,7 @@ class OrderUpdateAPIView(generics.RetrieveUpdateAPIView):
         user_trail(self.request.user.name,
                    'made a sale:#' + str(serializer.data['invoice_number']) + ' sale worth: ' + str(
                        serializer.data['total_net']), 'add')
-        info_logger.info(
+        logger.info(
             'User: ' + str(self.request.user) + ' made a order sale:' + str(serializer.data['invoice_number']))
         terminal = Terminal.objects.get(pk=int(serializer.data['terminal']))
         trail = 'User: ' + str(self.request.user) + \
@@ -377,11 +376,11 @@ class OrderUpdateAPIView(generics.RetrieveUpdateAPIView):
             user=self.request.user
         )
         DrawerCash.objects.create(
-                                 manager=self.request.user,
-                                 user=self.request.user,
-                                 terminal=terminal,
-                                 amount=serializer.data['amount_paid'],
-                                 trans_type='sale')
+            manager=self.request.user,
+            user=self.request.user,
+            terminal=terminal,
+            amount=serializer.data['amount_paid'],
+            trans_type='sale')
 
 
 def send_to_sale(credit):
@@ -412,18 +411,18 @@ def send_to_sale(credit):
             sale.payment_options.add(pay_opt)
         except Exception as e:
             print (e)
-            error_logger.error("error adding options " + str(e))
+            logger.error("error adding options " + str(e))
 
     for item in credit.items():
         new_item = SoldItem.objects.create(
-               sales=sale,
-               sku=item.sku,
-               quantity=item.quantity,
-               product_name=item.product_name,
-               total_cost=item.total_cost,
-               unit_cost=item.unit_cost,
-               product_category=item.product_category
-               )
+            sales=sale,
+            sku=item.sku,
+            quantity=item.quantity,
+            product_name=item.product_name,
+            total_cost=item.total_cost,
+            unit_cost=item.unit_cost,
+            product_category=item.product_category
+        )
         new_item.counter = item.counter
         new_item.transfer_id = item.transfer_id
         new_item.order_id = item.id
@@ -457,6 +456,3 @@ class OrderReadyOrCollectedAPIView(generics.RetrieveUpdateAPIView):
     """
     queryset = Orders.objects.all()
     serializer_class = OrderReadyOrCollectedSerializer
-
-
-

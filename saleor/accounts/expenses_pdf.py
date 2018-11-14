@@ -1,4 +1,3 @@
-import logging
 import datetime
 from django.db.models import Q, Sum
 from django.http import HttpResponse
@@ -7,7 +6,9 @@ from datetime import date
 from .models import ExpenseType, Expenses, PettyCash
 from saleor.utils import render_to_pdf, default_logo, image64
 
-error_logger = logging.getLogger('error_logger')
+from structlog import get_logger
+
+logger = get_logger(__name__)
 
 
 @staff_member_required
@@ -45,7 +46,7 @@ def pdf(request):
 
 def pettycash_detail_pdf(request, pk=None):
     try:
-        pettycash  =PettyCash.objects.get(pk=pk)
+        pettycash = PettyCash.objects.get(pk=pk)
         date = pettycash.created.date().strftime('%Y-%m-%d')
 
         expenses = Expenses.objects.filter(added_on__icontains=date)
@@ -55,7 +56,6 @@ def pettycash_detail_pdf(request, pk=None):
         else:
             expenses = []
             total_expenses = 0
-
 
         img = default_logo()
         data = {
@@ -69,4 +69,4 @@ def pettycash_detail_pdf(request, pk=None):
         pdf = render_to_pdf('petty_cash/pdf.html', data)
         return HttpResponse(pdf, content_type='application/pdf')
     except Exception as e:
-        error_logger.error(e)
+        logger.error(e)

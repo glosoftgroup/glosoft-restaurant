@@ -6,7 +6,6 @@ from django.core import serializers
 from django.core.paginator import Paginator, EmptyPage, InvalidPage, PageNotAnInteger
 import datetime
 from django.utils.dateformat import DateFormat
-import logging
 from ...utils import render_to_pdf
 import csv
 import random
@@ -20,9 +19,9 @@ from ...section.models import Section
 from ...decorators import permission_decorator, user_trail
 from ...dashboard.views import get_low_stock_products
 
-debug_logger = logging.getLogger('debug_logger')
-info_logger = logging.getLogger('info_logger')
-error_logger = logging.getLogger('error_logger')
+from structlog import get_logger
+
+logger = get_logger(__name__)
 
 
 @staff_member_required
@@ -56,13 +55,13 @@ def sales_list(request):
             total_sales = paginator.page(paginator.num_pages)
         points = SalePoint.objects.all()
         user_trail(request.user.name, 'accessed sales reports', 'view')
-        info_logger.info('User: ' + str(request.user.name) + ' accessed the view sales report page')
+        logger.info('User: ' + str(request.user.name) + ' accessed the view sales report page')
         return TemplateResponse(request, 'dashboard/reports/sales/sales_list.html',
                                 {'points': points, 'pn': paginator.num_pages, 'sales': total_sales,
                                  "total_sales_amount": total_sales_amount, "total_tax_amount": total_tax_amount,
                                  "date": last_date_of_sales})
     except ObjectDoesNotExist as e:
-        error_logger.error(e)
+        logger.error(e)
 
 
 @staff_member_required
@@ -122,7 +121,7 @@ def sales_detail(request, pk=None, point=None):
         }
         return TemplateResponse(request, 'dashboard/reports/sales/details.html', data)
     except ObjectDoesNotExist as e:
-        error_logger.error(e)
+        logger.error(e)
 
 
 @staff_member_required
@@ -146,7 +145,7 @@ def sales_reports(request):
         except EmptyPage:
             items = paginator.page(paginator.num_pages)
         user_trail(request.user.name, 'accessed sales reports', 'view')
-        info_logger.info('User: ' + str(request.user.name) + ' accessed the view sales report page')
+        logger.info('User: ' + str(request.user.name) + ' accessed the view sales report page')
         if request.GET.get('initial'):
             return HttpResponse(paginator.num_pages)
         else:
@@ -154,7 +153,7 @@ def sales_reports(request):
                                     {'items': items, 'total_sales': total_sales, 'total_tax': total_tax, 'ts': ts,
                                      'tsum': tsum})
     except TypeError as e:
-        error_logger.error(e)
+        logger.error(e)
         return HttpResponse('error accessing sales reports')
 
 
@@ -431,11 +430,11 @@ def product_reports(request):
         except EmptyPage:
             items = paginator.page(paginator.num_pages)
         user_trail(request.user.name, 'accessed products reports', 'view')
-        info_logger.info('User: ' + str(request.user.name) + ' accessed the view sales report page')
+        logger.info('User: ' + str(request.user.name) + ' accessed the view sales report page')
         return TemplateResponse(request, 'dashboard/reports/products/products.html',
                                 {'pn': paginator.num_pages, 'items': items, 'total_cost': total_cost})
     except TypeError as e:
-        error_logger.error(e)
+        logger.error(e)
         print (e)
         return HttpResponse('error accessing products reports')
 
@@ -768,10 +767,10 @@ def balancesheet_reports(request):
         }
         return TemplateResponse(request, 'dashboard/reports/balancesheet/balancesheet.html', data)
     except ObjectDoesNotExist as e:
-        error_logger.error(e)
+        logger.error(e)
         return TemplateResponse(request, 'dashboard/reports/balancesheet/balancesheet.html')
     except TypeError as e:
-        error_logger.error(e)
+        logger.error(e)
         return TemplateResponse(request, 'dashboard/reports/balancesheet/balancesheet.html')
 
 
@@ -812,13 +811,13 @@ def product_reorder(request):
         except EmptyPage:
             low_stock = paginator.page(paginator.num_pages)
         user_trail(request.user.name, 'accessed products reports', 'view')
-        info_logger.info('User: ' + str(request.user.name) + ' accessed the view sales report page')
+        logger.info('User: ' + str(request.user.name) + ' accessed the view sales report page')
         if request.GET.get('initial'):
             return HttpResponse(paginator.num_pages)
         else:
             return TemplateResponse(request, 'dashboard/reports/products/reorder.html', {'low_stock': low_stock})
     except TypeError as e:
-        error_logger.error(e)
+        logger.error(e)
         return HttpResponse('error accessing products reports')
 
 

@@ -4,11 +4,9 @@ from saleor.dashboard.views import staff_member_required
 from django.core.paginator import Paginator, EmptyPage, InvalidPage, PageNotAnInteger
 from django.shortcuts import get_object_or_404
 from .models import SalePoint
-import logging
+from structlog import get_logger
 
-debug_logger = logging.getLogger('debug_logger')
-info_logger = logging.getLogger('info_logger')
-error_logger = logging.getLogger('error_logger')
+logger = get_logger(__name__)
 
 
 @staff_member_required
@@ -29,10 +27,10 @@ def points(request):
             "points": points,
             "pn": paginator.num_pages
         }
-        info_logger.info('User: ' + str(request.user.name) + 'accessed points page')
+        logger.info('User: ' + str(request.user.name) + 'accessed points page')
         return TemplateResponse(request, 'dashboard/salepoints/points.html', data)
     except TypeError as e:
-        error_logger.error(e)
+        logger.error(e)
         return HttpResponse('error accessing points')
 
 
@@ -44,10 +42,10 @@ def add_point(request):
 
     try:
         sale_point.save()
-        info_logger.info('User: ' + str(request.user.name) + 'created point sale:' + str(name))
+        logger.info('User: ' + str(request.user.name) + 'created point sale:' + str(name))
         return HttpResponse('success')
     except Exception as e:
-        error_logger.info('Error when adding sale point')
+        logger.info('Error when adding sale point')
         return HttpResponse(e)
 
 
@@ -71,10 +69,8 @@ def delete_point(request, pk):
     if request.method == 'POST':
         try:
             point.delete()
-            info_logger.info('deleted sale point: '+ str(point.name))
+            logger.info('deleted sale point: ' + str(point.name))
             return HttpResponse('success')
         except Exception, e:
-            error_logger.error(e)
+            logger.error(e)
             return HttpResponse(e)
-
-

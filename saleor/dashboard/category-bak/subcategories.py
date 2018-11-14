@@ -1,18 +1,16 @@
 from django.http import HttpResponse
 from django.template.response import TemplateResponse
 from ...product.models import (
-                            Category,
-                            ProductClass
-                            )
+    Category,
+    ProductClass
+)
 from ..views import staff_member_required
 from django.db.models import Q
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from ...decorators import user_trail
-import logging
+from structlog import get_logger
 
-debug_logger = logging.getLogger('debug_logger')
-info_logger = logging.getLogger('info_logger')
-error_logger = logging.getLogger('error_logger')
+logger = get_logger(__name__)
 
 
 @staff_member_required
@@ -32,8 +30,8 @@ def view(request, pk):
         except EmptyPage:
             queryset_list = paginator.page(paginator.num_pages)
         product_results = queryset_list
-        user_trail(request.user.name, 'accessed the categories page','view')
-        info_logger.info('User: '+str(request.user.name)+' accessed the categories page page')
+        user_trail(request.user.name, 'accessed the categories page', 'view')
+        logger.info('User: ' + str(request.user.name) + ' accessed the categories page page')
         product_results.object_list = [
             (pc.pk, pc.name, pc.has_variants, pc.product_attributes.all(),
              pc.variant_attributes.all())
@@ -42,7 +40,7 @@ def view(request, pk):
         data = {
             'product_classes': product_results,
             'totalp': paginator.num_pages,
-            'subcategory_name':cat.name,
+            'subcategory_name': cat.name,
             'cat_pk': cat.pk,
         }
         if request.GET.get('initial'):
@@ -50,7 +48,7 @@ def view(request, pk):
         else:
             return TemplateResponse(request, 'dashboard/category/subcategories/view.html', data)
     except TypeError as e:
-        error_logger.error(e)
+        logger.error(e)
         return HttpResponse(e)
 
 
@@ -64,7 +62,7 @@ def paginate(request):
 
     try:
         cat = Category.objects.get(pk=pk)
-        queryset_list =ProductClass.objects.filter(products__categories__pk=cat.pk).prefetch_related(
+        queryset_list = ProductClass.objects.filter(products__categories__pk=cat.pk).prefetch_related(
             'product_attributes', 'variant_attributes').order_by('-id').distinct()
 
         if list_sz:
@@ -139,7 +137,7 @@ def search(request):
             cat = Category.objects.get(pk=pk)
             subcats = ProductClass.objects.filter(products__categories__pk=cat.pk).order_by('-id').distinct()
             queryset_list = subcats.filter(
-                Q(name__icontains=q)|
+                Q(name__icontains=q) |
                 Q(product_attributes__name__icontains=q)
             ).prefetch_related(
                 'product_attributes', 'variant_attributes').order_by('-id')
@@ -167,7 +165,9 @@ def search(request):
                     (pc.pk, pc.name, pc.has_variants, pc.product_attributes.all(),
                      pc.variant_attributes.all())
                     for pc in product_results.object_list]
-                return TemplateResponse(request, 'dashboard/category/subcategories/paginate.html', {'product_classes': product_results, 'cat_pk':cat.pk})
+                return TemplateResponse(request, 'dashboard/category/subcategories/paginate.html',
+                                        {'product_classes': product_results, 'cat_pk': cat.pk})
 
             return TemplateResponse(request, 'dashboard/category/subcategories/search.html',
-                                    {'product_classes':product_results, 'pn': paginator.num_pages, 'sz': sz, 'q': q, 'cat_pk':cat.pk})
+                                    {'product_classes': product_results, 'pn': paginator.num_pages, 'sz': sz, 'q': q,
+                                     'cat_pk': cat.pk})

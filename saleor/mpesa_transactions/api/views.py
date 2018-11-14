@@ -5,10 +5,11 @@ from rest_framework import pagination
 from .pagination import PostLimitOffsetPagination
 from saleor.mpesa_transactions.models import MpesaTransactions
 from .serializers import TableListSerializer
-import logging
+from structlog import get_logger
+
+logger = get_logger(__name__)
 
 Table = MpesaTransactions
-error_logger = logging.getLogger('error_logger')
 
 
 class ListAPIView(generics.ListAPIView):
@@ -46,7 +47,7 @@ class ListAPIView(generics.ListAPIView):
                 status = int(self.request.GET.get('status'))
                 queryset_list = queryset_list.filter(status=status)
             except Exception as e:
-                error_logger.error('Error converting string to int ' + str(e))
+                logger.error('Error converting string to int ' + str(e))
 
         query = self.request.GET.get('q')
         if query:

@@ -10,12 +10,11 @@ from ..views import staff_member_required
 from ...site.models import AuthorizationKey, SiteSettings, Files
 from ...site.utils import get_site_settings_from_request
 import socket
-import logging
 import json
 
-debug_logger = logging.getLogger('debug_logger')
-info_logger = logging.getLogger('info_logger')
-error_logger = logging.getLogger('error_logger')
+from structlog import get_logger
+
+logger = get_logger(__name__)
 
 
 @staff_member_required
@@ -114,14 +113,14 @@ def add_sitekeys(request):
                 check=check
             )
         else:
-            error_logger.info('License Key is empty ')
+            logger.info('License Key is empty ')
             result = json.dumps({'message': 'Empty Key license', 'status': 500})
             return HttpResponse(result, content_type="application/json")
 
         try:
             new_key.save()
         except DatabaseError, BaseException:
-            error_logger.info('Error when saving ')
+            logger.info('Error when saving ')
 
         if new_key.id:
             result = json.dumps({'message': 'success', 'status': 200})

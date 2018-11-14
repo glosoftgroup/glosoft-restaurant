@@ -5,15 +5,14 @@ from django.core.exceptions import ObjectDoesNotExist
 import datetime
 from datetime import timedelta
 from django.utils.dateformat import DateFormat
-import logging
 from decimal import Decimal
 from ..dashboard.views import staff_member_required
 from ..decorators import user_trail
 from .models import PettyCash, Expenses
 
-debug_logger = logging.getLogger('debug_logger')
-info_logger = logging.getLogger('info_logger')
-error_logger = logging.getLogger('error_logger')
+from structlog import get_logger
+
+logger = get_logger(__name__)
 
 
 def view(request):
@@ -93,7 +92,7 @@ def add(request):
             user_trail(request.user.name, 'added KShs. ' + str(amount) + ' to petty cash balance of KShs. ' +
                        str(lastEntry.closing) + ' current balance is KShs. ' + str(lastEntry.closing + amount),
                        'update')
-            info_logger.info(
+            logger.info(
                 'User: ' + str(request.user.name) + 'added KShs. ' + str(amount) + ' to petty cash balance of KShs. ' +
                 str(lastEntry.closing) + ' current balance is ' + str(lastEntry.closing + amount), 'update')
             return HttpResponse(balance)
@@ -105,13 +104,13 @@ def add(request):
                        'added KShs. ' + str(amount) + ' to petty cash, current balance is KShs. ' + str(balance),
                        'update')
 
-            info_logger.info(
+            logger.info(
                 'User: ' + str(request.user.name) + 'added KShs. ' + str(
                     amount) + ' to petty cash, current balance is ' + str(balance), 'update')
             return HttpResponse(balance)
 
     except Exception, e:
-        error_logger.error(e)
+        logger.error(e)
         HttpResponse(e)
 
 

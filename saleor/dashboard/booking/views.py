@@ -13,12 +13,11 @@ from saleor.wing.models import Wing
 
 from decimal import Decimal
 import random
-import logging
 import json
 
-debug_logger = logging.getLogger('debug_logger')
-info_logger = logging.getLogger('info_logger')
-error_logger = logging.getLogger('error_logger')
+from structlog import get_logger
+
+logger = get_logger(__name__)
 
 # global variables
 table_name = 'Booking'
@@ -39,10 +38,10 @@ def add(request):
             instance = Table()
             history = BookingHistory()
             try:
-                instance.invoice_number = 'inv/bk/0'+str(Table.objects.latest('id').id)
+                instance.invoice_number = 'inv/bk/0' + str(Table.objects.latest('id').id)
                 instance.invoice_number += ''.join(random.choice('0123456789ABCDEF') for i in range(4))
             except Exception as e:
-                instance.invoice_number = 'inv/bk/1'+''.join(random.choice('0123456789ABCDEF') for i in range(4))
+                instance.invoice_number = 'inv/bk/1' + ''.join(random.choice('0123456789ABCDEF') for i in range(4))
             history.invoice_number = instance.invoice_number
         if request.POST.get('c_name'):
             customer_name = request.POST.get('c_name')
@@ -105,12 +104,12 @@ def add(request):
         history.save()
 
         data = {
-                'name': instance.room.name,
-                'active': instance.active,
-                'room_pk': instance.room.id
-                }
+            'name': instance.room.name,
+            'active': instance.active,
+            'room_pk': instance.room.id
+        }
         return HttpResponse(json.dumps(data), content_type='application/json')
-        #return HttpResponse(json.dumps({'message': 'Invalid method'}))
+        # return HttpResponse(json.dumps({'message': 'Invalid method'}))
     else:
         ctx = {'table_name': table_name}
         if request.GET.get("room_pk"):
@@ -118,7 +117,7 @@ def add(request):
             ctx['room'] = room
         if request.is_ajax():
             return TemplateResponse(request, 'dashboard/' + table_name.lower() + '/modal_form.html', ctx)
-        return TemplateResponse(request, 'dashboard/'+table_name.lower()+'/form.html', ctx)
+        return TemplateResponse(request, 'dashboard/' + table_name.lower() + '/form.html', ctx)
 
 
 @staff_member_required
@@ -140,7 +139,7 @@ def book(request):
         "wings": wings,
         "number_of_floors": number_of_floors
     }
-    return TemplateResponse(request, 'dashboard/'+table_name.lower()+'/rooms.html', ctx)
+    return TemplateResponse(request, 'dashboard/' + table_name.lower() + '/rooms.html', ctx)
 
 
 @staff_member_required
@@ -155,7 +154,7 @@ def delete(request, pk=None):
             }
             return TemplateResponse(request, 'dashboard/' + table_name.lower() + '/list.html', data)
         except Exception, e:
-            error_logger.error(e)
+            logger.error(e)
             return HttpResponse(e)
 
 
@@ -176,7 +175,7 @@ def edit(request, pk=None):
     instance = get_object_or_404(Table, pk=pk)
     if request.method == 'GET':
         ctx = {'table_name': table_name, 'instance': instance}
-        return TemplateResponse(request, 'dashboard/'+table_name.lower()+'/form.html', ctx)
+        return TemplateResponse(request, 'dashboard/' + table_name.lower() + '/form.html', ctx)
     if request.method == 'POST':
         return HttpResponse('Invalid Request method')
 
@@ -199,9 +198,9 @@ def invoice(request, pk=None):
 def listing(request):
     global table_name
     data = {
-            "table_name": table_name,
-        }
-    return TemplateResponse(request, 'dashboard/'+table_name.lower()+'/list.html', data)
+        "table_name": table_name,
+    }
+    return TemplateResponse(request, 'dashboard/' + table_name.lower() + '/list.html', data)
 
 
 @staff_member_required
@@ -214,7 +213,7 @@ def charts(request):
         last_visits_booking = []
         for obj in last_thirty_booking:
             last_visits_booking.append(
-                {'date':  DateFormat(obj.created).format('Y-m-d'),
+                {'date': DateFormat(obj.created).format('Y-m-d'),
                  'total': Table.objects.total_bookings(obj.created)})
         last_amount_booking = []
         for obj in last_thirty_booking:
@@ -226,15 +225,15 @@ def charts(request):
         yearly_amount = Table.objects.yearly_amount_data()
         monthly = Table.objects.monthly_visits_data()
         return HttpResponse(
-                     json.dumps(
-                         {"results":
-                              {'last_amount': last_amount_booking,
-                               'last_visits': last_visits_booking,
-                               'yearly_visits': yearly_visits,
-                               'yearly_amount': yearly_amount,
-                               "monthly":  monthly}
-                          }), content_type='application/json')
-    return TemplateResponse(request, 'dashboard/'+table_name.lower()+'/charts.html', data)
+            json.dumps(
+                {"results":
+                     {'last_amount': last_amount_booking,
+                      'last_visits': last_visits_booking,
+                      'yearly_visits': yearly_visits,
+                      'yearly_amount': yearly_amount,
+                      "monthly": monthly}
+                 }), content_type='application/json')
+    return TemplateResponse(request, 'dashboard/' + table_name.lower() + '/charts.html', data)
 
 
 @staff_member_required
@@ -279,7 +278,7 @@ def fetch_amenities(request):
         # {"text": "Afghanistan", "value": "AF"},
         text = instance.name
         try:
-            text = str(instance.name)+' '+str(instance.room_wing.name)
+            text = str(instance.name) + ' ' + str(instance.room_wing.name)
         except Exception as e:
             print(e)
         contact = {'text': text, 'value': instance.id}
@@ -295,12 +294,12 @@ def customer_token(request):
         instance = Customer.objects.get(pk=pk)
         l = []
         contact = {
-                   "results": {
-                               'text': instance.name,
-                               'value': instance.id,
-                               'mobile': instance.mobile
-                               }
-                  }
+            "results": {
+                'text': instance.name,
+                'value': instance.id,
+                'mobile': instance.mobile
+            }
+        }
         l.append(contact)
         return HttpResponse(json.dumps(l[0]), content_type='application/json')
     search = request.GET.get('search')
@@ -331,5 +330,3 @@ def compute_room_price(request):
     except:
         pass
     return HttpResponse(json.dumps({"price": float(total)}), content_type='application/json')
-
-

@@ -1,4 +1,3 @@
-import logging
 from rest_framework import generics
 from django.contrib.auth import get_user_model
 from django.db.models import Sum
@@ -14,12 +13,13 @@ from .serializers import (
     PettyCashDetailSerializer,
     PettyCashXSerializer
 )
-from django.views.generic import TemplateView, DetailView
+from django.views.generic import DetailView
+from structlog import get_logger
+
+logger = get_logger(__name__)
 
 User = get_user_model()
-debug_logger = logging.getLogger('debug_logger')
-info_logger = logging.getLogger('info_logger')
-error_logger = logging.getLogger('error_logger')
+
 factory = APIRequestFactory()
 request = factory.get('/')
 serializer_context = {

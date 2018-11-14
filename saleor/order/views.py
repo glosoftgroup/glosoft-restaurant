@@ -1,5 +1,3 @@
-import logging
-
 from django.conf import settings
 from django.contrib import messages, auth
 from django.contrib.auth.decorators import login_required
@@ -18,7 +16,9 @@ from ..registration.forms import LoginForm
 from ..userprofile.models import User
 from . import OrderStatus
 
-logger = logging.getLogger(__name__)
+from structlog import get_logger
+
+logger = get_logger(__name__)
 
 
 def details(request, token):

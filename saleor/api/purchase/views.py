@@ -1,4 +1,4 @@
-from django.db.models import Q, Count, Avg
+from django.db.models import Q
 
 from rest_framework.response import Response
 from rest_framework.request import Request
@@ -12,16 +12,15 @@ from .serializers import (
     TableListSerializer,
     DistinctTableListSerializer,
     PaymentOptionListSerializer
-     )
+)
 from rest_framework import generics
 
-import logging
 from django.contrib.auth import get_user_model
+from structlog import get_logger
+
+logger = get_logger(__name__)
 
 User = get_user_model()
-debug_logger = logging.getLogger('debug_logger')
-info_logger = logging.getLogger('info_logger')
-error_logger = logging.getLogger('error_logger')
 
 
 class PurchaseListAPIView(generics.ListAPIView):
@@ -54,7 +53,7 @@ class PurchaseListAPIView(generics.ListAPIView):
             queryset_list = queryset_list.filter(
                 Q(invoice_number__icontains=query) |
                 Q(supplier__name__icontains=query)
-                ).distinct()
+            ).distinct()
         return queryset_list.order_by('-id')
 
 
@@ -70,7 +69,8 @@ class PurchaseSupplierListAPIView(generics.ListAPIView):
     def get_queryset(self, *args, **kwargs):
         try:
             if self.kwargs['pk']:
-                queryset_list = Table.objects.filter(customer__pk=self.kwargs['pk']).order_by('car').distinct('car').select_related()
+                queryset_list = Table.objects.filter(customer__pk=self.kwargs['pk']).order_by('car').distinct(
+                    'car').select_related()
             else:
                 queryset_list = Table.objects.all.select_related()
         except Exception as e:
@@ -93,7 +93,7 @@ class PurchaseSupplierListAPIView(generics.ListAPIView):
                 Q(invoice_number__icontains=query) |
                 Q(car__number__icontains=query) |
                 Q(car__name__icontains=query)
-                ).distinct('supplier')
+            ).distinct('supplier')
         return queryset_list.order_by('supplier')
 
 
@@ -141,4 +141,3 @@ class PaymentOptionListAPIView(generics.ListAPIView):
                 Q(name__icontains=query)
             ).distinct()
         return queryset_list.order_by('-id')
-
