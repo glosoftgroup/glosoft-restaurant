@@ -28,4 +28,5 @@ dist/
 webpack-bundle.json
 /saleor/*/migrations/*
 !/saleor/*/migrations/__init__.py
-
+package-lock.json
+yarn.lock
