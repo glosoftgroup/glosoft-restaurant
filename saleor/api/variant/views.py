@@ -58,6 +58,7 @@ class VariantProductListAPIView(generics.ListAPIView):
     """
     serializer_class = VariantListSerializer
     queryset = ProductVariant.objects.all()
+    pagination_class = PostLimitOffsetPagination
 
     def get_queryset(self, *args, **kwargs):
         queryset_list = ProductVariant.objects.all().select_related()
@@ -71,7 +72,6 @@ class VariantProductListAPIView(generics.ListAPIView):
         if self.request.GET.get('supplier'):
             queryset_list = queryset_list.filter(variant_supplier__pk=int(self.request.GET.get('supplier')))
 
-        # queryset_list = queryset_list.exclude(stock__quantity__gte=0).filter(product__pk=int(self.kwargs['pk']))
         queryset_list = queryset_list.filter(product__pk=int(self.kwargs['pk']))
         query = self.request.GET.get('q')
         if query:

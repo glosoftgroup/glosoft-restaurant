@@ -111,38 +111,59 @@ Add Stock- {{ block.super }}
                             </tr>
                         </thead>
                         <tbody id="tb">
-                <!--loader-->
-                <tr v-if="loader" class="text-center">
-                    <td colspan="8">
-                        <div class="pace-demo">
-                            <div class="theme_xbox"><div class="pace_progress" data-progress-text="60%" data-progress="60"></div><div class="pace_activity"></div></div>
-                        </div>
-                    </td>
-                </tr>
-                <!--no data template-->
-                <template  v-else>
-                <tr v-if="items.length == 0" class="text-center">
-                    <td colspan="8" class="text-bold animated zoomIn">
-                        No Data Found !
-                    </td>
-                </tr>
-                </template>
-                <!--listing template-->
-                <template v-for="item in items">
-                    <tr class="td animated fadeIn">
-                        <td>${item.supplier_name}</td>
-                        <td>${item.product_name}</td>
-                        <td class="text-center">
-                            <span class="label cursor-pointer label-primary" @click="addToCart(item)">
-                                Add
-                            </span>
-                        </td>
-                    </tr>
-                </template>
-
-
-                </tbody>
+                            <!--loader-->
+                            <tr v-if="loader" class="text-center">
+                                <td colspan="8">
+                                    <div class="pace-demo">
+                                        <div class="theme_xbox"><div class="pace_progress" data-progress-text="60%" data-progress="60"></div><div class="pace_activity"></div></div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <!--no data template-->
+                            <template  v-else>
+                            <tr v-if="items.length == 0" class="text-center">
+                                <td colspan="8" class="text-bold animated zoomIn">
+                                    No Data Found !
+                                </td>
+                            </tr>
+                            </template>
+                            <!--listing template-->
+                            <template v-for="item in items">
+                                <tr class="td animated fadeIn">
+                                    <td>${item.supplier_name}</td>
+                                    <td>${item.product_name}</td>
+                                    <td class="text-center">
+                                        <span class="label cursor-pointer label-primary" @click="addToCart(item)">
+                                            Add
+                                        </span>
+                                    </td>
+                                </tr>
+                            </template>
+                        </tbody>
                     </table>
+                    <!-- pagination -->
+                    <div class="row media-none">
+                         <div class="col-md-12">
+
+                          <div class="col-md-3">
+                              <div class="col-md-12 form-group">
+                                 <select v-model="page_size" @change="inputChangeEvent" class="bootstrap-select" style="display: none;" data-width="100%" tabindex="-98">
+                                    <option value="10" selected>No:</option>
+                                    <option value="5">5</option>
+                                    <option value="10">10</option>
+                                    <option value="20">20</option>
+                                  </select>
+                              </div>
+                          </div>
+
+                          <div class="col-md-9" id="media-none">
+                              <div class="text-center bootpag-callback p2-pag" style="">
+                              </div>
+                          </div>
+
+                          </div>
+                         </div>
+                         <input type="hidden" id="page_size" val="">
                 </div>
             </div>
         </div>
@@ -214,12 +235,12 @@ Add Stock- {{ block.super }}
                                 </td>
                                 <!--wholesale price-->
                                 <td>
-                                    <input v-model="item.wholesale_override" style="width: 65px;" type="number" placeholder="wholesale price" class="form-control"
+                                    <input v-model="item.wholesale_price" style="width: 65px;" type="number" placeholder="wholesale price" class="form-control"
                                     onfocus="this.value == 0 ? this.value='' : null" />
                                 </td>
                                 <!--minimum price-->
                                 <td>
-                                    <input v-model="item.minimum_price" style="width: 65px;" type="number" placeholder="minimum_price" class="form-control"
+                                    <input v-model="item.min_price" style="width: 65px;" type="number" placeholder="minimum_price" class="form-control"
                                     onfocus="this.value == 0 ? this.value='' : null" />
                                 </td>
 
@@ -324,10 +345,13 @@ Add Stock- {{ block.super }}
 
                                         <td>${item.payment_name}</td>
                                         <td>
-                                            <input v-model="item.transaction_number" style="width: 65px;" type="text" placeholder="transaction" class="form-control">
+                                            <input v-model="item.transaction_number" style="width: 65px;" type="text"
+                                                   placeholder="transaction" class="form-control">
                                         </td>
                                         <td>
-                                            <input v-model="item.tendered" style="width: 105px;" type="number" placeholder="amount" class="form-control">
+                                            <input v-model="item.tendered" style="width: 105px;" type="number"
+                                                   placeholder="amount" class="form-control"
+                                                   onfocus="this.value == 0 ? this.value='' : null">
                                         </td>
                                         <td>
                                             <span class="label label-white text-grey-800" @click="removePayment(item)">
@@ -383,6 +407,7 @@ Add Stock- {{ block.super }}
 
 {% block custom_js %}
     {% compress js inline %}
+<script type="text/javascript" src="{% static 'backend/js/plugins/pagination/jquery.twbsPagination.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'backend/js/plugins/forms/selects/bootstrap_select.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'backend/js/plugins/vue/vue.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'backend/js/plugins/vue/vue-resource.js' %}"></script>

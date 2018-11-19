@@ -1069,7 +1069,7 @@ $(document).ready(function(){
             password = $('#password').val() ? $('#password').val() : $('#password').attr('pas'),
             nationalId = $('#nid').val(),
             mobile = $('#mobile').val(),
-            code_from_button = $('#display_code').text();
+            code_from_button = $.trim($('#display_code').text());
 
         var valid = fullName && userName && email && nationalId && mobile ;
 
