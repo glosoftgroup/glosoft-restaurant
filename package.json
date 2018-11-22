@@ -41,6 +41,7 @@
     "jquery-match-height": "^0.7.0",
     "jquery-ui": "^1.12.1",
     "jquery.cookie": "^1.4.1",
+    "json-loader": "^0.5.4",
     "lodash": "^4.17.5",
     "luxon": "^1.2.0",
     "materialize-css": "^1.0.0",
@@ -50,12 +51,12 @@
     "moment": "^2.22.1",
     "popper.js": "^1.14.0",
     "query-string": "^4.3.1",
-    "react": "^16.5.2",
+    "react": "^15.4.2",
+    "react-dom": "^15.4.2",
     "react-apollo": "^2.1.6",
     "react-bootstrap": "^0.32.1",
     "react-datetime": "^2.14.0",
     "react-day-picker": "^7.1.9",
-    "react-dom": "^16.5.2",
     "react-inlinesvg": "^0.5.5",
     "react-js-pagination": "^3.0.2",
     "react-jsx-highcharts": "^3.1.0",
@@ -105,9 +106,9 @@
     "postcss": "^5.2.11",
     "postcss-loader": "^1.2.2",
     "sass-loader": "^4.1.1",
-    "webpack": "^4.19.1",
-    "webpack-bundle-tracker": "^0.3.0",
-    "webpack-dev-server": "^3.1.8"
+    "webpack": "^1.15.0",
+    "webpack-bundle-tracker": "0.2.0",
+    "webpack-dev-server": "^1.16.1"
   },
   "babel": {
     "presets": [
@@ -134,4 +135,3 @@
     "watch": "node ./node_modules/webpack/bin/webpack.js --watch"
   }
 }
-
