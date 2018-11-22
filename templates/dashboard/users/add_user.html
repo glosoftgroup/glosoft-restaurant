@@ -812,7 +812,7 @@ $( ".check" ).on( "click", function(){
                return $(this).val();
             }).get();
 
-      code_from_button = $('#display_code').text();
+      code_from_button = $.trim($('#display_code').text());
 
       if(code_from_button.indexOf('*') > -1){
             notification('bg-danger', 'Please generate a code');

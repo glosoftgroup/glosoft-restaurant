@@ -42,8 +42,8 @@ var parent = new Vue({
        paymentOptions: [],
        loader:true,
        totalPages:1,
-       visiblePages:4,
-       page_size:10,
+       visiblePages:3,
+       page_size:5,
        search:'',
        supplier:'',
        show_balance: false,
@@ -102,7 +102,6 @@ var parent = new Vue({
            // csrf token
            ajaxSky(dynamicData,$('.pageUrls').data('createpurchase'),'POST')
            .done(function(data){
-           // console.log(data);
            // clear cart notify user
            parent.cartItems = [];
            parent.paymentItems = [];
@@ -141,11 +140,31 @@ var parent = new Vue({
         inputChangeEvent:function(){
             /* make api request on events filter */
             var self = this;
+            /* set supplier on recently added supplier during new variant addition */
+            var supplierSelectVal = $('#variant_supplier').val();
+            if(self.supplier == '' && supplierSelectVal != ''){
+                self.supplier = supplierSelectVal;
+            }
+
             this.$http.get($('.pageUrls').data('listurl')+'?page_size='+self.page_size+'&q='+this.search+'&supplier='+this.supplier)
                 .then(function(data){
                     data = JSON.parse(data.bodyText);
                     this.items = data.results;
-                    this.totalPages = data.total_pages;
+                    this.totalPages = data.total_pages == 0 ? 1 : data.total_pages;
+                }, function(error){
+                    console.log(error.statusText);
+            });
+        },
+        listItems:function(num){
+        /* make api request when pagination pages are clicked */
+            if(this.date == 'Select date'){
+                date = '';
+            }else{ date = this.date; }
+            this.$http.get($('.pageUrls').data('listurl')+'?page='+num+'&page_size='+this.page_size+'&q='+this.search+'&supplier='+this.supplier)
+                .then(function(data){
+                    data = JSON.parse(data.bodyText);
+                    this.items = data.results;
+                    this.loader = false;
                 }, function(error){
                     console.log(error.statusText);
             });
@@ -201,6 +220,26 @@ var parent = new Vue({
                 });
             }
         },
+        pagination: function(val){
+            /* include twbsPagination on vue app */
+            var self=this ;
+
+            /* restructure pagination */
+            $('.bootpag-callback').twbsPagination({
+                totalPages: parseInt(val),
+                visiblePages: this.visiblePages,
+                first: '',
+                last: '',
+                prev: '<span aria-hidden="true">&laquo;</span>',
+                next: '<span aria-hidden="true">&raquo;</span>',
+                onPageClick: function (event, page) {
+                    // uncomment if you want to display the page number
+                   // $('.pages-nav').text('Page ' + page + ' of '+self.totalPages);
+                }
+            }).on('page',function(event,page){
+                self.listItems(page);
+            });
+        },
         getDue: function(total,tendered){
             due = parseInt(total) - parseInt(tendered);
             if(due <= 0){
@@ -248,6 +287,9 @@ var parent = new Vue({
                 data = JSON.parse(data.bodyText);
                 this.items = data.results;
                 this.loader = false;
+
+                this.totalPages = data.total_pages == 0 ? 1 : data.total_pages;
+                this.pagination(this.totalPages);
             }, function(error){
                 console.log(error.statusText);
         });
@@ -259,6 +301,21 @@ var parent = new Vue({
             }, function(error){
                 console.log(error.statusText);
         });
+    },
+    watch: {
+    /* listen to app data changes and restructure pagination when page size changes */
+    	'totalPages': function(val, oldVal){
+            var self=this ;
+
+            /* destroy pagination on page size change if it exists */
+            if($('.bootpag-callback').data("twbs-pagination")){
+                console.log('bootpag-callback exists');
+                $('.bootpag-callback').twbsPagination('destroy');
+            }
+
+            /* restructure pagination */
+            this.pagination(val);
+        }
     }
 
 });

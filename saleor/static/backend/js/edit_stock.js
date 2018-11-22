@@ -13,6 +13,7 @@ $(function(){
   var editStockRefreshDiv = $('#div-edit-stock');
   var editStockForm = $('#edit-product-stock');
   var editStockBtn = $('#editStockBtn');
+  var cancelStockBtn = $('#cancelStockBtn');
   var url = '#';
   var invoice_number = $("#id_invoice_number");
   var variant = $('#id_variant');
@@ -23,6 +24,10 @@ $(function(){
   var location = $('#id_location');
   var quantity = $('#id_quantity');
   var low_stock_threshold = $('#reorder-threshold');  
+
+  cancelStockBtn.on('click', function(){
+    $('html, body').find('#div-edit-stock').html('');
+  });
 
   editStockBtn.on('click',function(e){
     var url = $(this).data('contenturl');

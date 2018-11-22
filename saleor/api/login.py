@@ -8,6 +8,10 @@ from rest_framework_jwt.settings import api_settings
 from rest_framework_jwt.views import JSONWebTokenAPIView
 from saleor.site.models import SiteSettings
 
+from structlog import get_logger
+
+logger = get_logger(__name__)
+
 User = get_user_model()
 jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
 jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
@@ -20,6 +24,7 @@ class CustomJWTSerializer(JSONWebTokenSerializer):
         # email comes as the code
         username = attrs.get('email')
         password = attrs.get('password')
+
         # check the working period first
         time_now = datetime.now().time()
         try:
@@ -27,11 +32,11 @@ class CustomJWTSerializer(JSONWebTokenSerializer):
             closing_time = SiteSettings.objects.all().first().closing_time
 
             if opening_time < time_now and time_now < closing_time:
-                print time_now
+                logger.info('time is  within operational hours', time_now=time_now)
             else:
                 raise serializers.ValidationError(_('Unauthorized User Login.'))
-        except Exception as e:
-            print e
+        except Exception as ex:
+            logger.error('exception in checking closing time', exception=ex)
             raise serializers.ValidationError(_('Unauthorized User Login.'))
 
         if username and password:
@@ -40,20 +45,25 @@ class CustomJWTSerializer(JSONWebTokenSerializer):
                 kwargs = {'email': username}
             else:
                 kwargs = {'code': username}
+
             try:
                 us = get_user_model().objects.get(**kwargs)
-            except ObjectDoesNotExist as e:
+            except ObjectDoesNotExist as ex:
+                logger.error("could not get user details", exception=ex)
                 msg = _('Invalid User Credentials.')
                 raise serializers.ValidationError(msg)
 
             user = authenticate(username=us.email, password=us.rest_code)
 
             if user:
+                logger.info('successful authentication', user=user)
                 if not user.is_active:
+                    logger.info('unauthorized user login, user not active', user=user)
                     msg = _('Unauthorized User Login.')
                     raise serializers.ValidationError(msg)
                 
                 if not user.has_perm('sales.make_sale') and not user.has_perm('sales.make_invoice'):
+                    logger.info('unauthorized user login, user has no permissions', user=user)
                     msg = _('Unauthorized User Login.')
                     raise serializers.ValidationError(msg)
 
@@ -65,9 +75,11 @@ class CustomJWTSerializer(JSONWebTokenSerializer):
                     'permissions': user.get_all_permissions(),
                 }
             else:
+                logger.info('invalid user credentials, user not authenticated')
                 msg = _('Invalid User Credentials.')
                 raise serializers.ValidationError(msg)
         else:
+            logger.info('error authorizing empty code')
             msg = _('Must include "{username_field}" and "password".')
             msg = msg.format(username_field=self.username_field)
             raise serializers.ValidationError(msg)
