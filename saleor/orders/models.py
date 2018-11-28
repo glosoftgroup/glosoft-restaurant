@@ -184,6 +184,7 @@ class OrderedItem(models.Model):
         verbose_name=pgettext_lazy('OrderedItem field', 'Kitchen'))
     ready = models.BooleanField(default=False)
     collected = models.BooleanField(default=False)
+    cold = models.BooleanField(default=False)
     objects = OrderItemManager()
 
     class Meta:

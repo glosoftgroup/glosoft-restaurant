@@ -19,7 +19,8 @@ class FilterBlock extends Component {
     };
   }
   toggleInstanceForm = () => {
-    this.setState({open: !this.state.open});
+//    this.setState({open: !this.state.open});
+    console.log("about to open");
   }
   render() {
     const state = { ...this.state };
@@ -32,7 +33,7 @@ class FilterBlock extends Component {
               {!state.open &&
               <span className="animated fadeIn">
               <i className="icon-add position-left"></i>
-              Add menu
+              Add Mpesa Transaction
               </span>
               }
               {state.open &&

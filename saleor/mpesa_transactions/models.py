@@ -49,6 +49,10 @@ class MpesaTransactions(models.Model):
         pgettext_lazy('MpesaTransactions field',
                       'status( [0 - not picked], [1 - picked], [2 -inserted to db] )'),
         default=0)
+    client_status = models.IntegerField(
+        pgettext_lazy('MpesaTransactions field',
+                      'status( [0 - not picked], [1 - picked], [2 -inserted to db] )'),
+        default=0)
 
     updated_at = models.DateTimeField(
         pgettext_lazy('MpesaTransactions field', 'date of update'),

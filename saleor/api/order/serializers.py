@@ -11,6 +11,10 @@ from ...sale.models import Terminal
 from decimal import Decimal
 from saleor.countertransfer.models import CounterTransferItems as Item
 from saleor.menutransfer.models import TransferItems as MenuItem
+from saleor.mpesa_transactions.models import MpesaTransactions
+from structlog import get_logger
+
+logger = get_logger(__name__)
 
 User = get_user_model()
 
@@ -29,7 +33,8 @@ item_fields = (
     'tax',
     'discount',
     'ready',
-    'collected'
+    'collected',
+    'cold'
 )
 
 
@@ -217,6 +222,7 @@ class SearchListOrderSerializer(serializers.ModelSerializer):
 class OrderSerializer(serializers.ModelSerializer):
     ordered_items = ItemSerializer(many=True)
     payment_data = JSONField()
+    mpesaIds = JSONField(required=False, write_only=True)
     old_orders = JSONField()
     point = JSONField()
     waiter = serializers.CharField(required=False, write_only=True)
@@ -241,7 +247,8 @@ class OrderSerializer(serializers.ModelSerializer):
                   'discount_amount',
                   'old_orders',
                   'point',
-                  'waiter'
+                  'waiter',
+                  'mpesaIds'
                   )
 
     def validate_total_net(self, value):
@@ -342,6 +349,10 @@ class OrderSerializer(serializers.ModelSerializer):
         order.point = validated_data.get('point')
 
         order.save()
+        # change the status of mpesaIds so as not to picked up again
+        if validated_data.get('mpesaIds'):
+            change_mpesa_id_status(validated_data.get('mpesaIds'))
+
         # add payment options
         if validated_data.get('old_orders'):
           for i in validated_data.get('old_orders'):
@@ -379,6 +390,7 @@ class OrderSerializer(serializers.ModelSerializer):
 class OrderUpdateSerializer(serializers.ModelSerializer):
     ordered_items = ItemSerializer(many=True)
     payment_data = JSONField()
+    mpesaIds = JSONField(required=False, write_only=True)
 
     class Meta:
         model = Orders
@@ -396,7 +408,8 @@ class OrderUpdateSerializer(serializers.ModelSerializer):
                   'discount_amount',
                   'debt',
                   'ordered_items',
-                  'payment_data'
+                  'payment_data',
+                  'mpesaIds',
                   )
 
     def validate_status(self, value):
@@ -468,6 +481,8 @@ class OrderUpdateSerializer(serializers.ModelSerializer):
         if instance.amount_paid >= instance.total_net:
             instance.status = 'fully-paid'
             instance.payment_data = validated_data.get('payment_data')
+            if validated_data.get('mpesaIds'):
+                change_mpesa_id_status(validated_data.get('mpesaIds'))
         else:
             instance.status = validated_data.get('status', instance.status)
         instance.last_status_change = now()
@@ -581,3 +596,14 @@ class OrderReadyOrCollectedSerializer(serializers.ModelSerializer):
                     i.collected = ordered_item_data['collected']
                     i.save()
         return instance
+
+
+def change_mpesa_id_status(payments_ids):
+    for id in payments_ids:
+        try:
+            p = MpesaTransactions.objects.get(pk=int(id))
+            p.client_status = 1
+            p.save()
+        except Exception as e:
+            logger.error(e.message, message="mpesa with id " + str(id) + "not found",
+                         event="change_mpesa_payment_status")
