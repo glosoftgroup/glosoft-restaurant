@@ -180,6 +180,11 @@
                     </li>
                     {% endif %}
                     {% if perms.userprofile.view_usertrail %}
+                    <li class="{% block menu_shift_class %}{% endblock %}">
+                      <a href="/shift"><i class='icon-toggle'></i>User Shifts</a>
+                    </li>
+                    {% endif  %}
+                      {% if perms.userprofile.view_usertrail %}
                     <li class="{% block menu_trail_class %}{% endblock %}">
                       <a href="{% url 'dashboard:user_trail' %}"><i class='icon-history'></i>User Trail</a>
                     </li>

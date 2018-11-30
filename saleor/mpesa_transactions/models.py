@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 from django.db import models
 from django.utils.translation import pgettext_lazy
 from django.utils.timezone import now
+from saleor.userprofile.models import User
 
 
 class MpesaTransactions(models.Model):
@@ -60,6 +61,9 @@ class MpesaTransactions(models.Model):
 
     created_at = models.DateTimeField(pgettext_lazy('MpesaTransactions field', 'date of create'),
                                       default=now, editable=False)
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, null=True, blank=True, related_name='mpesa_transaction_user',
+        verbose_name=pgettext_lazy("MpesaTransactions field", 'user'))
 
     class Meta:
         app_label = 'mpesa_transactions'

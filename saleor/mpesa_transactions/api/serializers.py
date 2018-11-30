@@ -28,7 +28,8 @@ class TableListSerializer(serializers.ModelSerializer):
             'status',
             'client_status',
             'created_at',
-            'created'
+            'created',
+            'user',
         )
 
     def get_created(self, obj):
@@ -37,6 +38,7 @@ class TableListSerializer(serializers.ModelSerializer):
 
 
 class CreatePaymentSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Table
         fields = (
@@ -54,7 +56,8 @@ class CreatePaymentSerializer(serializers.ModelSerializer):
             'third_party_transid',
             'business_short_code',
             'transaction_type',
-            'status'
+            'status',
+            'user',
         )
 
     def validate_trans_amount(self, value):
@@ -68,13 +71,10 @@ class CreatePaymentSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         instance = Table()
 
-        instance.first_name = validated_data.get('first_name')
-        instance.middle_name = validated_data.get('middle_name')
-        instance.last_name = validated_data.get('last_name')
         instance.trans_id = validated_data.get('trans_id')
         instance.trans_amount = validated_data.get('trans_amount')
-        instance.trans_time = validated_data.get('trans_time')
         instance.msisdn = validated_data.get('msisdn')
+        instance.user = validated_data.get('user')
 
         instance.save()
         return instance
@@ -99,5 +99,6 @@ class DetailSerializer(serializers.ModelSerializer):
             'third_party_transid',
             'business_short_code',
             'transaction_type',
-            'status'
+            'status',
+            'user',
         )
