@@ -220,6 +220,7 @@ INSTALLED_APPS = [
     'saleor.menucategory',
     'saleor.return_sale',
     'saleor.return_purchase',
+    'saleor.shift',
 
     # External apps
     'versatileimagefield',

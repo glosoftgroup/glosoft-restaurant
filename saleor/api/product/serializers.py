@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 from rest_framework.serializers import (
     ModelSerializer,
     HyperlinkedIdentityField,
@@ -24,6 +24,7 @@ from ...product.models import (
 )
 from decimal import Decimal
 from ...customer.models import Customer
+from saleor.shift.models import Shift
 from structlog import get_logger
 
 logger = get_logger(__name__)
@@ -477,10 +478,37 @@ class ProductVariantSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     # used during jwt authentication
     permissions = SerializerMethodField()
+    is_started_shift = SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ['id', 'email', 'name', 'code', 'is_new_code', 'permissions']
+        fields = ['id', 'email', 'name', 'code', 'is_new_code', 'is_started_shift', 'permissions']
+
+    def get_is_started_shift(self, obj):
+        # check user has already started their shift
+        now = datetime.now()
+        time_now = now.strftime("%Y-%m-%d %H:%m")
+        date_today = now.strftime("%Y-%m-%d")
+        try:
+            query = Shift.objects.filter(created_at__icontains=date_today, user=obj)
+            if query.exists():
+                """ if query exists check if endtime is entered """
+                last = query.last()
+                if last.end_time:
+                    return False
+                    # Shift.objects.create(date=time_now, start_time=time_now, user=obj,
+                    #                      start_counter_balance="0.0")
+                else:
+                    return True
+            else:
+                return False
+                # Shift.objects.create(date=time_now, start_time=time_now, user=obj,
+                #                      start_counter_balance="0.0")
+        except Exception as e:
+            print e
+            logger.error("check_shift_started", message=e.message)
+
+        return False
 
     def get_permissions(self, obj):
         logger.info('User: ' + str(obj.name) + ' ' + str(obj.email) + ' logged in via api')

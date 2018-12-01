@@ -295,7 +295,6 @@ class SearchOrdersListAPIView(generics.ListAPIView):
 
         query = self.request.GET.get('q')
         if query:
-            print 'query'
             queryset = queryset.filter(
                 Q(status='pending-payment') |
                 (Q(status='fully-paid') & Q(table__isnull=True) & Q(room__isnull=True)) |
@@ -381,6 +380,7 @@ class OrderUpdateAPIView(generics.RetrieveUpdateAPIView):
             terminal=terminal,
             amount=serializer.data['amount_paid'],
             trans_type='sale')
+
 
 
 def send_to_sale(credit):

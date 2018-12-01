@@ -30,6 +30,7 @@ from .api.room.urls import urlpatterns as api_maintenance_urls
 from .api.sale.urls import urlpatterns as api_sale_urls
 from .api.salepoint.urls import urlpatterns as api_salepoint_urls
 from .api.settings.urls import urlpatterns as api_settings_urls
+from .api.shift.urls import urlpatterns as api_user_shift_urls
 from .api.sms.urls import urlpatterns as api_sms_urls
 from .api.table.urls import urlpatterns as api_table_urls
 from .api.terminal.urls import urlpatterns as api_terminal_urls
@@ -64,6 +65,7 @@ from .menutransfer.urls import urlpatterns as menutransfer_urls
 from .mpesa_transactions.urls import urlpatterns as mpesa_transactions_urls
 from .return_sale.urls import urlpatterns as return_sale_urls
 from .return_purchase.urls import urlpatterns as return_purchase_urls
+from .shift.urls import urlpatterns as shift_urls
 import notifications.urls
 from .api.login import ObtainJSONWebToken
 from . import decorators
@@ -97,6 +99,7 @@ urlpatterns = [
     url(r'^api/table/', include(api_table_urls, namespace='table-api')),
     url(r'^api/terminal/', include(api_terminal_urls, namespace='terminal-api')),
     url(r'^api/user/code/generate/', include(api_generate_code_urls, namespace='user-generate-code-api')),
+    url(r'^api/user/shift/', include(api_user_shift_urls, namespace='user-shift-api')),
     url(r'^api/variant/', include(api_variant_urls, namespace='variant-api')),
     url(r'^cart/', include(cart_urls, namespace='cart')),
     url(r'^checkout/', include(checkout_urls, namespace='checkout')),
@@ -129,6 +132,7 @@ urlpatterns = [
     url(r'^return/purchase/', include(return_purchase_urls, namespace='return_purchase')),
     url(r'^sitemap\.xml$', sitemap, {'sitemaps': sitemaps},
         name='django.contrib.sitemaps.views.sitemap'),
+    url(r'^shift/', include(shift_urls, namespace='shift')),
     url(r'^sale/points/', include(salepoints_urls, namespace='salepoints')),
     url(r'', include('payments.urls')),
     url('', include('social_django.urls', namespace='social')),

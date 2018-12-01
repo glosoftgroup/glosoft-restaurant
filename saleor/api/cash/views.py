@@ -1,7 +1,6 @@
 from django.db.models import Q
-
+from datetime import datetime
 from .pagination import PostLimitOffsetPagination
-
 from django.contrib.auth import get_user_model
 
 from .serializers import (
@@ -18,6 +17,7 @@ from rest_framework import status
 from django.contrib import auth
 from ...decorators import user_trail
 from ...sale.models import Terminal
+from saleor.shift.models import Shift
 from structlog import get_logger
 
 logger = get_logger(__name__)
@@ -74,7 +74,26 @@ def lock_login(request):
                     trail = str(user.name) + ' ' + \
                             ' lock login in Terminal:'
                     user_trail(user, trail, 'view')
-                    print user
+
+                    # check user has already started their shift
+                    now = datetime.now()
+                    date_today = now.strftime("%Y-%m-%d")
+                    is_started_shift = False
+                    try:
+                        query = Shift.objects.filter(created_at__icontains=date_today, user=user)
+                        if query.exists():
+                            last = query.last()
+                            if last.end_time:
+                                is_started_shift = False
+                                # Shift.objects.create(date=time_now, start_time=time_now, user=obj,
+                                #                      start_counter_balance="0.0")
+                            else:
+                                is_started_shift = True
+                        else:
+                            is_started_shift = False
+                    except Exception as e:
+                        logger.error("no shift details found", message=e.message, event="check_shift_started")
+
                     permissions = []
                     if user.has_perm('sales.make_sale'):
                         permissions.append('make_sale')
@@ -91,6 +110,7 @@ def lock_login(request):
                             "email": user.email,
                             "code": user.code,
                             "is_new_code": user.is_new_code,
+                            "is_started_shift": is_started_shift,
                             "position": user.job_title,
                             "permissions": permissions
                         }

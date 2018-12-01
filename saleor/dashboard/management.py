@@ -64,8 +64,8 @@ def add_stock_payment_options(sender, **kwargs):
         if not cash.exists():
             Payment.objects.create(name="Cash")
 
-        cash = Payment.objects.filter(name='Cheque')
-        if not cash.exists():
+        cheque = Payment.objects.filter(name='Cheque')
+        if not cheque.exists():
             Payment.objects.create(name="Cheque")
 
         visa = PaymentOption.objects.filter(name='Visa')
@@ -75,6 +75,12 @@ def add_stock_payment_options(sender, **kwargs):
         mpesa = Payment.objects.filter(name='Mpesa')
         if not mpesa.exists():
             Payment.objects.create(name="Mpesa")
+
+        mpesa_offline = Payment.objects.filter(name='Mpesa Offline')
+        if not mpesa_offline.exists():
+            Payment.objects.create(name="Mpesa Offline")
+
+
     except:
         print('Error creating payment options')
 
@@ -90,6 +96,9 @@ def add_payment_options(sender, **kwargs):
         mpesa = PaymentOption.objects.filter(name='Mpesa')
         if not mpesa.exists():
             PaymentOption.objects.create(name="Mpesa")
+        mpesa_offline = Payment.objects.filter(name='Mpesa Offline')
+        if not mpesa_offline.exists():
+            PaymentOption.objects.create(name="Mpesa Offline")
         points = PaymentOption.objects.filter(name='Loyalty Points')
         if not points.exists():
             PaymentOption.objects.create(name="Loyalty Points")
