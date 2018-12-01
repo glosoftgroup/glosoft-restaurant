@@ -524,4 +524,3 @@ class UserSerializer(serializers.ModelSerializer):
         if obj.has_perm('sales.set_collected'):
             permissions.append('set_collected')
         return permissions
-
