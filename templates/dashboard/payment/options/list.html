@@ -120,7 +120,7 @@
       <!-- Header and footer fixed -->
       <div class="panel panel-flat">
         <div class="panel-body">
-        <div class="table-responsive">
+        <div class="table-responsives">
 
 
           <table class="table table-striped table-hover datatable-header-footer" style="border-bottom:1px solid #ddd;">
@@ -128,10 +128,10 @@
                   <tr class="bg-primary">                  
                     <th>Name</th>
                     <th>Points equivalency</th>
-                    <th>Description</th>                   
-                    {% if perms.sale.delete_paymentoption %}
-                    <th class="text-center">Options</th>
-                    {% endif %}
+                    <th>Description</th>
+                        {% if perms.sale.delete_paymentoption %}
+                        <th class="text-center">Options</th>
+                        {% endif %}
                   </tr>
                 </thead>
                 <tbody id="tb">
@@ -145,7 +145,7 @@
                     <!-- description -->
                     <td class="td" data-href="{% url 'dashboard:payment-option-detail' pk=option.pk %}" data-mtitle="{{option.description}}" data-m="#pdetail">{{option.description}}</td>
                     
-                    
+
                     {% if perms.sale.delete_paymentoption %}
                     <!-- actions -->
                     <td class="text-center">
@@ -156,10 +156,13 @@
                         <ul class="dropdown-menu edit-dropdown">
                               <li class="td" data-href="{% url 'dashboard:payment-option-detail' pk=option.pk %}" data-mtitle="{{option.name}}" data-m="#pdetail"><a><i class="icon-pencil7"></i> EDIT</a>
                               </li>
+                            {% if option.name != "Mpesa Offline" and option.name != "Loyalty Points" and option.name != "Mpesa" and option.name != "Visa" and option.name != "Cash"%}
                             <li>
                                 <a data-ta="#modal_instance" data-title="Delete Payment option {{ option.name }} ?" data-href="{% url 'dashboard:option-delete' pk=option.pk %}" data-name="{{ option.name}}" data-id="{{ option.pk }}" class="modal-trigger del-btn"><i class="icon-trash" href="#modal_instance" data-toggle="modal"></i> DELETE
                             </a>
                             </li>
+
+                      {% endif %}
 
                         </ul>
                       </div>

@@ -3,16 +3,16 @@
 {% load i18n %}
 
 {% block title %}
-  Mpesa Transactions
+Counter Cash Drawers Totals
 {% endblock %}
 
  {% block breadcrumbs %}
-     <li>Reports</li>
-     <li class="active"><a href="{% url 'mpesa_transactions:index'%}"> Mpesa Transactions</a></li>
+     <li><a href="{% url 'dashboard:terminals' %}">Counter Cash Drawers</a></li>
+     <li class="active"><a href="{% url 'dashboard:terminal-amounts' %}">Cash Drawer Totals</a></li>
  {% endblock %}
 
 
- {% block menu_mpesa_payments %}active{% endblock %}
+ {% block menu_till_totals_class %}active{% endblock %}
  {% block custom_css %}
 <style>
           .theme_xbox .pace_activity, .theme_xbox .pace_activity::after, .theme_xbox .pace_activity::before, .theme_xbox_sm .pace_activity, .theme_xbox_sm .pace_activity::after, .theme_xbox_sm .pace_activity::before, .theme_xbox_xs .pace_activity, .theme_xbox_xs .pace_activity::after, .theme_xbox_xs .pace_activity::before {
@@ -80,7 +80,7 @@
                   </select>
               </div>
             </div>
-            <div class="col-md-2">
+            <div class="col-md-2 hidden">
               <label>pick a date</label>
               <div class="form-group">
                 <div class="input-group">
@@ -144,24 +144,21 @@
       <div class="panel panel-flat" id="printme">
         <div class="panel-body">
             <div class="col-md-12">
-                <h5 class="text-center text-bold">Mpesa Transactions</h5>
+                <h5 class="text-center text-bold">Counter Cash Drawers Totals</h5>
             </div>
         <div class="">
           <table class="table room-striped room-hover dataroom-header-footer" style="border-bottom:1px solid #ddd;">
                 <thead>
                   <tr class="bg-primary">
-                    <th>Transaction ID</th>
-                    <th>Customer</th>
-                    <th>Phone No</th>
-                    <th>Business Code</th>
-                    <th>Payment Type</th>
+                    <th>Drawer Name</th>
                     <th>Amount</th>
+                    <th class="hidden"></th>
                   </tr>
                 </thead>
                 <tbody id="tb">
                 <!--loader-->
                 <tr v-if="loader" class="text-center">
-                    <td colspan="6">
+                    <td colspan="3">
                         <div class="pace-demo">
                             <div class="theme_xbox"><div class="pace_progress" data-progress-text="60%" data-progress="60"></div><div class="pace_activity"></div></div>
                         </div>
@@ -170,7 +167,7 @@
                 <!--no data template-->
                 <template  v-else>
                 <tr v-if="items.length == 0" class="text-center">
-                    <td colspan="6" class="text-bold animated zoomIn">
+                    <td colspan="3" class="text-bold animated zoomIn">
                         No Data Found !
                     </td>
                 </tr>
@@ -178,12 +175,24 @@
                 <!--listing template-->
                 <template v-for="item in items">
                     <tr class="td " :id="item.id">
-                        <td>${item.trans_id} </td>
-                        <td>${item.customer}</td>
-                        <td>${item.msisdn}</td>
-                        <td>${item.business_short_code}</td>
-                        <td>${item.transaction_type}</td>
-                        <td>${item.trans_amount}</td>
+                        <td>
+                            ${item.terminal_name}
+                        </td>
+                        <td>${item.amount}</td>
+
+                        <td class="hidden text-center">
+                            <ul class="icons-list">
+                                <li class="dropdown">
+                                    <button type="button" class="btn btn-primary dropdown-toggle legitRipple" data-toggle="dropdown" aria-expanded="true">
+                                        Actions<span class="caret"></span></button>
+
+                                    <ul class="dropdown-menu dropdown-menu-right">
+                                        <li><a @click="getInstance(item.update_url)" href="javascript:;"><i class="icon-pencil"></i> EDIT</a></li>
+                                        <li><a @click="deleteInstance(item.delete_url,item.id)" href="javascript:;"><i class=" icon-trash-alt"></i> DELETE</a></li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </td>
                     </tr>
                 </template>
 
@@ -258,8 +267,8 @@
  </div>
 
 <input type="hidden" class="pageUrls"
-  data-listurl="{% url 'mpesa_transactions:api-list' %}"
-  data-createurl="/mpesa/transactions/api/create/"
+  data-listurl="/api/cash/terminals/"
+  data-createurl="/shift/api/create/"
 >
 {% endblock%}
 {% block custom_js %}

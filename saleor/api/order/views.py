@@ -3,7 +3,9 @@ from rest_framework.response import Response
 from rest_framework import generics
 from rest_framework import status
 from django.contrib.auth import get_user_model
-from ...orders.models import Orders, OrderedItem
+import json
+from django.core import serializers
+from ...orders.models import Orders, OrderedItem, CancelledOrder
 from ...product.models import Stock
 from ...sale.models import (
     Sales,
@@ -20,7 +22,8 @@ from .serializers import (
     OrderUpdateSerializer,
     ListOrderItemSerializer,
     OrderReadyOrCollectedSerializer,
-    SearchListOrderSerializer
+    SearchListOrderSerializer,
+    ListCancelledOrderSerializer
 )
 from ...decorators import user_trail
 from rest_framework.request import Request
@@ -28,6 +31,7 @@ from rest_framework.test import APIRequestFactory
 from saleor.countertransfer.models import CounterTransferItems as Item
 from saleor.menutransfer.models import TransferItems as MenuItem
 from structlog import get_logger
+import json
 
 logger = get_logger(__name__)
 
@@ -67,7 +71,25 @@ class DestroyView(generics.DestroyAPIView):
         ordered_items = instance.ordered_items.all()
         # return stock/menu items then delete
         return_to_stock(ordered_items)
+        order = CancelledOrder()
+        order.order_id = instance.id
+
+        # convert the data to json
+        data = serializers.serialize('json', [instance, ])
+        stru = json.loads(data)
+        data = json.dumps(stru[0])
+
+        order.payload = data # extract data
+        order.save()
+
         instance.delete()
+
+        user_trail(self.request.user.name,
+                   'cancelled order:#' + str(instance.invoice_number), 'delete')
+
+        logger.info('User: ' + str(self.request.user) +
+                    'cancelled order:#' + str(instance.invoice_number))
+
         return Response({}, status=status.HTTP_201_CREATED)
 
 
@@ -84,6 +106,32 @@ class OrderCreateAPIView(generics.CreateAPIView):
         instance = serializer.save(user=self.request.user)
         if serializer.data['status'] == 'fully-paid':
             send_to_sale(instance)
+
+            logger.info('User: ' + str(self.request.user) +
+                        ' made a takeaway order sale:' + str(serializer.data['invoice_number']))
+            terminal = Terminal.objects.get(pk=int(serializer.data['terminal']))
+
+            trail = 'User: ' + str(self.request.user) + \
+                    ' created a takeaway order sale :' + str(serializer.data['invoice_number']) + \
+                    ' Net#: ' + str(serializer.data['total_net']) + \
+                    ' Amount paid#:' + str(serializer.data['amount_paid'])
+
+            user_trail(self.request.user.name,
+                       'made a takeaway sale:#' + str(serializer.data['invoice_number']) +
+                       ' sale worth: ' + str(serializer.data['total_net']), 'add')
+
+            TerminalHistoryEntry.objects.create(
+                terminal=terminal,
+                comment=trail,
+                crud='deposit',
+                user=self.request.user
+            )
+            DrawerCash.objects.create(
+                manager=self.request.user,
+                user=self.request.user,
+                terminal=terminal,
+                amount=serializer.data['amount_paid'],
+                trans_type='sale')
 
 
 class OrderListAPIView(generics.ListAPIView):
@@ -246,7 +294,7 @@ class SearchOrdersListAPIView(generics.ListAPIView):
             'status': self.request.GET.get('status')
         }
         # Note the use of `get_queryset()` instead of `self.queryset`
-        queryset = Orders.objects.all()
+        queryset = Orders.objects.filter(status="payment-pending")
         counter = self.request.GET.get("counter", "")
         point = self.request.GET.get("point", "")
         status = self.request.GET.get('status')
@@ -354,33 +402,49 @@ class OrderUpdateAPIView(generics.RetrieveUpdateAPIView):
         instance = serializer.save(user=self.request.user)
         if instance.status == 'fully-paid':
             send_to_sale(instance)
+
+            logger.info('User: ' + str(self.request.user) +
+                        ' made a order sale:' + str(serializer.data['invoice_number']))
+            terminal = Terminal.objects.get(pk=int(serializer.data['terminal']))
+
+            trail = 'User: ' + str(self.request.user) + \
+                    ' updated a order sale :' + str(serializer.data['invoice_number']) + \
+                    ' Net#: ' + str(serializer.data['total_net']) + \
+                    ' Amount paid#:' + str(serializer.data['amount_paid'])
+
+            user_trail(self.request.user.name,
+                       'made a sale:#' + str(serializer.data['invoice_number']) +
+                       ' sale worth: ' + str(serializer.data['total_net']), 'add')
+
+            TerminalHistoryEntry.objects.create(
+                terminal=terminal,
+                comment=trail,
+                crud='deposit',
+                user=self.request.user
+            )
+            DrawerCash.objects.create(
+                manager=self.request.user,
+                user=self.request.user,
+                terminal=terminal,
+                amount=serializer.data['amount_paid'],
+                trans_type='sale')
+
         elif instance.status == 'cancelled':
+
+            order = CancelledOrder()
+            order.order_id = serializer.data['id']
+            order.payload = serializer.data
+            order.save()
+
             instance.delete()
+
+            user_trail(self.request.user.name,
+                       'cancelled order:#' + str(serializer.data['invoice_number']), 'delete')
+
+            logger.info('User: ' + str(self.request.user) +
+                        'cancelled order:#' + str(serializer.data['invoice_number']))
+
             return 'Successfully deleted, status: 204'
-        user_trail(self.request.user.name,
-                   'made a sale:#' + str(serializer.data['invoice_number']) + ' sale worth: ' + str(
-                       serializer.data['total_net']), 'add')
-        logger.info(
-            'User: ' + str(self.request.user) + ' made a order sale:' + str(serializer.data['invoice_number']))
-        terminal = Terminal.objects.get(pk=int(serializer.data['terminal']))
-        trail = 'User: ' + str(self.request.user) + \
-                ' updated a order sale :' + str(serializer.data['invoice_number']) + \
-                ' Net#: ' + str(serializer.data['total_net']) + \
-                ' Amount paid#:' + str(serializer.data['amount_paid'])
-
-        TerminalHistoryEntry.objects.create(
-            terminal=terminal,
-            comment=trail,
-            crud='deposit',
-            user=self.request.user
-        )
-        DrawerCash.objects.create(
-            manager=self.request.user,
-            user=self.request.user,
-            terminal=terminal,
-            amount=serializer.data['amount_paid'],
-            trans_type='sale')
-
 
 
 def send_to_sale(credit):
@@ -456,3 +520,11 @@ class OrderReadyOrCollectedAPIView(generics.RetrieveUpdateAPIView):
     """
     queryset = Orders.objects.all()
     serializer_class = OrderReadyOrCollectedSerializer
+
+
+class CancelledOrderListAPIView(generics.ListAPIView):
+    serializer_class = ListCancelledOrderSerializer
+
+    def get_queryset(self, *args, **kwargs):
+        queryset_list = CancelledOrder.objects.all()
+        return queryset_list

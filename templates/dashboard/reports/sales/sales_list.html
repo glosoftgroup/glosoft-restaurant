@@ -130,9 +130,10 @@
                                        {% else %} Take Away {% endif %}</td>
                             <td class="td" data-href="{% url 'dashboard:sale-detail' pk=sale.pk point=0 %}">{% if sale.user.name %}{{sale.user.name}}{% else %}{{sale.user.email}}{% endif %}</td>
                             <td class="td hiddens" data-href="{% url 'dashboard:sale-detail' pk=sale.pk point=0 %}">
-                                {% if sale.payment_options %}
+
+                                {% if sale.payment_data %}
                                   {{sale.payment_options.all|join:", "}}
-                                {% else %} ---
+                                {% else %} Cash
                                 {% endif %}
                             </td>
                             <td class="td" data-href="{% url 'dashboard:sale-detail' pk=sale.pk point=0 %}">{{sale.quantity}}</td>

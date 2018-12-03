@@ -1,5 +1,6 @@
 from django.conf.urls import url
-from django.contrib.auth.decorators import login_required, permission_required
+from django.contrib.auth.decorators import permission_required
+from django.views.generic import TemplateView
 
 from . import views
 from django.conf import settings
@@ -23,10 +24,11 @@ urlpatterns = [
         url(r'^terminal/paginate/$', views.terminal_pagination, name='terminal-paginate'),
         url(r'^terminal/search/$', views.terminal_search, name='terminal-search'),
         # cashmovement urls
-        url(r'^transations/$', permission_required('sale.view_drawercash', login_url='account_login')
+        url(r'^transactions/$', permission_required('sale.view_drawercash', login_url='account_login')
             (views.transactions), name='transactions'),
         url(r'^transaction/paginate/$', views.transaction_pagination, name='transaction-paginate'),
         url(r'^transaction/search/$', views.transaction_search, name='transaction-search'),
+        url(r'^totals/$', TemplateView.as_view(template_name="dashboard/terminal/terminal_amounts.html"), name="terminal-amounts"),
         ]
 
 if settings.DEBUG:

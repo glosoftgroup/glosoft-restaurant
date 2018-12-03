@@ -14,7 +14,13 @@ urlpatterns = [
 
     url(r'^api/update/(?P<pk>[0-9]+)/$', UpdateAPIView.as_view(), name='api-update'),
     url(r'^add/$', TemplateView.as_view(template_name="shift/form.html"), name='add'),
-    url(r'^update/(?P<pk>[0-9]+)/$', UpdateView.as_view(template_name="shift/form.html", model=Table, fields=['id', 'name']),
+    url(r'^update/(?P<pk>[0-9]+)/$',
+        UpdateView.as_view(
+            template_name="shift/form.html", model=Table,
+            fields=[
+                'id', 'user', 'start_time',
+                'start_counter_balance', 'start_note',
+                'end_time', 'end_counter_balance', 'end_note']),
         name='update'),
 ]
 

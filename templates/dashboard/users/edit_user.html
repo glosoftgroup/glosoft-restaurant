@@ -712,10 +712,366 @@
                     </div>
                   </div>
             </div>
-            <div class="row">
+                <div class="row">
                 <div class="col-md-12">
                 <div class="col-md-12">
-                    <h5>Drawer Cash</h5>
+                    <h5>Counter Management</h5>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                      <label class="display-block text-semibold">Counter</label>
+                      {% for permission in permissions %}
+                       {% if permission.content_type.model ==  'counter' %}
+                            {% if permission in user_permissions %}
+                                <div class="checkbox">
+                                  <label>
+                                    <input class="styled check" checked="checked" type="checkbox" value="{{permission.id}}">
+                                    {{permission.name}}
+                                  </label>
+                                  <span id="granted" class="granted text-success">(granted)</span>
+                                </div>
+                            {% else %}
+                               <div class="checkbox">
+                               <label>
+                                   <input class="styled check" type="checkbox"
+                                  value="{{permission.id}}">
+                                   {{permission.name}}
+                               </label>
+                               <span id="granted" class="granted text-success"></span>
+                               </div>
+                            {% endif %}
+                        {% else %}
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                  </div>
+
+                    <div class="col-md-3">
+                    <div class="form-group">
+                      <label class="display-block text-semibold">Counter Transfer</label>
+                      {% for permission in permissions %}
+                       {% if permission.content_type.model ==  'countertransfer' %}
+                            {% if permission in user_permissions %}
+                                <div class="checkbox">
+                                  <label>
+                                    <input class="styled check" checked="checked" type="checkbox" value="{{permission.id}}">
+                                    {{permission.name}}
+                                  </label>
+                                  <span id="granted" class="granted text-success">(granted)</span>
+                                </div>
+                            {% else %}
+                               <div class="checkbox">
+                               <label>
+                                   <input class="styled check" type="checkbox"
+                                  value="{{permission.id}}">
+                                   {{permission.name}}
+                               </label>
+                               <span id="granted" class="granted text-success"></span>
+                               </div>
+                            {% endif %}
+                        {% else %}
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                  </div>
+
+                    <div class="col-md-3 hidden">
+                    <div class="form-group">
+                      <label class="display-block text-semibold">Payment Options</label>
+                      {% for permission in permissions %}
+                       {% if permission.content_type.model ==  'paymentoption' %}
+                            {% if permission in user_permissions %}
+                                <div class="checkbox">
+                                  <label>
+                                    <input class="styled check" checked="checked" type="checkbox" value="{{permission.id}}">
+                                    {% if permission.name == 'Can add Payment' %}
+                                        Can add Payment Options
+                                      {% elif permission.name == 'Can change Payment' %}
+                                      Can change Payment Options
+                                      {% elif permission.name == 'Can delete Payment' %}
+                                      Can delete Payment Options
+                                      {% elif permission.name == 'Can view Payment' %}
+                                      Can view Payment Options
+                                      {% endif %}
+                                  </label>
+                                  <span id="granted" class="granted text-success">(granted)</span>
+                                </div>
+                            {% else %}
+                               <div class="checkbox">
+                               <label>
+                                   <input class="styled check" type="checkbox"
+                                  value="{{permission.id}}">
+                                   {% if permission.name == 'Can add Payment' %}
+                                    Can add Payment Options
+                                  {% elif permission.name == 'Can change Payment' %}
+                                  Can change Payment Options
+                                  {% elif permission.name == 'Can delete Payment' %}
+                                  Can delete Payment Options
+                                  {% elif permission.name == 'Can view Payment' %}
+                                  Can view Payment Options
+                                  {% endif %}
+                               </label>
+                               <span id="granted" class="granted text-success"></span>
+                               </div>
+                            {% endif %}
+                        {% else %}
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                  </div>
+
+                </div>
+            </div>
+            </div>
+
+
+              <div class="row">
+                <div class="col-md-12">
+                <div class="col-md-12">
+                    <h5>Kitchen Management</h5>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                      <label class="display-block text-semibold">Kitchen</label>
+                      {% for permission in permissions %}
+                       {% if permission.content_type.model ==  'kitchen' %}
+                            {% if permission in user_permissions %}
+                                <div class="checkbox">
+                                  <label>
+                                    <input class="styled check" checked="checked" type="checkbox" value="{{permission.id}}">
+                                    {{permission.name}}
+                                  </label>
+                                  <span id="granted" class="granted text-success">(granted)</span>
+                                </div>
+                            {% else %}
+                               <div class="checkbox">
+                               <label>
+                                   <input class="styled check" type="checkbox"
+                                  value="{{permission.id}}">
+                                   {{permission.name}}
+                               </label>
+                               <span id="granted" class="granted text-success"></span>
+                               </div>
+                            {% endif %}
+                        {% else %}
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                  </div>
+
+                    <div class="col-md-3">
+                    <div class="form-group">
+                      <label class="display-block text-semibold">Kitchen Transfer</label>
+                      {% for permission in permissions %}
+                       {% if permission.content_type.model ==  'kitchentransfer' %}
+                            {% if permission in user_permissions %}
+                                <div class="checkbox">
+                                  <label>
+                                    <input class="styled check" checked="checked" type="checkbox" value="{{permission.id}}">
+                                    {{permission.name}}
+                                  </label>
+                                  <span id="granted" class="granted text-success">(granted)</span>
+                                </div>
+                            {% else %}
+                               <div class="checkbox">
+                               <label>
+                                   <input class="styled check" type="checkbox"
+                                  value="{{permission.id}}">
+                                   {{permission.name}}
+                               </label>
+                               <span id="granted" class="granted text-success"></span>
+                               </div>
+                            {% endif %}
+                        {% else %}
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                  </div>
+
+                    <div class="col-md-3 hidden">
+                    <div class="form-group">
+                      <label class="display-block text-semibold">Payment Options</label>
+                      {% for permission in permissions %}
+                       {% if permission.content_type.model ==  'paymentoption' %}
+                            {% if permission in user_permissions %}
+                                <div class="checkbox">
+                                  <label>
+                                    <input class="styled check" checked="checked" type="checkbox" value="{{permission.id}}">
+                                    {{permission.name}}
+                                  </label>
+                                  <span id="granted" class="granted text-success">(granted)</span>
+                                </div>
+                            {% else %}
+                               <div class="checkbox">
+                               <label>
+                                   <input class="styled check" type="checkbox"
+                                  value="{{permission.id}}">
+                                   {{permission.name}}
+                               </label>
+                               <span id="granted" class="granted text-success"></span>
+                               </div>
+                            {% endif %}
+                        {% else %}
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                  </div>
+
+                </div>
+            </div>
+
+              <div class="row">
+                <div class="col-md-12">
+                <div class="col-md-12">
+                    <h5>Menu Management</h5>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                      <label class="display-block text-semibold">Menu</label>
+                      {% for permission in permissions %}
+                       {% if permission.content_type.model ==  'menu' %}
+                            {% if permission in user_permissions %}
+                                <div class="checkbox">
+                                  <label>
+                                    <input class="styled check" checked="checked" type="checkbox" value="{{permission.id}}">
+                                    {{permission.name}}
+                                  </label>
+                                  <span id="granted" class="granted text-success">(granted)</span>
+                                </div>
+                            {% else %}
+                               <div class="checkbox">
+                               <label>
+                                   <input class="styled check" type="checkbox"
+                                  value="{{permission.id}}">
+                                   {{permission.name}}
+                               </label>
+                               <span id="granted" class="granted text-success"></span>
+                               </div>
+                            {% endif %}
+                        {% else %}
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                  </div>
+
+                    <div class="col-md-3">
+                    <div class="form-group">
+                      <label class="display-block text-semibold">Menu Transfer</label>
+                      {% for permission in permissions %}
+                       {% if permission.content_type.model ==  'menutransfer' %}
+                            {% if permission in user_permissions %}
+                                <div class="checkbox">
+                                  <label>
+                                    <input class="styled check" checked="checked" type="checkbox" value="{{permission.id}}">
+                                    {{permission.name}}
+                                  </label>
+                                  <span id="granted" class="granted text-success">(granted)</span>
+                                </div>
+                            {% else %}
+                               <div class="checkbox">
+                               <label>
+                                   <input class="styled check" type="checkbox"
+                                  value="{{permission.id}}">
+                                   {{permission.name}}
+                               </label>
+                               <span id="granted" class="granted text-success"></span>
+                               </div>
+                            {% endif %}
+                        {% else %}
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                  </div>
+
+                    <div class="col-md-3 hidden">
+                    <div class="form-group">
+                      <label class="display-block text-semibold">Payment Options</label>
+                      {% for permission in permissions %}
+                       {% if permission.content_type.model ==  'paymentoption' %}
+                            {% if permission in user_permissions %}
+                                <div class="checkbox">
+                                  <label>
+                                    <input class="styled check" checked="checked" type="checkbox" value="{{permission.id}}">
+                                    {% if permission.name == 'Can add Payment' %}
+                                        Can add Payment Options
+                                      {% elif permission.name == 'Can change Payment' %}
+                                      Can change Payment Options
+                                      {% elif permission.name == 'Can delete Payment' %}
+                                      Can delete Payment Options
+                                      {% elif permission.name == 'Can view Payment' %}
+                                      Can view Payment Options
+                                      {% endif %}
+                                  </label>
+                                  <span id="granted" class="granted text-success">(granted)</span>
+                                </div>
+                            {% else %}
+                               <div class="checkbox">
+                               <label>
+                                   <input class="styled check" type="checkbox"
+                                  value="{{permission.id}}">
+                                   {% if permission.name == 'Can add Payment' %}
+                                    Can add Payment Options
+                                  {% elif permission.name == 'Can change Payment' %}
+                                  Can change Payment Options
+                                  {% elif permission.name == 'Can delete Payment' %}
+                                  Can delete Payment Options
+                                  {% elif permission.name == 'Can view Payment' %}
+                                  Can view Payment Options
+                                  {% endif %}
+                               </label>
+                               <span id="granted" class="granted text-success"></span>
+                               </div>
+                            {% endif %}
+                        {% else %}
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                  </div>
+
+                </div>
+            </div>
+
+              <div class="row">
+                <div class="col-md-12">
+                <div class="col-md-12">
+                    <h5>Table Management</h5>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                      <label class="display-block text-semibold">Table</label>
+                      {% for permission in permissions %}
+                       {% if permission.content_type.model ==  'table' %}
+                            {% if permission in user_permissions %}
+                                <div class="checkbox">
+                                  <label>
+                                    <input class="styled check" checked="checked" type="checkbox" value="{{permission.id}}">
+                                    {{permission.name}}
+                                  </label>
+                                  <span id="granted" class="granted text-success">(granted)</span>
+                                </div>
+                            {% else %}
+                               <div class="checkbox">
+                               <label>
+                                   <input class="styled check" type="checkbox"
+                                  value="{{permission.id}}">
+                                   {{permission.name}}
+                               </label>
+                               <span id="granted" class="granted text-success"></span>
+                               </div>
+                            {% endif %}
+                        {% else %}
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                  </div>
+
+                </div>
+            </div>
+
+              <div class="row">
+                <div class="col-md-12">
+                <div class="col-md-12">
+                    <h5>Cash Drawer</h5>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
@@ -764,7 +1120,7 @@
 
                     <div class="col-md-3">
                     <div class="form-group">
-                      <label class="display-block text-semibold">Till</label>
+                      <label class="display-block text-semibold">Counter Cash Drawer</label>
                       {% for permission in permissions %}
                        {% if permission.content_type.model ==  'terminal' %}
                             {% if permission in user_permissions %}
@@ -772,13 +1128,13 @@
                                   <label>
                                     <input class="styled check" checked="checked" type="checkbox" value="{{permission.id}}">
                                     {% if permission.name == 'Can add Terminal' %}
-                                        Can add Till
+                                        Can add Drawer
                                       {% elif permission.name == 'Can change Terminal' %}
-                                      Can change Till
+                                      Can change Drawer
                                       {% elif permission.name == 'Can delete Terminal' %}
-                                      Can delete Till
+                                      Can delete Drawer
                                       {% elif permission.name == 'Can view Terminal' %}
-                                      Can view Till
+                                      Can view Drawer
                                       {% endif %}
                                   </label>
                                   <span id="granted" class="granted text-success">(granted)</span>
@@ -789,13 +1145,13 @@
                                    <input class="styled check" type="checkbox"
                                   value="{{permission.id}}">
                                    {% if permission.name == 'Can add Terminal' %}
-                                        Can add Till
+                                        Can add Drawer
                                       {% elif permission.name == 'Can change Terminal' %}
-                                      Can change Till
+                                      Can change Drawer
                                       {% elif permission.name == 'Can delete Terminal' %}
-                                      Can delete Till
+                                      Can delete Drawer
                                       {% elif permission.name == 'Can view Terminal' %}
-                                      Can view Till
+                                      Can view Drawer
                                       {% endif %}
                                </label>
                                <span id="granted" class="granted text-success"></span>
@@ -807,7 +1163,7 @@
                     </div>
                   </div>
 
-                    <div class="col-md-3">
+                    <div class="col-md-3 hidden">
                     <div class="form-group">
                       <label class="display-block text-semibold">Payment Options</label>
                       {% for permission in permissions %}
@@ -854,6 +1210,7 @@
 
                 </div>
             </div>
+
                 <div class="row">
                 <div class="col-md-3">
                 <div class="col-md-12">

@@ -17,6 +17,8 @@ from ..kitchen.models import Kitchen
 from ..table.models import Table
 from ..room.models import Room
 
+import json
+import ast
 from . import OrderStatus
 from . import TransactionStatus
 
@@ -181,6 +183,21 @@ class Sales(models.Model):
 
     def __unicode__(self):
         return unicode(self.invoice_number)
+
+    def get_payments(self):
+        payments = []
+        json_payment = json.dumps(self.payment_data)
+        eval_payment = ast.literal_eval(json_payment)
+
+        for payment in eval_payment:
+            try:
+                pmt = PaymentOption.objects.get(pk=int(payment["payment_id"]))
+                if int(payment['payment_id']) == pmt.pk:
+                    payments.append({"name": pmt.name, "amount": payment["value"]})
+            except Exception as e:
+                pass
+
+        return payments
 
 
 class SoldItemManager(models.Manager):
