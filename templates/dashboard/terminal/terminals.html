@@ -6,7 +6,7 @@
 {% load humanize %}
 
 {% block title %}
-  Tills
+    Counter Cash Drawers
 {% endblock %}
 
 {% block menu_terminal_class %}active{% endblock %}
@@ -21,7 +21,7 @@
 {% block header_extra %}
 {% endblock %}
 {% block breadcrumbs %}
-<li class="active"><a href="{% url 'dashboard:terminals' %}">Tills</a></li>
+<li class="active"><a href="{% url 'dashboard:terminals' %}">Counter Cash Drawers</a></li>
 {% endblock %}
 {% block content %}
  <div class="row">
@@ -30,34 +30,24 @@
       <div class="panel panel-flat">
 
         <div class="panel-body search-panel">
-            <div class="col-md-2">
+            <div class="col-md-3">
               <label style="visibility: hidden;"> add</label>
               <div class="form-group">
                 {% if perms.sale.add_terminal %}
-                    <a id="toggle-add-form" onclick="return false;" data-href="{% url 'dashboard:terminal-add' %}" class="btn btn-primary hvr-glow btn-raised legitRipple waves-effect waves-light"><i class="icon-plus2 position-left"></i>Add Till</a>
+                    <a id="toggle-add-form" onclick="return false;"
+                       data-href="{% url 'dashboard:terminal-add' %}"
+                       class="btn btn-primary hvr-glow btn-raised legitRipple waves-effect waves-light">
+                        <i class="icon-plus2 position-left"></i>Add Cash Drawer</a>
                 {% endif %}
               </div>
             </div>
             <div class="col-md-6">
-             <label>Search Till</label>
+             <label>Search Counter Cash Drawers</label>
               <div class="form-group form-group-material has-feedback">
-                <input class="form-control search_terminal" placeholder="Search Till" type="text">
+                <input class="form-control search_terminal" placeholder="Search Drawer" type="text">
                 <div class="form-control-feedback">
                   <i class="icon-search4 text-size-base"></i>
                 </div>
-              </div>
-            </div>
-            <div class="col-md-2 hidden">
-              <label>display list size</label>
-              <div class="form-group">
-                 <div class="form-group">
-                 <select class="bootstrap-select list-sz" style="display: none;" data-width="100%" tabindex="-98">
-                    <option value="0" selected>No:</option>
-                    <option value="5">5</option>
-                    <option value="10">10</option>
-                    <option value="20">20</option>
-                  </select>
-              </div>
               </div>
             </div>
             <!-- add form -->
@@ -69,8 +59,8 @@
      <table class="table table-hover">
         <thead>
             <tr class="bg-primary">            
-            <th>Name</th>            
-            <th>Terminal Id</th>
+            <th>Drawer Name</th>
+            <th>Drawer Id</th>
             <th></th>
             </tr>
         </thead>
@@ -78,10 +68,10 @@
           <tr>        
 
           <td>
-            <input type="text" placeholder="Till Name" id="name" class="form-control" name="name">
+            <input type="text" placeholder="Drawer Name" id="name" class="form-control" name="name">
             </td>            
             <td>
-              <input type="number" placeholder="Till id" id="nid" class="form-control" name="nid">
+              <input type="number" placeholder="Drawer id" id="nid" class="form-control" name="nid">
             </td>
             <td>
               <button class="btn btn-xs btn-primary hvr-glow btn-raised legitRipple waves-effect waves-light" id="addVariantChBtn" data-token="{% csrf_token %}" data-url="{% url 'dashboard:payment-add' %}" type="submit">Add <i class="icon-arrow-right14 position-right"></i></button>
@@ -108,8 +98,8 @@
                 <thead style="border-top:1px solid #ddd;">
                   <tr class="bg-primary">
                     <th>#</th>
-                    <th>Till Id</th>
-                    <th>Till Name</th>              
+                    <th>Drawer Id</th>
+                    <th>Drawer Name</th>
                     
                     {% if perms.sale.change_terminal or perms.sale.delete_terminal %}
                     <th class="text-center">Actions</th>
@@ -242,9 +232,6 @@
 <script type="text/javascript">
 
   $(document).ready(function() {
-        <!--$(".td").click(function() {-->
-            <!--window.location = $(this).data("href");-->
-        <!--});-->
         //**@ display size select
     $('.list-sz').selectpicker().on('change', function(){
         var ts = $(this).val();

@@ -6,11 +6,14 @@ from saleor.shift.models import Shift as Table
 
 class TableListSerializer(serializers.ModelSerializer):
     update_url = serializers.HyperlinkedIdentityField(view_name='shift:api-update')
+    update_view_url = serializers.HyperlinkedIdentityField(view_name='shift:update')
     delete_url = serializers.HyperlinkedIdentityField(view_name='shift:api-delete')
     name = serializers.SerializerMethodField()
     end_time = serializers.SerializerMethodField()
     start_note = serializers.SerializerMethodField()
     end_note = serializers.SerializerMethodField()
+    start_counter_balance = serializers.SerializerMethodField()
+    end_counter_balance = serializers.SerializerMethodField()
 
     class Meta:
         model = Table
@@ -25,6 +28,7 @@ class TableListSerializer(serializers.ModelSerializer):
                   'updated_at',
                   'start_note',
                   'end_note',
+                  'update_view_url',
                   'update_url',
                   'delete_url',
                   )
@@ -47,6 +51,16 @@ class TableListSerializer(serializers.ModelSerializer):
     def get_end_note(self, obj):
         if obj.end_note:
             return obj.end_note
+        return "-"
+
+    def get_start_counter_balance(self, obj):
+        if obj.start_counter_balance:
+            return obj.start_counter_balance
+        return "-"
+
+    def get_end_counter_balance(self, obj):
+        if obj.end_counter_balance:
+            return obj.end_counter_balance
         return "-"
 
 

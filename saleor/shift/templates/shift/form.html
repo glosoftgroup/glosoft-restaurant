@@ -1,27 +1,22 @@
 {% extends "dashboard/base.html" %}
 {% load staticfiles %}
 {% load i18n %}
-{% load render_bundle from webpack_loader %}
 
 {% block title %}
-    {% if not object.id %}
-        Add academic year
-    {% else %}
-        Edit {{object.name}} - Academic year
-    {% endif %}
+    View {{object.user.name}} - Shift
 {% endblock %}
 
  {% block breadcrumbs %}
-     <li class=""><a href="{% url 'academic_year:index' %}" >Academic year</a></li>
-     <li class="active">{{form.name.value}}</li>
+     <li><a href="{% url 'dashboard:users' %}">Users</a></li>
+     <li class=""><a href="{% url 'shift:index' %}" >User Shifts</a></li>
+     <li class="active"><a href="{% url 'shift:update' pk=object.id %}" >Shift Detail</a></li>
  {% endblock %}
 
 
-{% block menu_settings_year %}active{% endblock %}
+{% block menu_shift_class %}active{% endblock %}
 
 {% block custom_css %}
 <link rel="stylesheet" href="https://unpkg.com/react-select/dist/react-select.css">
-{% render_bundle 'academic_year' 'css' %}
 <link rel="stylesheet" href="{% static 'js/plugins/react/react-datepicker.min.css">
 {% endblock %}
 {% block content %}
@@ -30,8 +25,59 @@
 <div class="panel panel-flat animated fadeIn" id="vue-app">
     <div class="panel-body">
         <div class="row">
-            {% csrf_token %}
            <div id="app-root">
+               <h2 class="text-center text-bold">{{object.user.name|title}}</h2>
+               <div class="col-md-12">
+                 <h2 class="" style="font-weight:bold">Start Shift</h2>
+               </div>
+               <table class="table  datatable-header-footer">
+                     <thead style="border-top:1px solid #ddd;">
+                        <tr class="bg-primary">
+                            <th>Time</th>
+                            <th>Drawer Balance Entered By Cashier</th>
+                            <th>Drawer Balance By System</th>
+                            <th>Note</th>
+                        </tr>
+                     </thead>
+                     <tbody id="tb">
+                        <tr>
+                            <td>{% if object.start_time %} {{object.start_time}} {% else %} - {% endif %}</td>
+                            <td>{% if object.cashier_start_balance %}{{object.cashier_start_balance}} {% else %} - {% endif %}</td>
+                            <td>
+                                {% if object.start_counter_balance %}{{object.start_counter_balance}} {% else %} - {% endif %}
+                            </td>
+                            <td>
+                                {% if object.start_note %} {{object.start_note}} {% else %} - {% endif %}
+                            </td>
+                        </tr>
+                     </tbody>
+                 </table>
+
+               <div class="col-md-12">
+                 <h2 class="" style="font-weight:bold">End Shift</h2>
+               </div>
+               <table class="table  datatable-header-footer">
+                     <thead style="border-top:1px solid #ddd;">
+                        <tr class="bg-primary">
+                            <th>Time</th>
+                            <th>Drawer Balance Entered By Cashier</th>
+                            <th>Drawer Balance By System</th>
+                            <th>Note</th>
+                        </tr>
+                     </thead>
+                     <tbody id="tb">
+                        <tr>
+                            <td>{% if object.end_time %} {{object.end_time}} {% else %} - {% endif %}</td>
+                            <td>{% if object.cashier_end_balance %}{{object.cashier_end_balance}} {% else %} - {% endif %}</td>
+                            <td>
+                                {% if object.end_counter_balance %}{{object.end_counter_balance}} {% else %} - {% endif %}
+                            </td>
+                            <td>
+                                {% if object.end_note %} {{object.end_note}} {% else %} - {% endif %}
+                            </td>
+                        </tr>
+                     </tbody>
+                 </table>
            </div>
         </div>
     </div>
@@ -72,28 +118,5 @@
     });
   });
 </script>
-<script>
-var options = [
-  { value: '1', label: 'One' },
-  { value: '2', label: 'Two' }
-];
 
-function logChange(val) {
-  console.log("Selected: " + val);
-}
-    var csrfmiddlewaretoken  = jQuery("[name=csrfmiddlewaretoken]").val();
-
-    {% if object.id %}
-    var pk = "{{object.id}}";
-    var updateUrl = "{% url 'academic_year:api-update' pk=object.id %}";
-    {% else %}
-    var pk= false;
-    {% endif %}
-    var createUrl = "{% url 'academic_year:api-create' %}";
-    var redirectUrl = "{% url 'academic_year:index' %}";
-    // alertUser
-    function alertUser(msg,status='bg-success',header='Well done!')
-    { $.jGrowl(msg,{header: header,theme: status}); }
-</script>
-{% render_bundle 'academic_year' 'js' %}
 {% endblock %}

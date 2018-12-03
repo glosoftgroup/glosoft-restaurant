@@ -1,17 +1,15 @@
-# Payment rest api serializers
 from decimal import Decimal
-from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.serializers import (
-                SerializerMethodField,
-                ValidationError,
-                )
+    SerializerMethodField,
+    ValidationError,
+)
 
 from django.contrib.auth import get_user_model
-User = get_user_model()
 from ...sale.models import DrawerCash, Terminal, TerminalHistoryEntry
-from ...decorators import user_trail
+
+User = get_user_model()
 
 
 class TerminalListSerializer(serializers.ModelSerializer):
@@ -20,21 +18,23 @@ class TerminalListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Terminal
         fields = ('id',
-                 'terminal_name',
-                 'terminal_number',
-                 'amount',
-                 'todaySales'
-                 )
-    def get_todaySales(self,obj):
+                  'terminal_name',
+                  'terminal_number',
+                  'amount',
+                  'todaySales'
+                  )
+
+    def get_todaySales(self, obj):
         return obj.get_todaySales()
+
 
 class UserAuthorizationSerializer(serializers.Serializer):
     email = serializers.CharField()
     password = serializers.CharField(max_length=200)
     user = serializers.CharField(max_length=200)
-    terminal = serializers.CharField(max_length=200,allow_blank=True,required=False)
+    terminal = serializers.CharField(max_length=200, allow_blank=True, required=False)
 
-    def validate_user(self,value):
+    def validate_user(self, value):
         data = self.get_initial()
         user = data.get('user')
         try:
@@ -43,7 +43,7 @@ class UserAuthorizationSerializer(serializers.Serializer):
         except:
             raise ValidationError('User does not exist')
 
-    def validate_terminal(self,value):
+    def validate_terminal(self, value):
         data = self.get_initial()
         try:
             Terminal.objects.get(pk=int(data.get('terminal')))
@@ -53,9 +53,9 @@ class UserAuthorizationSerializer(serializers.Serializer):
 
 
 class UserLockAuthorizationSerializer(serializers.Serializer):
-    code = serializers.CharField(max_length=200,allow_blank=True,required=False)
+    code = serializers.CharField(max_length=200, allow_blank=True, required=False)
 
-    def validate_code(self,value):
+    def validate_code(self, value):
         data = self.get_initial()
         code = data.get('code')
         try:
@@ -63,6 +63,7 @@ class UserLockAuthorizationSerializer(serializers.Serializer):
             return value
         except:
             raise ValidationError('Invalid User Credentials.')
+
 
 class UserTransactionSerializer(serializers.ModelSerializer):
     email = serializers.CharField(max_length=200)
@@ -81,7 +82,7 @@ class UserTransactionSerializer(serializers.ModelSerializer):
                   'trans_type',
                   'note')
 
-    def validate_terminal(self,value):
+    def validate_terminal(self, value):
         data = self.get_initial()
         try:
             terminal = Terminal.objects.get(pk=int(data.get('terminal')))
@@ -97,13 +98,12 @@ class UserTransactionSerializer(serializers.ModelSerializer):
     def validate_note(self, value):
         data = self.get_initial()
         try:
-          if data.get('note'):
-             return value
-          else:
-            raise ValidationError('Add a note!')
+            if data.get('note'):
+                return value
+            else:
+                raise ValidationError('Add a note!')
         except:
             raise ValidationError('Add a note!')
-
 
     def validate_email(self, value):
         data = self.get_initial()
@@ -122,7 +122,7 @@ class UserTransactionSerializer(serializers.ModelSerializer):
             raise PermissionDenied('Username/email Failed!')
         return value
 
-    def validate_password(self,value):
+    def validate_password(self, value):
         data = self.get_initial()
         password = data.get('password')
         username = data.get('email')
@@ -132,7 +132,8 @@ class UserTransactionSerializer(serializers.ModelSerializer):
             kwargs = {'name': username}
         try:
             user = get_user_model().objects.get(**kwargs)
-            if user.check_password(password) and user.has_perm('sale.add_drawercash') and user.has_perm('sale.change_drawercash'):
+            if user.check_password(password) and user.has_perm('sale.add_drawercash') and user.has_perm(
+                    'sale.change_drawercash'):
                 self.manager = user
                 return value
             else:
@@ -141,7 +142,7 @@ class UserTransactionSerializer(serializers.ModelSerializer):
             raise PermissionDenied('Authentication Failed!')
         return value
 
-    def validate_User(self,value):
+    def validate_User(self, value):
         data = self.get_initial()
         try:
             user = User.objects.get(pk=int(data.get('User')))
@@ -153,16 +154,14 @@ class UserTransactionSerializer(serializers.ModelSerializer):
             raise ValidationError('Cashier does not extist')
         return value
 
-
-
-    def validate_trans_type(self,value):
+    def validate_trans_type(self, value):
         data = self.get_initial()
         trans_type = str(data.get('trans_type'))
         if trans_type != 'deposit' and self.type != 'withdraw':
             raise ValidationError('Transaction type error!')
         return value
 
-    def validate_amount(self,value):
+    def validate_amount(self, value):
         data = self.get_initial()
         try:
             terminal_id = int(data.get('terminal'))
@@ -178,7 +177,6 @@ class UserTransactionSerializer(serializers.ModelSerializer):
                 raise ValidationError('Insufficient cash in drawer!')
         return value
 
-
     def create(self, validated_data):
         """ authenticate user and transact
         """
@@ -189,31 +187,30 @@ class UserTransactionSerializer(serializers.ModelSerializer):
         user = validated_data['User']
         note = validated_data['note']
 
-        trail = str(manager)+' '+trans_type+' '+str(amount)+\
-                    ' from TERMINAL:'+str(terminal)
+        trail = str(manager) + ' ' + trans_type + ' ' + str(amount) + \
+                ' from TERMINAL:' + str(terminal)
         print trail
         if trans_type == 'deposit':
             self.terminal.amount += Decimal(amount)
             self.terminal.save()
             TerminalHistoryEntry.objects.create(
-                            terminal=terminal,
-                            comment=trail,
-                            crud=trans_type,
-                            user=manager
-                        )
+                terminal=terminal,
+                comment=trail,
+                crud=trans_type,
+                user=manager
+            )
         elif trans_type == 'withdraw':
             self.terminal.amount -= Decimal(amount)
             self.terminal.save()
             TerminalHistoryEntry.objects.create(
-                            terminal=terminal,
-                            comment=trail,
-                            crud=trans_type,
-                            user=manager
-                        )
-
+                terminal=terminal,
+                comment=trail,
+                crud=trans_type,
+                user=manager
+            )
 
         drawer = DrawerCash.objects.create(manager=manager,
-                                           user = User.objects.get(pk=int(user)),
+                                           user=User.objects.get(pk=int(user)),
                                            terminal=terminal,
                                            amount=amount,
                                            trans_type=trans_type,

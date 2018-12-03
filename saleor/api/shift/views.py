@@ -6,6 +6,7 @@ from rest_framework.decorators import api_view
 from datetime import datetime
 from structlog import get_logger
 from saleor.shift.models import Shift
+from saleor.sale.models import Terminal
 
 
 from .serializers import ShiftSerializer
@@ -16,11 +17,17 @@ logger = get_logger(__name__)
 @api_view(['GET', 'POST', ])
 def start_shift(request):
 
+    cash_drawer_amount = "0.0"
+    qs = Terminal.objects.all()
+    if qs.last():
+        cash_drawer_amount = str(qs.last().amount)
+
     if request.method == 'POST':
 
         code = request.data.get('code')
         email = request.data.get('email')
         note = request.data.get('note')
+        balance = request.data.get('balance')
 
         if code and email:
 
@@ -38,11 +45,17 @@ def start_shift(request):
                 if query.exists():
                     last = query.last()
                     if last.end_time:
-                        shift = Shift.objects.create(start_time=time_now, user=user,
-                                             start_counter_balance="0.0", start_note=note)
+                        shift = Shift.objects.create(
+                            start_time=time_now, user=user,
+                            start_counter_balance=cash_drawer_amount,
+                            cashier_start_balance=balance,
+                            start_note=note)
                 else:
-                    Shift.objects.create(start_time=time_now, user=user,
-                                         start_counter_balance="0.0", start_note=note)
+                    Shift.objects.create(
+                        start_time=time_now, user=user,
+                        start_counter_balance=cash_drawer_amount,
+                        cashier_start_balance=balance,
+                        start_note=note)
 
             except Exception as e:
                 logger.error("check_shift_started", message=e.message)
@@ -60,12 +73,17 @@ def start_shift(request):
 
 @api_view(['GET', 'POST', ])
 def end_shift(request):
+    cash_drawer_amount = "0.0"
+    qs = Terminal.objects.all()
+    if qs.last():
+        cash_drawer_amount = str(qs.last().amount)
 
     if request.method == 'POST':
 
         code = request.data.get('code')
         email = request.data.get('email')
         note = request.data.get('note')
+        balance = request.data.get('balance')
 
         if code and email:
 
@@ -82,7 +100,8 @@ def end_shift(request):
                 if query.exists():
                     shift = query.last()
                     shift.end_time = time_now
-                    shift.end_counter_balance = "0.0"
+                    shift.end_counter_balance = cash_drawer_amount
+                    shift.cashier_end_balance = balance
                     shift.end_note = note
                     shift.save()
 

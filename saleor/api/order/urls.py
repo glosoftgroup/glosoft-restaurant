@@ -14,6 +14,7 @@ from .views import (
     SalePointOrdersListAPIView,
     SearchOrdersListAPIView,
     TableOrdersListAPIView,
+    CancelledOrderListAPIView
     )
 
 
@@ -39,5 +40,6 @@ urlpatterns = [
         name='update-order'),
     url(r'^ready/collect/order/(?P<pk>[0-9]+)/$', OrderReadyOrCollectedAPIView.as_view(),
         name='ready-collect-order'),
+    url(r'^cancelled/$', CancelledOrderListAPIView.as_view(), name='cancelled-orders'),
 ]
 

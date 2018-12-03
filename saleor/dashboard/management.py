@@ -7,6 +7,9 @@ from saleor.salepoints.models import SalePoint
 from saleor.section.models import Section
 from saleor.supplier.models import Supplier
 from saleor.payment.models import PaymentOption as Payment
+from structlog import get_logger
+
+logger = get_logger(__name__)
 
 
 def add_stock_location(sender,**kwargs):
@@ -15,7 +18,7 @@ def add_stock_location(sender,**kwargs):
         if not store.exists():
             StockLocation.objects.create(name="default")
     except Exception as e:
-        print(e)
+        logger.error("add_stock_location", exptn=e.message)
 
 
 def add_default_supplier(sender,**kwargs):
@@ -24,7 +27,7 @@ def add_default_supplier(sender,**kwargs):
         if not store.exists():
             Supplier.objects.create(name="Unknown", mobile='Unknown')
     except Exception as e:
-        print e
+        logger.error("add_default_supplier", exptn=e.message)
 
 
 def add_sale_point(sender, **kwargs):
@@ -34,7 +37,7 @@ def add_sale_point(sender, **kwargs):
             SalePoint.objects.create(name="Bar")
             SalePoint.objects.create(name="Restaurant")
     except Exception as e:
-        print e
+        logger.error("add_sale_point", exptn=e.message)
 
 
 def add_section(sender, **kwargs):
@@ -46,16 +49,16 @@ def add_section(sender, **kwargs):
         if not restaurant.exists():
             Section.objects.create(name="Restaurant")
     except Exception as e:
-        pass
+        logger.error("add_section", exptn=e.message)
 
 
 def add_terminal(sender,**kwargs):
     try:
         terminal = Terminal.objects.all()
         if not terminal.exists():
-            Terminal.objects.create(terminal_name="Till-001",terminal_number=1)
+            Terminal.objects.create(terminal_name="Counter Drawer", terminal_number=1)
     except Exception as e:
-        print e
+        logger.error("add_terminal", exptn=e.message)
 
 
 def add_stock_payment_options(sender, **kwargs):
@@ -81,8 +84,8 @@ def add_stock_payment_options(sender, **kwargs):
             Payment.objects.create(name="Mpesa Offline")
 
 
-    except:
-        print('Error creating payment options')
+    except Exception as e:
+        logger.error("Error creating payment options", exptn=e.message)
 
 
 def add_payment_options(sender, **kwargs):
@@ -102,8 +105,8 @@ def add_payment_options(sender, **kwargs):
         points = PaymentOption.objects.filter(name='Loyalty Points')
         if not points.exists():
             PaymentOption.objects.create(name="Loyalty Points")
-    except:
-        print('Error creating payment options')
+    except Exception as e :
+        logger.error("Error creating payment options", exptn=e.message)
 
 
 def add_view_permissions(sender, **kwargs):

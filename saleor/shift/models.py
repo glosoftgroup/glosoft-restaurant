@@ -38,6 +38,13 @@ class Shift(models.Model):
     end_counter_balance = models.CharField(
         pgettext_lazy('Shift field', 'counter_balance'), blank=True, null=True, max_length=128)
 
+    cashier_start_balance = models.CharField(
+        pgettext_lazy('Shift field', 'counter_balance'), blank=True, null=True, max_length=128,
+        default="0.0")
+
+    cashier_end_balance = models.CharField(
+        pgettext_lazy('Shift field', 'counter_balance'), blank=True, null=True, max_length=128)
+
     class Meta:
         app_label = 'shift'
         verbose_name = pgettext_lazy('Shift model', 'Shift')

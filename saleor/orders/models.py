@@ -8,7 +8,6 @@ from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils.timezone import now
 from django.utils.translation import pgettext_lazy
-from django_prices.models import PriceField
 from jsonfield import JSONField
 from ..table.models import Table
 from ..salepoints.models import SalePoint
@@ -38,7 +37,6 @@ class OrdersManager(models.Manager):
             models.Q(room=room_pk), models.Q(status='payment-pending'))
 
 
-#@python_2_unicode_compatible
 class Orders(models.Model):
     status = models.CharField(
         pgettext_lazy('Orders field', 'Invoice status'),
@@ -195,6 +193,12 @@ class OrderedItem(models.Model):
 
     def __str__(self):
         return self.product_name
+
+
+class CancelledOrder(models.Model):
+    order_id = models.IntegerField(default=Decimal(1))
+    payload = JSONField(null=True, blank=True)
+    created = models.DateTimeField(default=now, editable=False)
 
 
 

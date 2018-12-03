@@ -6,7 +6,7 @@ from rest_framework.serializers import (
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.utils.timezone import now
-from ...orders.models import (Orders, OrderedItem)
+from ...orders.models import (Orders, OrderedItem, CancelledOrder)
 from ...sale.models import Terminal
 from decimal import Decimal
 from saleor.countertransfer.models import CounterTransferItems as Item
@@ -305,8 +305,6 @@ class OrderSerializer(serializers.ModelSerializer):
             raise ValidationError('User specified does not exist')
 
     def create(self, validated_data):
-        # add sold amount to drawer
-        # Orders.objects.all().delete()
         try:
             total_net = Decimal(validated_data.get('total_net'))
         except:
@@ -315,9 +313,6 @@ class OrderSerializer(serializers.ModelSerializer):
             total_tax = Decimal(validated_data.get('total_tax'))
         except Exception as e:
             total_tax = Decimal(0)
-        terminal = validated_data.get('terminal')
-        terminal.amount += Decimal(total_net)
-        terminal.save()
 
         order = Orders()
 
@@ -478,6 +473,7 @@ class OrderUpdateSerializer(serializers.ModelSerializer):
         instance.total_net = validated_data.get('total_net', instance.total_net)
         instance.debt = instance.debt - validated_data.get('amount_paid', instance.amount_paid)
         instance.amount_paid = instance.amount_paid + validated_data.get('amount_paid', instance.amount_paid)
+        instance.balance = validated_data.get('balance', instance.balance)
         if instance.amount_paid >= instance.total_net:
             instance.status = 'fully-paid'
             instance.payment_data = validated_data.get('payment_data')
@@ -607,3 +603,15 @@ def change_mpesa_id_status(payments_ids):
         except Exception as e:
             logger.error(e.message, message="mpesa with id " + str(id) + "not found",
                          event="change_mpesa_payment_status")
+
+
+class ListCancelledOrderSerializer(serializers.ModelSerializer):
+
+    payload = JSONField()
+
+    class Meta:
+        model = CancelledOrder
+        fields = ('order_id',
+                  'payload',
+                  'created',
+                  )

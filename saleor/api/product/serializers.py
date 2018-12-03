@@ -489,6 +489,8 @@ class UserSerializer(serializers.ModelSerializer):
         now = datetime.now()
         time_now = now.strftime("%Y-%m-%d %H:%m")
         date_today = now.strftime("%Y-%m-%d")
+        print date_today
+        print obj.name
         try:
             query = Shift.objects.filter(created_at__icontains=date_today, user=obj)
             if query.exists():
@@ -496,24 +498,17 @@ class UserSerializer(serializers.ModelSerializer):
                 last = query.last()
                 if last.end_time:
                     return False
-                    # Shift.objects.create(date=time_now, start_time=time_now, user=obj,
-                    #                      start_counter_balance="0.0")
                 else:
                     return True
             else:
                 return False
-                # Shift.objects.create(date=time_now, start_time=time_now, user=obj,
-                #                      start_counter_balance="0.0")
         except Exception as e:
-            print e
             logger.error("check_shift_started", message=e.message)
-
         return False
 
     def get_permissions(self, obj):
         logger.info('User: ' + str(obj.name) + ' ' + str(obj.email) + ' logged in via api')
         user_trail(obj.name, 'logged in via api', 'view')
-
         permissions = []
         if obj.has_perm('sales.make_sale'):
             permissions.append('make_sale')
@@ -523,4 +518,8 @@ class UserSerializer(serializers.ModelSerializer):
             permissions.append('set_ready')
         if obj.has_perm('sales.set_collected'):
             permissions.append('set_collected')
+        if obj.has_perm('sale.view_drawercash'):
+            permissions.append('view_drawercash')
+        if obj.has_perm('sale.change_drawercash'):
+            permissions.append('change_drawercash')
         return permissions

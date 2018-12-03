@@ -43,6 +43,8 @@
        }
     }
 
+    .td:hover{cursor: pointer;}
+
 </style>
  {% endblock %}
 
@@ -155,7 +157,6 @@
                     <th>End Time</th>
                     <th>Start Balance</th>
                     <th>End Balance</th>
-                    <th>Note</th>
                     <th class="hidden"></th>
                   </tr>
                 </thead>
@@ -171,7 +172,7 @@
                 <!--no data template-->
                 <template  v-else>
                 <tr v-if="items.length == 0" class="text-center">
-                    <td colspan="7" class="text-bold animated zoomIn">
+                    <td colspan="6" class="text-bold animated zoomIn">
                         No Data Found !
                     </td>
                 </tr>
@@ -179,14 +180,13 @@
                 <!--listing template-->
                 <template v-for="item in items">
                     <tr class="td " :id="item.id">
-                        <td>
+                        <td class="td" @click="goTo(item.update_view_url)">
                             ${item.name}
                         </td>
-                        <td>${item.start_time}</td>
-                        <td>${item.end_time}</td>
-                        <td>${item.start_counter_balance}</td>
-                        <td>${item.end_counter_balance}</td>
-                        <td>${item.end_note}</td>
+                        <td class="td" @click="goTo(item.update_view_url)">${item.start_time}</td>
+                        <td class="td" @click="goTo(item.update_view_url)">${item.end_time}</td>
+                        <td class="td" @click="goTo(item.update_view_url)">${item.start_counter_balance}</td>
+                        <td class="td" @click="goTo(item.update_view_url)">${item.end_counter_balance}</td>
 
                         <td class="hidden text-center">
                             <ul class="icons-list">

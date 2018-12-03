@@ -234,7 +234,6 @@ def user_add(request):
     try:
         permissions = Permission.objects.all()
         groups = Group.objects.all()
-        user_trail(request.user.name, 'accessed add users page', 'view')
         logger.info('User: ' + str(request.user.name) + ' accessed user create page')
         return TemplateResponse(request, 'dashboard/users/add_user.html',
                                 {'permissions': permissions, 'groups': groups})
@@ -322,7 +321,6 @@ def user_process(request):
             gps = Group.objects.filter(name__in=groups)
             last_id.groups.add(*gps)
             last_id.save()
-        user_trail(request.user.name, 'added user: ' + str(name), 'add')
         logger.info('User: ' + str(request.user.name) + ' created user:' + str(name))
         return HttpResponse(last_id.id)
 
@@ -353,7 +351,6 @@ def user_detail(request, pk):
         """ check the users permission to view users """
 
         if request.user.has_perm('userprofile.change_user'):
-            user_trail(request.user.name, 'viewed ' + str(user.name) + '`s profile', 'view')
             return TemplateResponse(request, 'dashboard/users/detail.html', ctx)
         else:
             logger.debug('status: 403, view permission denied for ' + str(request.user))
@@ -399,8 +396,6 @@ def user_edit(request, pk):
         ctx['self_account'] = True
         if request.user.has_perm('userprofile.change_user'):
             ctx['should_edit'] = True
-        user_trail(request.user.name, 'accessed edit page for user ' + str(user.name), 'view')
-        logger.info('User: ' + str(request.user.name) + ' accessed edit page for user: ' + str(user.name))
         return TemplateResponse(request, 'dashboard/users/edit_user.html', ctx)
     else:
 
