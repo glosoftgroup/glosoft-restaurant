@@ -256,6 +256,7 @@ class TableOrdersListAPIView(generics.ListAPIView):
         # Note the use of `get_queryset()` instead of `self.queryset`
         query = self.request.GET.get('q')
         order = self.request.GET.get('order')
+        user_id = self.request.GET.get('user')
 
         if order and query:
             queryset = self.get_queryset().filter(
@@ -265,6 +266,17 @@ class TableOrdersListAPIView(generics.ListAPIView):
             queryset = self.get_queryset().filter(table__pk=pk).filter(status=query)
         else:
             queryset = self.get_queryset().filter(table__pk=pk)
+
+        if user_id:
+            try:
+                user = User.objects.get(id=user_id)
+                # if user.has_perm('sales.make_saless'):
+                #     # if user has permission then show all orders in that table
+                #     queryset = self.get_queryset().filter(table__pk=pk)
+                # else:
+                queryset = queryset.filter(user=user)
+            except Exception as e:
+                queryset = queryset.filter(table__pk=pk)
         serializer = ListOrderSerializer(queryset, context=serializer_context, many=True)
         return Response(serializer.data)
 
