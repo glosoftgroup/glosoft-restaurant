@@ -140,3 +140,4 @@ class SearchTransferredStockListSerializer(serializers.Serializer):
     discount = serializers.CharField(max_length=200)
     counter = serializers.JSONField(allow_null=True)
     kitchen = serializers.JSONField(allow_null=True)
+    attributes_list = serializers.JSONField(allow_null=True)

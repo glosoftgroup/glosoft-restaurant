@@ -82,7 +82,10 @@ class DestroyView(generics.DestroyAPIView):
         order.payload = data # extract data
         order.save()
 
-        instance.delete()
+        instance.status = 'cancelled'
+        instance.save()
+
+        # instance.delete()
 
         user_trail(self.request.user.name,
                    'cancelled order:#' + str(instance.invoice_number), 'delete')
@@ -256,7 +259,6 @@ class TableOrdersListAPIView(generics.ListAPIView):
         # Note the use of `get_queryset()` instead of `self.queryset`
         query = self.request.GET.get('q')
         order = self.request.GET.get('order')
-        user_id = self.request.GET.get('user')
 
         if order and query:
             queryset = self.get_queryset().filter(
@@ -267,16 +269,6 @@ class TableOrdersListAPIView(generics.ListAPIView):
         else:
             queryset = self.get_queryset().filter(table__pk=pk)
 
-        if user_id:
-            try:
-                user = User.objects.get(id=user_id)
-                # if user.has_perm('sales.make_saless'):
-                #     # if user has permission then show all orders in that table
-                #     queryset = self.get_queryset().filter(table__pk=pk)
-                # else:
-                queryset = queryset.filter(user=user)
-            except Exception as e:
-                queryset = queryset.filter(table__pk=pk)
         serializer = ListOrderSerializer(queryset, context=serializer_context, many=True)
         return Response(serializer.data)
 
@@ -502,6 +494,9 @@ def send_to_sale(credit):
         new_item.counter = item.counter
         new_item.transfer_id = item.transfer_id
         new_item.order_id = item.id
+        new_item.attributes = item.attributes
+        new_item.unit_purchase = item.unit_purchase
+        new_item.total_purchase = item.total_purchase
 
         if item.counter:
             try:

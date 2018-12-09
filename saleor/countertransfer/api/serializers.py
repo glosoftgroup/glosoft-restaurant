@@ -5,7 +5,7 @@ from django.utils.formats import localize
 from rest_framework import serializers
 from saleor.countertransfer.models import CounterTransfer as Table
 from saleor.countertransfer.models import CounterTransferItems as Item
-from saleor.product.models import Stock
+from saleor.product.models import Stock, ProductVariant
 
 global fields, item_fields, module
 module = 'countertransfer'
@@ -84,15 +84,17 @@ def format_fields(fields_data, items_list):
 class ItemsStockSerializer(serializers.ModelSerializer):
     sku = serializers.SerializerMethodField()
     quantity = serializers.SerializerMethodField()
+    unit_purchase = serializers.SerializerMethodField()
     unit_cost = serializers.SerializerMethodField()  # price overrride (selling price)
     total_cost = serializers.SerializerMethodField()
     product_name = serializers.SerializerMethodField()
     counter = serializers.SerializerMethodField()
+    attributes_list = serializers.SerializerMethodField()
 
     class Meta:
         model = Item
         fields = format_fields(item_fields, ['productName', 'price', 'unit_price']) + \
-                 ('total_cost', 'product_name', 'unit_cost')
+                 ('total_cost', 'product_name', 'unit_cost', 'attributes_list', 'unit_purchase')
 
     def get_sku(self, obj):
         try:
@@ -109,6 +111,12 @@ class ItemsStockSerializer(serializers.ModelSerializer):
         except:
             return obj.unit_price
 
+    def get_unit_purchase(self, obj):
+        try:
+            return obj.stock.cost_price.gross
+        except:
+            return 0
+
     def get_total_cost(self, obj):
         try:
             return obj.price
@@ -124,6 +132,13 @@ class ItemsStockSerializer(serializers.ModelSerializer):
     def get_counter(self, obj):
         try:
             return {"id": obj.counter.id, "name": obj.counter.name}
+        except:
+            return None
+
+    def get_attributes_list(self, obj):
+        try:
+            return ProductVariant.objects.filter(pk=obj.stock.variant.pk).extra(select=dict(key="content_item.data -> 'attributes'"))\
+                          .values('attributes').order_by('attributes')
         except:
             return None
 

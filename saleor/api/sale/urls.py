@@ -5,7 +5,11 @@ from .views import (
     SaleCreateAPIView,
     SaleDetailAPIView,
     ListAPIView,
-    ListItemAPIView
+    ListItemAPIView,
+
+    ItemListAPIView,
+    SoldItemListAPIView,
+    SaleMarginListAPIView
     )
 
 
@@ -15,5 +19,12 @@ urlpatterns = [
     url(r'^list/(?P<pk>[0-9]+)/$', SaleDetailAPIView.as_view(), name='api-list-sale'),
     url(r'^list/item/(?P<pk>[0-9]+)/$', ListItemAPIView.as_view(), name='api-list-sale'),
     url(r'^list/$', ListAPIView.as_view(), name='api-list'),
+
+    url(r'^totals/$', SoldItemListAPIView.as_view(),
+        name='list-sales'),
+    url(r'^margin/', SaleMarginListAPIView.as_view(),
+        name='sale-margin'),
+    url(r'^items/(?P<pk>[0-9]+)/$', ItemListAPIView.as_view(),
+        name='list-sold-items'),
 ]
 

@@ -4,6 +4,7 @@ from decimal import Decimal
 from django.conf import settings
 from django.core.validators import MinValueValidator
 from django.db import models
+from django.contrib.postgres.fields import HStoreField
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.timezone import now
 from django.utils.translation import pgettext_lazy
@@ -253,6 +254,11 @@ class SoldItem(models.Model):
     kitchen = models.ForeignKey(
         Kitchen, related_name='sold_item_kitchen', blank=True, null=True, default='',
         verbose_name=pgettext_lazy('OrderedItem field', 'Kitchen'))
+    created = models.DateTimeField(
+        pgettext_lazy('SoldItem field', 'created'),
+        default=now, editable=False)
+    attributes = HStoreField(
+        pgettext_lazy('SoldItem field', 'attributes'), default={})
     objects = SoldItemManager()
 
     class Meta:

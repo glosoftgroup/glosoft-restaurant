@@ -10,6 +10,7 @@ from rest_framework.test import APIRequestFactory
 from rest_framework.views import APIView
 from .pagination import PostLimitOffsetPagination
 
+from saleor.product.models import ProductVariant
 from saleor.product.models import Stock as Table
 from saleor.countertransfer.models import CounterTransferItems as CounterItems
 from saleor.menutransfer.models import TransferItems as MenuItem
@@ -209,6 +210,15 @@ def getCounterItemsJsonData(obj):
     except:
         discount = 0
 
+    try:
+        attributes_list = ProductVariant.objects.filter(pk=obj.stock.variant.pk).extra(select=dict(key="content_item.data -> 'attributes'")) \
+            .values('attributes').order_by('attributes')
+    except Exception as ex:
+        print "error"
+        print ex
+
+        attributes_list = {}
+
     json_data = {
         "id": id,
         "sku": sku,
@@ -219,7 +229,8 @@ def getCounterItemsJsonData(obj):
         "tax": tax,
         "discount": discount,
         "counter": counter,
-        "kitchen": None
+        "kitchen": None,
+        "attributes_list": attributes_list
     }
 
     return json_data
@@ -268,6 +279,12 @@ def getMenuItemsJsonData(obj):
     except:
         quantity = 0
 
+    try:
+        attributes_list = ProductVariant.objects.filter(pk=obj.stock.variant.pk).extra(select=dict(key="content_item.data -> 'attributes'")) \
+            .values('attributes').order_by('attributes')
+    except:
+        attributes_list = {}
+
     """ tax """
     tax = 0
 
@@ -284,7 +301,8 @@ def getMenuItemsJsonData(obj):
         "tax": tax,
         "discount": discount,
         "kitchen": kitchen,
-        "counter": None
+        "counter": None,
+        "attributes_list": attributes_list
     }
 
     return json_data

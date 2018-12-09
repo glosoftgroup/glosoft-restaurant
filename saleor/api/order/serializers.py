@@ -34,28 +34,43 @@ item_fields = (
     'discount',
     'ready',
     'collected',
-    'cold'
+    'cold',
+    'attributes',
+    'unit_purchase',
+    'total_purchase',
 )
 
 
 class ItemSerializer(serializers.ModelSerializer):
+    attributes_list = serializers.SerializerMethodField()
     
     class Meta:
         model = OrderedItem
-        fields = item_fields
+        fields = item_fields + ('attributes_list',)
+
+    def get_attributes_list(self, obj):
+        if obj.attributes:
+            return [obj.attributes]
+        return None
 
 
 class ListItemSerializer(serializers.ModelSerializer):
     counter = serializers.SerializerMethodField()
     kitchen = serializers.SerializerMethodField()
+    attributes_list = serializers.SerializerMethodField()
     
     class Meta:
         model = OrderedItem
-        fields = item_fields
+        fields = item_fields + ('attributes_list',)
+
+    def get_attributes_list(self, obj):
+        if obj.attributes:
+            return [obj.attributes]
+        return None
 
     def get_counter(self, obj):
         try:
-            return {"id":obj.counter.id, "name":obj.counter.name}
+            return {"id":obj.counter.id, "name": obj.counter.name}
         except:
             return None
 
@@ -356,6 +371,9 @@ class OrderSerializer(serializers.ModelSerializer):
             old_order.delete()
 
         for ordered_item_data in ordered_items_data:
+
+            print ordered_item_data
+
             OrderedItem.objects.create(orders=order, **ordered_item_data)
             if ordered_item_data.get('counter'):
                 try:

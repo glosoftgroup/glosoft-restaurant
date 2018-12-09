@@ -38,7 +38,10 @@ class ItemSerializer(serializers.ModelSerializer):
                 'product_name',
                 'product_category',
                 'tax',
-                'discount'
+                'discount',
+                'attributes',
+                'unit_purchase',
+                'total_purchase',
                  )
 
     def get_quantity(self, obj):
