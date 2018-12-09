@@ -2,6 +2,8 @@ from django.db.models import Q
 from datetime import datetime
 from .pagination import PostLimitOffsetPagination
 from django.contrib.auth import get_user_model
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.auth.models import Permission
 
 from .serializers import (
     UserTransactionSerializer,
@@ -103,6 +105,20 @@ def lock_login(request):
                         permissions.append('set_ready')
                     if user.has_perm('sales.set_collected'):
                         permissions.append('set_collected')
+
+                    # check and add the custom permissions
+                    try:
+                        client_url_content_type = ContentType.objects.get(app_label='sales', model='unused')
+                        perms = Permission.objects.filter(content_type=client_url_content_type)
+
+                        if perms.exists():
+                            for i in perms:
+                                perm = (i.codename).encode('ascii', 'ignore')
+                                if user.has_perm("sales." + perm):
+                                    permissions.append(perm)
+                    except Exception as e:
+                        logger.error('error getting permissions', exception=e)
+
                     user_response = {"user":
                         {
                             "id": user.id,
