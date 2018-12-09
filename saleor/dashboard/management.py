@@ -127,124 +127,133 @@ def add_view_permissions(sender, **kwargs):
                                       name="Can view %s" % content_type.name)
     
     """ Client POS custom permissions """
-    if not ContentType.objects.filter(model='unused'):
-        # create unused model if does not exist
-        # used to bind the custom permissions
-        url_content_type = ContentType.objects.create(app_label='sales', model='unused')
+    try:
+        client_url_content_type = ContentType.objects.get(app_label='sales', model='unused')
+    except Exception as e:
+        logger.error(e.message)
+        client_url_content_type = ContentType.objects.create(app_label='sales', model='unused')
 
-        # make sales on the client permission
-        if not Permission.objects.filter(codename='make_sale'):
-            Permission.objects.create(
-                name='can make sales',
-                content_type=url_content_type, codename='make_sale')
+    # make sales on the client permission
+    if not Permission.objects.filter(codename='make_sale'):
+        Permission.objects.create(
+            name='can make sales',
+            content_type=client_url_content_type, codename='make_sale')
 
-        # generate invoice on the client permission
-        if not Permission.objects.filter(codename='make_invoice'):
-            Permission.objects.create(
-                name='can generate invoice',
-                content_type=url_content_type, codename='make_invoice')
+    # generate invoice on the client permission
+    if not Permission.objects.filter(codename='make_invoice'):
+        Permission.objects.create(
+            name='can generate invoice',
+            content_type=client_url_content_type, codename='make_invoice')
 
-        # set order as ready on the client permission
-        if not Permission.objects.filter(codename='set_ready'):
-            Permission.objects.create(
-                name='can set order as ready',
-                content_type=url_content_type, codename='set_ready')
+    # set order as ready on the client permission
+    if not Permission.objects.filter(codename='set_ready'):
+        Permission.objects.create(
+            name='can set order as ready',
+            content_type=client_url_content_type, codename='set_ready')
 
-        # set order as collected on the client permission
-        if not Permission.objects.filter(codename='set_collected'):
-            Permission.objects.create(
-                name='can set order as collected',
-                content_type=url_content_type, codename='set_collected')
+    # set order as collected on the client permission
+    if not Permission.objects.filter(codename='set_collected'):
+        Permission.objects.create(
+            name='can set order as collected',
+            content_type=client_url_content_type, codename='set_collected')
 
-        # create new order on the client permission
-        if not Permission.objects.filter(codename='create_order'):
-            Permission.objects.create(
-                name='can create order',
-                content_type=url_content_type, codename='create_order')
+    # create new order on the client permission
+    if not Permission.objects.filter(codename='create_order'):
+        Permission.objects.create(
+            name='can create order',
+            content_type=client_url_content_type, codename='create_order')
 
-        # update order on the client permission
-        if not Permission.objects.filter(codename='update_order'):
-            Permission.objects.create(
-                name='can update order',
-                content_type=url_content_type, codename='update_order')
+    # update order on the client permission
+    if not Permission.objects.filter(codename='update_order'):
+        Permission.objects.create(
+            name='can update order',
+            content_type=client_url_content_type, codename='update_order')
 
-        # cancel order on the client permission
-        if not Permission.objects.filter(codename='cancel_order'):
-            Permission.objects.create(
-                name='can cancel order',
-                content_type=url_content_type, codename='cancel_order')
+    # cancel order on the client permission
+    if not Permission.objects.filter(codename='cancel_order'):
+        Permission.objects.create(
+            name='can cancel order',
+            content_type=client_url_content_type, codename='cancel_order')
 
-        # settle order on the client permission
-        if not Permission.objects.filter(codename='settle_order'):
-            Permission.objects.create(
-                name='can settle order',
-                content_type=url_content_type, codename='settle_order')
+    # settle order on the client permission
+    if not Permission.objects.filter(codename='settle_order'):
+        Permission.objects.create(
+            name='can settle order',
+            content_type=client_url_content_type, codename='settle_order')
 
-        # merge order on the client permission
-        if not Permission.objects.filter(codename='merge_order'):
-            Permission.objects.create(
-                name='can merge order',
-                content_type=url_content_type, codename='merge_order')
+    # merge order on the client permission
+    if not Permission.objects.filter(codename='merge_order'):
+        Permission.objects.create(
+            name='can merge order',
+            content_type=client_url_content_type, codename='merge_order')
 
-        # login to the client permission
-        if not Permission.objects.filter(codename='code_login'):
-            Permission.objects.create(
-                name='can login',
-                content_type=url_content_type, codename='code_login')
+    # login to the client permission
+    if not Permission.objects.filter(codename='code_login'):
+        Permission.objects.create(
+            name='can login',
+            content_type=client_url_content_type, codename='code_login')
 
-        # deposit cashdrawer amount on the client permission
-        if not Permission.objects.filter(codename='deposit_drawer_amount'):
-            Permission.objects.create(
-                name='can deposit cashdrawer amount',
-                content_type=url_content_type, codename='deposit_drawer_amount')
+    # deposit cashdrawer amount on the client permission
+    if not Permission.objects.filter(codename='deposit_drawer_amount'):
+        Permission.objects.create(
+            name='can deposit cashdrawer amount',
+            content_type=client_url_content_type, codename='deposit_drawer_amount')
 
-        # withdraw cashdrawer amount on the client permission
-        if not Permission.objects.filter(codename='withdraw_drawer_amount'):
-            Permission.objects.create(
-                name='can withdraw cashdrawer amount',
-                content_type=url_content_type, codename='withdraw_drawer_amount')
+    # withdraw cashdrawer amount on the client permission
+    if not Permission.objects.filter(codename='withdraw_drawer_amount'):
+        Permission.objects.create(
+            name='can withdraw cashdrawer amount',
+            content_type=client_url_content_type, codename='withdraw_drawer_amount')
 
-        # view cashdrawer amount on the client permission
-        if not Permission.objects.filter(codename='view_drawer_amount'):
-            Permission.objects.create(
-                name='can view cashdrawer amount',
-                content_type=url_content_type, codename='view_drawer_amount')
+    # view cashdrawer amount on the client permission
+    if not Permission.objects.filter(codename='view_drawer_amount'):
+        Permission.objects.create(
+            name='can view cashdrawer amount',
+            content_type=client_url_content_type, codename='view_drawer_amount')
 
-        # create takeaway on the client permission
-        if not Permission.objects.filter(codename='create_takeaway'):
-            Permission.objects.create(
-                name='can create takeaway',
-                content_type=url_content_type, codename='create_takeaway')
+    # create takeaway on the client permission
+    if not Permission.objects.filter(codename='create_takeaway'):
+        Permission.objects.create(
+            name='can create takeaway',
+            content_type=client_url_content_type, codename='create_takeaway')
 
-        # create management credit on the client permission
-        if not Permission.objects.filter(codename='create_credit'):
-            Permission.objects.create(
-                name='can create management credit',
-                content_type=url_content_type, codename='create_credit')
+    # create management credit on the client permission
+    if not Permission.objects.filter(codename='create_credit'):
+        Permission.objects.create(
+            name='can create management credit',
+            content_type=client_url_content_type, codename='create_credit')
+
+    # create management credit on the client permission
+    if not Permission.objects.filter(codename='change_table'):
+        Permission.objects.create(
+            name='can change order table',
+            content_type=client_url_content_type, codename='change_table')
 
     """ Reports Module Custom permissions """
-    if not ContentType.objects.filter(model='reports'):
-        # create unused model if does not exist
-        # used to bind the custom permissions
-        url_content_type = ContentType.objects.create(app_label='reports', model='reports')
+    try:
+        report_url_content_type = ContentType.objects.get(app_label='reports', model='reports')
+    except Exception as e:
+        logger.error(e.message)
+        report_url_content_type = ContentType.objects.create(app_label='reports', model='reports')
 
-        # view sales reports
-        if not Permission.objects.filter(codename='view_sale_reports'):
-            Permission.objects.create(
-                name='view sales reports',
-                content_type=url_content_type, codename='view_sale_reports')
 
-        # view products reports
-        if not Permission.objects.filter(codename='view_products_reports'):
-            Permission.objects.create(
-                name='view products reports',
-                content_type=url_content_type, codename='view_products_reports')
+    # view sales reports
+    if not Permission.objects.filter(codename='view_sale_reports'):
+        Permission.objects.create(
+            name='view sales reports',
+            content_type=report_url_content_type, codename='view_sale_reports')
 
-        # view purchase reports
-        if not Permission.objects.filter(codename='view_purchase_reports'):
-            Permission.objects.create(
-                name='view purchase reports',
-                content_type=url_content_type, codename='view_purchase_reports')
+    # view products reports
+    if not Permission.objects.filter(codename='view_products_reports'):
+        Permission.objects.create(
+            name='view products reports',
+            content_type=report_url_content_type, codename='view_products_reports')
+
+    # view purchase reports
+    if not Permission.objects.filter(codename='view_purchase_reports'):
+        Permission.objects.create(
+            name='view purchase reports',
+            content_type=report_url_content_type, codename='view_purchase_reports')
 
     view_unused = Permission.objects.filter(codename='view_unused')
     view_unused.delete()

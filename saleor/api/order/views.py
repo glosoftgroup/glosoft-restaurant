@@ -85,8 +85,6 @@ class DestroyView(generics.DestroyAPIView):
         instance.status = 'cancelled'
         instance.save()
 
-        # instance.delete()
-
         user_trail(self.request.user.name,
                    'cancelled order:#' + str(instance.invoice_number), 'delete')
 
