@@ -222,6 +222,7 @@ def add_view_permissions(sender, **kwargs):
         Permission.objects.create(
             name='can change order table',
             content_type=client_url_content_type, codename='change_table')
+<<<<<<< HEAD
 
     # create management credit on the client permission
     if not Permission.objects.filter(codename='generate_z_report'):
@@ -234,6 +235,8 @@ def add_view_permissions(sender, **kwargs):
         Permission.objects.create(
             name='can generate invoice',
             content_type=client_url_content_type, codename='make_invoice')
+=======
+>>>>>>> 0edd7c644ffee1a04f74c86197c6628907429171
 
     """ Reports Module Custom permissions """
     try:
