@@ -11,6 +11,7 @@ from ...sale.models import (
             Sales,
             SoldItem)
 from saleor.countertransfer.models import CounterTransferItems as Item
+from saleor.orders.models import OrderedItem, Orders
 from decimal import Decimal
 from django.utils.formats import localize
 from structlog import get_logger
@@ -215,3 +216,78 @@ class CreateSaleSerializer(serializers.ModelSerializer):
                 print 'Error reducing stock!'
 
         return sale
+
+class ListItemSerializer(serializers.ModelSerializer):
+    counter = serializers.SerializerMethodField()
+    kitchen = serializers.SerializerMethodField()
+    attributes_list = serializers.SerializerMethodField()
+
+    class Meta:
+        model = OrderedItem
+        fields = ('id',
+                  'counter',
+                  'kitchen',
+                  'sku',
+                  'transfer_id',
+                  'quantity',
+                  'unit_cost',
+                  'total_cost',
+                  'product_name',
+                  'product_category',
+                  'tax',
+                  'discount',
+                  'ready',
+                  'collected',
+                  'cold',
+                  'attributes',
+                  'unit_purchase',
+                  'total_purchase',
+                  'attributes_list',
+                  )
+
+    def get_attributes_list(self, obj):
+        if obj.attributes:
+            return [obj.attributes]
+        return None
+
+    def get_counter(self, obj):
+        try:
+            return {"id": obj.counter.id, "name": obj.counter.name}
+        except:
+            return None
+
+    def get_kitchen(self, obj):
+        try:
+            return {"id": obj.kitchen.id, "name": obj.kitchen.name}
+        except:
+            return None
+
+
+class ListOrderSerializer(serializers.ModelSerializer):
+    ordered_items = ListItemSerializer(many=True)
+    created = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Orders
+        fields = ('id',
+                  'user',
+                  'created',
+                  'invoice_number',
+                  'table',
+                  'total_net',
+                  'sub_total',
+                  'balance',
+                  'terminal',
+                  'amount_paid',
+                  'ordered_items',
+                  'payment_data',
+                  'status',
+                  'total_tax',
+                  'discount_amount',
+                  'point'
+                  )
+
+    def get_created(self, obj):
+        return obj.created.strftime('%Y-%m-%d %I:%M:%S %p')
+
+

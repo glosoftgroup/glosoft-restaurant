@@ -633,6 +633,11 @@
                            <i class="icon-typewriter"></i>Mpesa Payments
                           </a>
                       </li>
+                      <li class="hiddens {% block menu_visa_payments %}{% endblock %}">
+                          <a href="{% url 'visa_transactions:index'%}">
+                           <i class="icon-typewriter"></i>Visa Payments
+                          </a>
+                      </li>
                       <li class="{% block menu_maintenance %}{% endblock %}">
                           <a href="{% url 'dashboard:room_maintenance'%}">
                            <i class="icon-toggle"></i>Maintenance

@@ -9,7 +9,8 @@ from .views import (
 
     ItemListAPIView,
     SoldItemListAPIView,
-    SaleMarginListAPIView
+    SaleMarginListAPIView,
+    UserSaleAPIView
     )
 
 
@@ -22,6 +23,8 @@ urlpatterns = [
 
     url(r'^totals/$', SoldItemListAPIView.as_view(),
         name='list-sales'),
+    url(r'^user/totals/$', UserSaleAPIView.as_view(),
+        name='user-sales'),
     url(r'^margin/', SaleMarginListAPIView.as_view(),
         name='sale-margin'),
     url(r'^items/(?P<pk>[0-9]+)/$', ItemListAPIView.as_view(),

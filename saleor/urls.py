@@ -64,12 +64,14 @@ from .kitchen_transfer_report.urls import urlpatterns as kitchen_transfer_report
 from .menu_transfer_report.urls import urlpatterns as menu_transfer_report_urls
 from .menutransfer.urls import urlpatterns as menutransfer_urls
 from .mpesa_transactions.urls import urlpatterns as mpesa_transactions_urls
+from .visa_transactions.urls import urlpatterns as visa_transactions_urls
 from .return_sale.urls import urlpatterns as return_sale_urls
 from .return_purchase.urls import urlpatterns as return_purchase_urls
 from .shift.urls import urlpatterns as shift_urls
 import notifications.urls
 from .api.login import ObtainJSONWebToken
 from . import decorators
+
 
 
 urlpatterns = [
@@ -130,6 +132,7 @@ urlpatterns = [
     url(r'^kitchen/transfer/', include(kitchentransfer_urls, namespace='kitchentransfer')),
     url(r'^menu/transfer/', include(menutransfer_urls, namespace='menutransfer')),
     url(r'^mpesa/transactions/', include(mpesa_transactions_urls, namespace='mpesa_transactions')),
+    url(r'^visa/transactions/', include(visa_transactions_urls, namespace='visa_transactions')),
     url(r'^return/sale/', include(return_sale_urls, namespace='return_sale')),
     url(r'^return/purchase/', include(return_purchase_urls, namespace='return_purchase')),
     url(r'^sitemap\.xml$', sitemap, {'sitemaps': sitemaps},
@@ -142,7 +145,6 @@ urlpatterns = [
     # url(r'^api/auth/token/', obtain_jwt_token),
     url(r'^api/auth/token/', ObtainJSONWebToken.as_view()),
 ]
-
 if settings.DEBUG:
     # static files (images, css, javascript, etc.)
     urlpatterns += [
