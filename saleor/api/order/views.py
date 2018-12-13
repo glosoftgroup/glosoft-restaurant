@@ -23,7 +23,8 @@ from .serializers import (
     ListOrderItemSerializer,
     OrderReadyOrCollectedSerializer,
     SearchListOrderSerializer,
-    ListCancelledOrderSerializer
+    ListCancelledOrderSerializer,
+    MenuSearchListOrderSerializer
 )
 from ...decorators import user_trail
 from rest_framework.request import Request
@@ -82,7 +83,8 @@ class DestroyView(generics.DestroyAPIView):
         order.payload = data # extract data
         order.save()
 
-        instance.delete()
+        instance.status = 'cancelled'
+        instance.save()
 
         user_trail(self.request.user.name,
                    'cancelled order:#' + str(instance.invoice_number), 'delete')
@@ -265,11 +267,13 @@ class TableOrdersListAPIView(generics.ListAPIView):
             queryset = self.get_queryset().filter(table__pk=pk).filter(status=query)
         else:
             queryset = self.get_queryset().filter(table__pk=pk)
+
         serializer = ListOrderSerializer(queryset, context=serializer_context, many=True)
         return Response(serializer.data)
 
     def delete(self, request, pk=None):
         if request.data.get('status') == 'delete':
+            orders_to_be_deleted = []
             # delete each order and return orders to counter/menu transfer
             if request.data.get('orders'):
                 for order in request.data.get('orders'):
@@ -277,7 +281,11 @@ class TableOrdersListAPIView(generics.ListAPIView):
                     ordered_items = instance.ordered_items.all()
                     # return stock/menu items then delete
                     return_to_stock(ordered_items)
-                    instance.delete()
+                    instance.status = "Cancelled"
+                    instance.save()
+                    orders_to_be_deleted.append(order)
+                user_trail(self.request.user.name,
+                       'cancelled orders :#' + str(orders_to_be_deleted), 'delete')
         return Response("successfully delete, status=204")
 
 
@@ -298,6 +306,7 @@ class SearchOrdersListAPIView(generics.ListAPIView):
         counter = self.request.GET.get("counter", "")
         point = self.request.GET.get("point", "")
         status = self.request.GET.get('status')
+        user_id = self.request.GET.get('user')
         readyStatusBoolean = False
         collectedStatusBoolean = False
         if status:
@@ -340,11 +349,16 @@ class SearchOrdersListAPIView(generics.ListAPIView):
                         set_orders.append(i.pk)
 
                 queryset = queryset.filter(pk__in=set_orders)
+        else:
+            queryset = queryset.filter(status='payment-pending')
+
+        if user_id:
+            queryset = queryset.filter(user__pk=int(user_id))
 
         query = self.request.GET.get('q')
         if query:
             queryset = queryset.filter(
-                Q(status='pending-payment') |
+                Q(status='payment-pending') |
                 (Q(status='fully-paid') & Q(table__isnull=True) & Q(room__isnull=True)) |
                 Q(invoice_number__icontains=query) |
                 Q(room__name__icontains=query) |
@@ -429,7 +443,7 @@ class OrderUpdateAPIView(generics.RetrieveUpdateAPIView):
                 amount=serializer.data['amount_paid'],
                 trans_type='sale')
 
-        elif instance.status == 'cancelled':
+        elif instance.status.lower() == 'cancelled':
 
             order = CancelledOrder()
             order.order_id = serializer.data['id']
@@ -490,6 +504,9 @@ def send_to_sale(credit):
         new_item.counter = item.counter
         new_item.transfer_id = item.transfer_id
         new_item.order_id = item.id
+        new_item.attributes = item.attributes
+        new_item.unit_purchase = item.unit_purchase
+        new_item.total_purchase = item.total_purchase
 
         if item.counter:
             try:
@@ -528,3 +545,35 @@ class CancelledOrderListAPIView(generics.ListAPIView):
     def get_queryset(self, *args, **kwargs):
         queryset_list = CancelledOrder.objects.all()
         return queryset_list
+
+
+class SearchMenuOrderListAPIView(generics.ListAPIView):
+    queryset = Orders.objects.all()
+    serializer_class = MenuSearchListOrderSerializer(instance=queryset, context=serializer_context)
+
+    def list(self, request, pk=None):
+        serializer_context = {
+            'request': Request(request),
+            'pk': pk,
+            'status': self.request.GET.get('status')
+        }
+
+        queryset = Orders.objects.filter(status="payment-pending")
+        user_id = self.request.GET.get('user')
+        query = self.request.GET.get('q')
+
+        if user_id:
+            queryset = queryset.filter(user__pk=int(user_id))
+
+        if query:
+            print query
+            queryset = queryset.filter(
+                Q(invoice_number__icontains=query) |
+                Q(room__name__icontains=query) |
+                Q(table__name__icontains=query) |
+                Q(user__name__icontains=query)).distinct()
+        else:
+            queryset = queryset.distinct()
+
+        serializer = MenuSearchListOrderSerializer(queryset, context=serializer_context, many=True)
+        return Response(serializer.data)

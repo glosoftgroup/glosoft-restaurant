@@ -9,6 +9,8 @@ from rest_framework.serializers import (
 
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.auth.models import Permission
 from ...decorators import user_trail
 from ...discount.models import Sale
 from ...discount.models import get_variant_discounts
@@ -510,16 +512,24 @@ class UserSerializer(serializers.ModelSerializer):
         logger.info('User: ' + str(obj.name) + ' ' + str(obj.email) + ' logged in via api')
         user_trail(obj.name, 'logged in via api', 'view')
         permissions = []
-        if obj.has_perm('sales.make_sale'):
-            permissions.append('make_sale')
-        if obj.has_perm('sales.make_invoice'):
-            permissions.append('make_invoice')
-        if obj.has_perm('sales.set_ready'):
-            permissions.append('set_ready')
-        if obj.has_perm('sales.set_collected'):
-            permissions.append('set_collected')
+
+        # add the backend permissions
         if obj.has_perm('sale.view_drawercash'):
             permissions.append('view_drawercash')
         if obj.has_perm('sale.change_drawercash'):
             permissions.append('change_drawercash')
+
+        # check and add the custom permissions
+        try:
+            client_url_content_type = ContentType.objects.get(app_label='sales', model='unused')
+            perms = Permission.objects.filter(content_type=client_url_content_type)
+
+            if perms.exists():
+                for i in perms:
+                    perm = (i.codename).encode('ascii', 'ignore')
+                    if obj.has_perm("sales."+perm):
+                        permissions.append(perm)
+        except Exception as e:
+            logger.error('error getting permissions', exception=e)
+
         return permissions

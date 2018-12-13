@@ -9,6 +9,7 @@ from graphene_django.views import GraphQLView
 from django.views.decorators.csrf import csrf_exempt
 
 from .accounts.urls import urlpatterns as accounts_urls
+from .api.attribute.urls import urlpatterns as api_attribute_urls
 from .api.booking.urls import urlpatterns as api_booking_urls
 from .api.cash.urls import urlpatterns as api_cash_urls
 from .api.category.urls import urlpatterns as api_category_urls
@@ -75,6 +76,7 @@ urlpatterns = [
     url(r'^', include(core_urls)),
     url(r'^account/', include(registration_urls)),
     url(r'^accounts/', include(accounts_urls, namespace='accounts')),
+    url(r'^api/attribute/', include(api_attribute_urls, namespace='attribute-api')),
     url(r'^api/cash/', include(api_cash_urls, namespace='cash-api')),
     url(r'^api/booking/', include(api_booking_urls, namespace='booking-api')),
     url(r'^api/customer/', include(api_customer_urls, namespace='customer-api')),

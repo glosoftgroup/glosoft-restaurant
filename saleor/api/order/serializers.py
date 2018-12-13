@@ -1,8 +1,8 @@
 from rest_framework.serializers import (
-                HyperlinkedIdentityField,
-                ValidationError,
-                JSONField
-                )
+    HyperlinkedIdentityField,
+    ValidationError,
+    JSONField
+)
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.utils.timezone import now
@@ -34,28 +34,43 @@ item_fields = (
     'discount',
     'ready',
     'collected',
-    'cold'
+    'cold',
+    'attributes',
+    'unit_purchase',
+    'total_purchase',
 )
 
 
 class ItemSerializer(serializers.ModelSerializer):
-    
+    attributes_list = serializers.SerializerMethodField(required=False, allow_null=True)
+
     class Meta:
         model = OrderedItem
-        fields = item_fields
+        fields = item_fields + ('attributes_list',)
+
+    def get_attributes_list(self, obj):
+        if obj.attributes:
+            return [obj.attributes]
+        return None
 
 
 class ListItemSerializer(serializers.ModelSerializer):
     counter = serializers.SerializerMethodField()
     kitchen = serializers.SerializerMethodField()
-    
+    attributes_list = serializers.SerializerMethodField()
+
     class Meta:
         model = OrderedItem
-        fields = item_fields
+        fields = item_fields + ('attributes_list',)
+
+    def get_attributes_list(self, obj):
+        if obj.attributes:
+            return [obj.attributes]
+        return None
 
     def get_counter(self, obj):
         try:
-            return {"id":obj.counter.id, "name":obj.counter.name}
+            return {"id": obj.counter.id, "name": obj.counter.name}
         except:
             return None
 
@@ -137,28 +152,28 @@ class SearchListOrderSerializer(serializers.ModelSerializer):
         return time
 
     def get_point(self, orders):
-      try:
-          return {"id":orders.point['id'], "point":orders.point['point']}
-      except Exception as e:
-          return None
+        try:
+            return {"id": orders.point['id'], "point": orders.point['point']}
+        except Exception as e:
+            return None
 
     def get_table(self, orders):
-      try:
-          if orders.table:
-            return orders.table.name
-          elif orders.room:
-            return orders.room.name
-      except Exception as e:
-          return "Take Away"
+        try:
+            if orders.table:
+                return orders.table.name
+            elif orders.room:
+                return orders.room.name
+        except Exception as e:
+            return "Take Away"
 
     def get_user(self, orders):
-      try:
-          if orders.user.name:
-            return orders.user.name
-          elif orders.user.fullname:
-            return orders.user.fullname
-      except Exception as e:
-          return "Not Set"
+        try:
+            if orders.user.name:
+                return orders.user.name
+            elif orders.user.fullname:
+                return orders.user.fullname
+        except Exception as e:
+            return "Not Set"
 
     def get_ordered_items(self, orders):
         try:
@@ -190,10 +205,10 @@ class SearchListOrderSerializer(serializers.ModelSerializer):
                 try:
                     counter = {"id": i.counter.id, "name": i.counter.name}
                 except:
-                    counter =  None
+                    counter = None
 
                 try:
-                    kitchen =  {"id": i.kitchen.id, "name": i.kitchen.name}
+                    kitchen = {"id": i.kitchen.id, "name": i.kitchen.name}
                 except:
                     kitchen = None
 
@@ -217,6 +232,70 @@ class SearchListOrderSerializer(serializers.ModelSerializer):
             return items_array
         except Exception as e:
             return None
+
+
+class MenuSearchListOrderSerializer(serializers.ModelSerializer):
+    ordered_items = ListItemSerializer(many=True)
+    point = serializers.SerializerMethodField()
+    created = serializers.SerializerMethodField()
+    table = serializers.SerializerMethodField()
+    user = serializers.SerializerMethodField()
+    update_url = HyperlinkedIdentityField(view_name='order-api:update-order')
+    ready_collect_url = HyperlinkedIdentityField(view_name='order-api:ready-collect-order')
+
+    class Meta:
+        model = Orders
+        fields = ('id',
+                  'user',
+                  'created',
+                  'invoice_number',
+                  'table',
+                  'room',
+                  'point',
+                  'total_net',
+                  'sub_total',
+                  'balance',
+                  'terminal',
+                  'amount_paid',
+                  'update_url',
+                  'ready_collect_url',
+                  'ordered_items',
+                  'customer',
+                  'mobile',
+                  'customer_name',
+                  'payment_data',
+                  'status',
+                  'total_tax',
+                  'discount_amount'
+                  )
+
+    def get_created(self, obj):
+        time = obj.created.time().strftime('%H:%M %p')
+        return time
+
+    def get_point(self, orders):
+        try:
+            return {"id": orders.point['id'], "point": orders.point['point']}
+        except Exception as e:
+            return None
+
+    def get_table(self, orders):
+        try:
+            if orders.table:
+                return orders.table.name
+            elif orders.room:
+                return orders.room.name
+        except Exception as e:
+            return "Take Away"
+
+    def get_user(self, orders):
+        try:
+            if orders.user.name:
+                return orders.user.name
+            elif orders.user.fullname:
+                return orders.user.fullname
+        except Exception as e:
+            return "Not Set"
 
 
 class OrderSerializer(serializers.ModelSerializer):
@@ -350,12 +429,15 @@ class OrderSerializer(serializers.ModelSerializer):
 
         # add payment options
         if validated_data.get('old_orders'):
-          for i in validated_data.get('old_orders'):
-            old_order = Orders.objects.get(invoice_number=i)
-            old_order.status = "merged to "+str(order.invoice_number)
-            old_order.delete()
+            for i in validated_data.get('old_orders'):
+                old_order = Orders.objects.get(invoice_number=i)
+                old_order.status = "merged to " + str(order.invoice_number)
+                old_order.delete()
 
         for ordered_item_data in ordered_items_data:
+
+            print ordered_item_data
+
             OrderedItem.objects.create(orders=order, **ordered_item_data)
             if ordered_item_data.get('counter'):
                 try:
@@ -455,14 +537,11 @@ class OrderUpdateSerializer(serializers.ModelSerializer):
 
     def validate_terminal(self, value):
         data = self.get_initial()
-        # try:
         terminal = Terminal.objects.filter(pk=int(data.get('terminal')))
         if terminal.exists():
             return value
         else:
             raise ValidationError('Terminal specified does not exist')
-            # except:
-            #     raise ValidationError('Terminal specified does not exist')
 
     def update(self, instance, validated_data):
         terminal = validated_data.get('terminal', instance.terminal.id)
@@ -576,13 +655,15 @@ class OrderReadyOrCollectedSerializer(serializers.ModelSerializer):
         for ordered_item_data in ordered_items_data:
             try:
                 if ordered_item_data['counter'] is not None:
-                    filtereditems = OrderedItem.objects.filter(sku=ordered_item_data['sku'], counter=ordered_item_data['counter'])
+                    filtereditems = OrderedItem.objects.filter(sku=ordered_item_data['sku'],
+                                                               counter=ordered_item_data['counter'])
             except (Exception, IndexError) as e:
                 pass
 
             try:
                 if ordered_item_data['kitchen'] is not None:
-                    filtereditems = OrderedItem.objects.filter(sku=ordered_item_data['sku'], kitchen=ordered_item_data['kitchen'])
+                    filtereditems = OrderedItem.objects.filter(sku=ordered_item_data['sku'],
+                                                               kitchen=ordered_item_data['kitchen'])
             except Exception as e:
                 pass
 
@@ -606,7 +687,6 @@ def change_mpesa_id_status(payments_ids):
 
 
 class ListCancelledOrderSerializer(serializers.ModelSerializer):
-
     payload = JSONField()
 
     class Meta:

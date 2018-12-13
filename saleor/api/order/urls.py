@@ -14,7 +14,8 @@ from .views import (
     SalePointOrdersListAPIView,
     SearchOrdersListAPIView,
     TableOrdersListAPIView,
-    CancelledOrderListAPIView
+    CancelledOrderListAPIView,
+    SearchMenuOrderListAPIView
     )
 
 
@@ -34,6 +35,8 @@ urlpatterns = [
         name='api-table-orders'),
     url(r'^search/orders/$', SearchOrdersListAPIView.as_view(),
         name='api-restaurant-orders'),
+    url(r'^search/menu/orders/$', SearchMenuOrderListAPIView.as_view(),
+        name='api-search-menu-orders'),
     url(r'^room/(?P<pk>[0-9]+)$', RoomOrdersListAPIView.as_view(),
         name='api-room-orders'),
     url(r'^update-order/(?P<pk>[0-9]+)/$', OrderUpdateAPIView.as_view(),

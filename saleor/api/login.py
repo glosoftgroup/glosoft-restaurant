@@ -62,7 +62,7 @@ class CustomJWTSerializer(JSONWebTokenSerializer):
                     msg = _('Unauthorized User Login.')
                     raise serializers.ValidationError(msg)
                 
-                if not user.has_perm('sales.make_sale') and not user.has_perm('sales.make_invoice'):
+                if not user.has_perm('sales.code_login'):
                     logger.info('unauthorized user login, user has no permissions', user=user)
                     msg = _('Unauthorized User Login.')
                     raise serializers.ValidationError(msg)

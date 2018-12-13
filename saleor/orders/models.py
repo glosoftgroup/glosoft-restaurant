@@ -4,6 +4,7 @@ from decimal import Decimal
 
 from django.conf import settings
 from django.utils.encoding import python_2_unicode_compatible
+from django.contrib.postgres.fields import HStoreField
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils.timezone import now
@@ -169,6 +170,10 @@ class OrderedItem(models.Model):
         pgettext_lazy('OrderedItem field', 'total cost'), default=Decimal(0), max_digits=100, decimal_places=2)
     unit_cost = models.DecimalField(
         pgettext_lazy('OrderedItem field', 'unit cost'), default=Decimal(0), max_digits=100, decimal_places=2)
+    unit_purchase = models.DecimalField(
+        pgettext_lazy('SoldItem field', 'unit purchase'), default=Decimal(0), max_digits=100, decimal_places=2)
+    total_purchase = models.DecimalField(
+        pgettext_lazy('SoldItem field', 'total purchase'), default=Decimal(0), max_digits=100, decimal_places=2)
     product_category = models.CharField(
         pgettext_lazy('OrderedItem field', 'product_category'), max_length=128, null=True)
     discount = models.DecimalField(
@@ -183,6 +188,8 @@ class OrderedItem(models.Model):
     ready = models.BooleanField(default=False)
     collected = models.BooleanField(default=False)
     cold = models.BooleanField(default=False)
+    attributes = HStoreField(
+        pgettext_lazy('SoldItem field', 'attributes'), default={})
     objects = OrderItemManager()
 
     class Meta:

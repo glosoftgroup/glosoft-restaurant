@@ -7,6 +7,7 @@ from .serializers import (
      )
 from rest_framework import generics, views
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
@@ -21,6 +22,8 @@ class CustomSalePointListAPIView(generics.ListAPIView):
 
 class CountersAndKitchensListAPIView(views.APIView):
 
+    permission_classes = (IsAuthenticatedOrReadOnly,)
+    
     def get(self, request):
     	points = []
     	for counter in Counter.objects.all():

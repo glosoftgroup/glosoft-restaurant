@@ -116,6 +116,7 @@
                           select all
                         </label>
                       </div>
+                    <h5>Client POS permissions</h5>
                   {% for permission in permissions%}
                   {% if permission.content_type.model ==  'unused' %}
                           {% if permission in user_permissions %}                          
