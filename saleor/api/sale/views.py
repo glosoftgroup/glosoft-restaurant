@@ -11,6 +11,7 @@ from rest_framework import pagination
 from .pagination import PostLimitOffsetPagination
 from ...product.models import AttributeChoiceValue
 from ...sale.models import Sales, PaymentOption
+from ...sale.models import Sales
 from ...sale.models import SoldItem as Item
 from ...orders.models import *
 from .serializers import (

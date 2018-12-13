@@ -3,7 +3,6 @@ from rest_framework.response import Response
 from rest_framework import generics
 from rest_framework import status
 from django.contrib.auth import get_user_model
-import json
 from django.core import serializers
 from ...orders.models import Orders, OrderedItem, CancelledOrder
 from ...product.models import Stock
