@@ -442,8 +442,6 @@ class OrderSerializer(serializers.ModelSerializer):
 
         for ordered_item_data in ordered_items_data:
 
-            print ordered_item_data
-
             OrderedItem.objects.create(orders=order, **ordered_item_data)
             if ordered_item_data.get('counter'):
                 try:
@@ -451,21 +449,20 @@ class OrderSerializer(serializers.ModelSerializer):
                     if item:
                         Item.objects.decrease_stock(item, ordered_item_data['quantity'])
                     else:
-                        print('stock not found')
+                        logger.info('stock not found')
                 except Exception as e:
-                    print(e)
-                    print('Error reducing stock!')
+                    logger.error("Error reducing stock!", exception=e)
             elif ordered_item_data.get('kitchen'):
                 try:
                     item = MenuItem.objects.get(pk=ordered_item_data['transfer_id'])
                     if item:
                         MenuItem.objects.decrease_stock(item, ordered_item_data['quantity'])
                     else:
-                        print('stock not found')
+                        logger.info('stock not found')
                 except Exception as e:
-                    print('Error reducing stock!')
+                    logger.error('Error reducing stock!', exception=e)
             else:
-                print('Unknown ordered item')
+                logger.info('Unknown ordered item')
         self.order = order
         return self.order
 
@@ -581,19 +578,26 @@ class OrderUpdateSerializer(serializers.ModelSerializer):
         items = instance.ordered_items.all()
         for data in items:
             if data.counter:
-                item = Item.objects.get(pk=data.transfer_id)
-                if item:
-                    Item.objects.increase_stock(item, item.sold)
-                else:
-                    print 'stock not found'
+                try:
+                    item = Item.objects.get(pk=data.transfer_id)
+                    if item:
+                        Item.objects.increase_stock(item, item.sold)
+                    else:
+                        logger.info('counter stock not found')
+                except Exception as e:
+                    logger.error('could not find the counter item', exception=e)
+
             elif data.kitchen:
-                item = MenuItem.objects.get(pk=data.transfer_id)
-                if item:
-                    MenuItem.objects.increase_stock(item, item.sold)
-                else:
-                    print 'stock not found'
+                try:
+                    item = MenuItem.objects.get(pk=data.transfer_id)
+                    if item:
+                        MenuItem.objects.increase_stock(item, item.sold)
+                    else:
+                        logger.info('kitchen stock not found')
+                except Exception as e:
+                    logger.error('could not find the kitchen item', exception=e)
             else:
-                print('Unkown point')
+                logger.info('Unkown point')
 
         items.delete()
 
@@ -606,20 +610,20 @@ class OrderUpdateSerializer(serializers.ModelSerializer):
                     if item:
                         Item.objects.decrease_stock(item, ordered_item_data['quantity'])
                     else:
-                        print('stock not found')
+                        logger.info('stock not found')
                 except Exception as e:
-                    print('Error reducing stock!')
+                    logger.error('Error reducing counter stock!', exception=e)
             elif ordered_item_data.get('kitchen'):
                 try:
                     item = MenuItem.objects.get(pk=ordered_item_data['transfer_id'])
                     if item:
                         MenuItem.objects.decrease_stock(item, ordered_item_data['quantity'])
                     else:
-                        print('stock not found')
+                        logger.info('stock not found')
                 except Exception as e:
-                    print('Error reducing stock!')
+                    logger.error('Error reducing kitchen stock!', exception=e)
             else:
-                print('Kitchen or counter were not provided')
+                logger.info('Kitchen or counter were not provided')
         return instance
 
 

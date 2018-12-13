@@ -35,6 +35,7 @@ from .api.shift.urls import urlpatterns as api_user_shift_urls
 from .api.sms.urls import urlpatterns as api_sms_urls
 from .api.table.urls import urlpatterns as api_table_urls
 from .api.terminal.urls import urlpatterns as api_terminal_urls
+from .api.user.urls import urlpatterns as api_user_urls
 from .api.variant.urls import urlpatterns as api_variant_urls
 from .cart.urls import urlpatterns as cart_urls
 from .checkout.urls import urlpatterns as checkout_urls
@@ -102,6 +103,7 @@ urlpatterns = [
     url(r'^api/sms/', include(api_sms_urls, namespace='sms-api')),
     url(r'^api/table/', include(api_table_urls, namespace='table-api')),
     url(r'^api/terminal/', include(api_terminal_urls, namespace='terminal-api')),
+    url(r'^api/user/', include(api_user_urls, namespace='user-api')),
     url(r'^api/user/code/generate/', include(api_generate_code_urls, namespace='user-generate-code-api')),
     url(r'^api/user/shift/', include(api_user_shift_urls, namespace='user-shift-api')),
     url(r'^api/variant/', include(api_variant_urls, namespace='variant-api')),
