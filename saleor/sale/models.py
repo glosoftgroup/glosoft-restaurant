@@ -27,7 +27,7 @@ from . import TransactionStatus
 class PaymentOption(models.Model):
     name = models.CharField(
         pgettext_lazy('Payment option field', 'payment option name'),
-        max_length=52, unique=True,)    
+        max_length=255, unique=True,)
     description = models.TextField(
         pgettext_lazy('Payment option field', 'description'), blank=True)
     loyalty_point_equiv = models.IntegerField(pgettext_lazy('Site field', 'loyalty points equivalency'),
@@ -44,7 +44,7 @@ class PaymentOption(models.Model):
 class Terminal(models.Model):
     terminal_name = models.CharField(
         pgettext_lazy('Terminal field', 'terminal name'),
-        max_length=52,) 
+        max_length=255,)
     terminal_number = models.IntegerField(default=Decimal(0))
     created = models.DateTimeField(
         pgettext_lazy('Terminal field', 'created'),
@@ -83,10 +83,10 @@ class TerminalHistoryEntry(models.Model):
     
     comment = models.CharField(
         pgettext_lazy('Terminal history entry field', 'comment'),
-        max_length=100, default='', blank=True)
+        max_length=255, default='', blank=True)
     crud = models.CharField(
         pgettext_lazy('Terminal history entry field', 'crud'),
-        max_length=30, default='', blank=True)
+        max_length=255, default='', blank=True)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, blank=True, null=True,
         verbose_name=pgettext_lazy('Terminal history entry field', 'user'))
@@ -108,7 +108,7 @@ class TerminalHistoryEntry(models.Model):
 class Sales(models.Model):
     status = models.CharField(
         pgettext_lazy('Sales field', 'sales status'),
-        max_length=32, choices=OrderStatus.CHOICES, default=OrderStatus.NEW)
+        max_length=255, choices=OrderStatus.CHOICES, default=OrderStatus.NEW)
     created = models.DateTimeField(
         pgettext_lazy('Sales field', 'created'),
         default=now, editable=False)    
@@ -119,13 +119,13 @@ class Sales(models.Model):
         Customer, blank=True, null=True, related_name='customers',
         verbose_name=pgettext_lazy('Sales field', 'customer'))
 
-    mobile = models.CharField(max_length=20, blank=True, null=True)
-    customer_name = models.CharField(max_length=100, null=True, blank=True)
+    mobile = models.CharField(max_length=255, blank=True, null=True)
+    customer_name = models.CharField(max_length=255, null=True, blank=True)
 
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, blank=True, null=True, related_name='users',
         verbose_name=pgettext_lazy('Sales field', 'user'))
-    language_code = models.CharField(max_length=35, default=settings.LANGUAGE_CODE)
+    language_code = models.CharField(max_length=255, default=settings.LANGUAGE_CODE)
     billing_address = models.ForeignKey(
         Address, related_name='+', editable=False,blank=True, null=True,
         verbose_name=pgettext_lazy('Sales field', 'billing address'))
@@ -136,7 +136,7 @@ class Sales(models.Model):
         Terminal, related_name='terminal_sales',blank=True, default='',
         verbose_name=pgettext_lazy('Sales field', 'order'))
     invoice_number = models.CharField(
-        pgettext_lazy('Sales field', 'invoice_number'),unique=True, null=True, max_length=36,)
+        pgettext_lazy('Sales field', 'invoice_number'), unique=True, null=True, max_length=255)
     
     total_net = models.DecimalField(
         pgettext_lazy('Sales field', 'total net'), default=Decimal(0), max_digits=100, decimal_places=2)
@@ -167,7 +167,7 @@ class Sales(models.Model):
         'PaymentOption', related_name='payment_option', blank=True,
         verbose_name=pgettext_lazy('Sales field',
                                    'sales options'))
-    payment_data = JSONField(null=True, blank=True)
+    payment_data = JSONField(null=True, blank=True, max_length=255)
     table = models.ForeignKey(
         Table, related_name='table_sales', blank=True, null=True, default='', on_delete=models.SET_NULL,
         verbose_name=pgettext_lazy('Sale field', 'table'))

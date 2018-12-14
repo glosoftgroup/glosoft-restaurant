@@ -27,6 +27,7 @@ class CustomJWTSerializer(JSONWebTokenSerializer):
 
         # check the working period first
         time_now = datetime.now().time()
+
         try:
             opening_time = SiteSettings.objects.all().first().opening_time
             closing_time = SiteSettings.objects.all().first().closing_time
@@ -38,7 +39,6 @@ class CustomJWTSerializer(JSONWebTokenSerializer):
         except Exception as ex:
             logger.error('exception in checking closing time', exception=ex)
             raise serializers.ValidationError(_('Unauthorized User Login.'))
-
         if username and password:
             username = username.lower()
             if '@' in username:

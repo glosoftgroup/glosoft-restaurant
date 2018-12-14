@@ -41,7 +41,7 @@ class OrdersManager(models.Manager):
 class Orders(models.Model):
     status = models.CharField(
         pgettext_lazy('Orders field', 'Invoice status'),
-        max_length=32, choices=OrderStatus.CHOICES, default=OrderStatus.NEW)
+        max_length=255, choices=OrderStatus.CHOICES, default=OrderStatus.NEW)
     created = models.DateTimeField(
         pgettext_lazy('Orders field', 'created'),
         default=now, editable=False)    
@@ -52,13 +52,13 @@ class Orders(models.Model):
         Customer, blank=True, null=True, related_name='orders_customers',
         verbose_name=pgettext_lazy('Orders field', 'customer'))
 
-    mobile = models.CharField(max_length=20, blank=True, null=True)
-    customer_name = models.CharField(max_length=100, null=True, blank=True)
+    mobile = models.CharField(max_length=255, blank=True, null=True)
+    customer_name = models.CharField(max_length=255, null=True, blank=True)
 
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, blank=True, null=True, related_name='orders_users',
         verbose_name=pgettext_lazy('Orders field', 'user'))
-    language_code = models.CharField(max_length=35, default=settings.LANGUAGE_CODE)
+    language_code = models.CharField(max_length=255, default=settings.LANGUAGE_CODE)
     user_email = models.EmailField(
         pgettext_lazy('Orders field', 'user email'),
         blank=True, default='', editable=False)
@@ -75,24 +75,24 @@ class Orders(models.Model):
         SalePoint, related_name='sale_point', blank=True, default='', null=True, 
         verbose_name=pgettext_lazy('Orders field', 'Sale point'))
     invoice_number = models.CharField(
-        pgettext_lazy('Orders field', 'invoice_number'), unique=True, null=True, max_length=36,)
+        pgettext_lazy('Orders field', 'invoice_number'), unique=True, null=True, max_length=255)
     
     total_net = models.DecimalField(
-        pgettext_lazy('Orders field', 'total net'), default=Decimal(0), max_digits=100, decimal_places=2)
+        pgettext_lazy('Orders field', 'total net'), default=Decimal(0), max_digits=255, decimal_places=2)
     
     sub_total = models.DecimalField(
-        pgettext_lazy('Orders field', 'sub total'), default=Decimal(0), max_digits=100, decimal_places=2)
+        pgettext_lazy('Orders field', 'sub total'), default=Decimal(0), max_digits=255, decimal_places=2)
     
     total_tax = models.DecimalField(
-        pgettext_lazy('Orders field', 'total tax'), default=Decimal(0), max_digits=100, decimal_places=2)
+        pgettext_lazy('Orders field', 'total tax'), default=Decimal(0), max_digits=255, decimal_places=2)
     amount_paid = models.DecimalField(
-        pgettext_lazy('Orders field', 'amount paid'), default=Decimal(0), max_digits=100, decimal_places=2)
+        pgettext_lazy('Orders field', 'amount paid'), default=Decimal(0), max_digits=255, decimal_places=2)
     
     balance = models.DecimalField(
-        pgettext_lazy('Orders field', 'balance'), default=Decimal(0), max_digits=100, decimal_places=2)
+        pgettext_lazy('Orders field', 'balance'), default=Decimal(0), max_digits=255, decimal_places=2)
     
     discount_amount = models.DecimalField(
-        pgettext_lazy('Orders field', 'discount'), default=Decimal(0), max_digits=100, decimal_places=2)
+        pgettext_lazy('Orders field', 'discount'), default=Decimal(0), max_digits=255, decimal_places=2)
 
     discount_name = models.CharField(
         verbose_name=pgettext_lazy('Orders field', 'discount name'),
@@ -103,7 +103,7 @@ class Orders(models.Model):
                                    'sales options'))
     payment_data = JSONField(null=True, blank=True)
     debt = models.DecimalField(
-        pgettext_lazy('Order field', 'debt'), default=Decimal(0), max_digits=100, decimal_places=2)
+        pgettext_lazy('Order field', 'debt'), default=Decimal(0), max_digits=255, decimal_places=2)
     carry = models.CharField(
         verbose_name=pgettext_lazy('Sales field', 'carry name'),
         max_length=255, default='', blank=True)
@@ -160,24 +160,24 @@ class OrderedItem(models.Model):
     order = models.IntegerField(default=Decimal(1))
     transfer_id = models.IntegerField(default=Decimal(0))
     sku = models.CharField(
-        pgettext_lazy('OrderedItem field', 'SKU'), max_length=32)
+        pgettext_lazy('OrderedItem field', 'SKU'), max_length=255)
     quantity = models.IntegerField(
         pgettext_lazy('OrderedItem field', 'quantity'),
         validators=[MinValueValidator(0)], default=Decimal(1))
     product_name = models.CharField(
-        pgettext_lazy('OrderedItem field', 'product name'), max_length=128)
+        pgettext_lazy('OrderedItem field', 'product name'), max_length=255)
     total_cost = models.DecimalField(
-        pgettext_lazy('OrderedItem field', 'total cost'), default=Decimal(0), max_digits=100, decimal_places=2)
+        pgettext_lazy('OrderedItem field', 'total cost'), default=Decimal(0), max_digits=255, decimal_places=2)
     unit_cost = models.DecimalField(
-        pgettext_lazy('OrderedItem field', 'unit cost'), default=Decimal(0), max_digits=100, decimal_places=2)
+        pgettext_lazy('OrderedItem field', 'unit cost'), default=Decimal(0), max_digits=255, decimal_places=2)
     unit_purchase = models.DecimalField(
-        pgettext_lazy('SoldItem field', 'unit purchase'), default=Decimal(0), max_digits=100, decimal_places=2)
+        pgettext_lazy('SoldItem field', 'unit purchase'), default=Decimal(0), max_digits=255, decimal_places=2)
     total_purchase = models.DecimalField(
-        pgettext_lazy('SoldItem field', 'total purchase'), default=Decimal(0), max_digits=100, decimal_places=2)
+        pgettext_lazy('SoldItem field', 'total purchase'), default=Decimal(0), max_digits=255, decimal_places=2)
     product_category = models.CharField(
-        pgettext_lazy('OrderedItem field', 'product_category'), max_length=128, null=True)
+        pgettext_lazy('OrderedItem field', 'product_category'), max_length=255, null=True)
     discount = models.DecimalField(
-        pgettext_lazy('OrderedItem field', 'discount'), default=Decimal(0), max_digits=100, decimal_places=2)
+        pgettext_lazy('OrderedItem field', 'discount'), default=Decimal(0), max_digits=255, decimal_places=2)
     tax = models.IntegerField(default=Decimal(0))
     counter = models.ForeignKey(
         Counter, related_name='order_item_counter', blank=True, null=True, default='',

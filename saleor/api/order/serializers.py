@@ -12,6 +12,7 @@ from decimal import Decimal
 from saleor.countertransfer.models import CounterTransferItems as Item
 from saleor.menutransfer.models import TransferItems as MenuItem
 from saleor.mpesa_transactions.models import MpesaTransactions
+from saleor.visa_transactions.models import VisaTransactions
 from structlog import get_logger
 
 logger = get_logger(__name__)
@@ -302,6 +303,7 @@ class OrderSerializer(serializers.ModelSerializer):
     ordered_items = ItemSerializer(many=True)
     payment_data = JSONField()
     mpesaIds = JSONField(required=False, write_only=True)
+    visaIds = JSONField(required=False, write_only=True)
     old_orders = JSONField()
     point = JSONField()
     waiter = serializers.CharField(required=False, write_only=True)
@@ -327,7 +329,8 @@ class OrderSerializer(serializers.ModelSerializer):
                   'old_orders',
                   'point',
                   'waiter',
-                  'mpesaIds'
+                  'mpesaIds',
+                  'visaIds'
                   )
 
     def validate_total_net(self, value):
@@ -427,6 +430,9 @@ class OrderSerializer(serializers.ModelSerializer):
         if validated_data.get('mpesaIds'):
             change_mpesa_id_status(validated_data.get('mpesaIds'))
 
+        if validated_data.get('visaIds'):
+            change_visa_id_status(validated_data.get('visaIds'))
+
         # add payment options
         if validated_data.get('old_orders'):
             for i in validated_data.get('old_orders'):
@@ -436,8 +442,6 @@ class OrderSerializer(serializers.ModelSerializer):
 
         for ordered_item_data in ordered_items_data:
 
-            print ordered_item_data
-
             OrderedItem.objects.create(orders=order, **ordered_item_data)
             if ordered_item_data.get('counter'):
                 try:
@@ -445,21 +449,20 @@ class OrderSerializer(serializers.ModelSerializer):
                     if item:
                         Item.objects.decrease_stock(item, ordered_item_data['quantity'])
                     else:
-                        print('stock not found')
+                        logger.info('stock not found')
                 except Exception as e:
-                    print(e)
-                    print('Error reducing stock!')
+                    logger.error("Error reducing stock!", exception=e)
             elif ordered_item_data.get('kitchen'):
                 try:
                     item = MenuItem.objects.get(pk=ordered_item_data['transfer_id'])
                     if item:
                         MenuItem.objects.decrease_stock(item, ordered_item_data['quantity'])
                     else:
-                        print('stock not found')
+                        logger.info('stock not found')
                 except Exception as e:
-                    print('Error reducing stock!')
+                    logger.error('Error reducing stock!', exception=e)
             else:
-                print('Unknown ordered item')
+                logger.info('Unknown ordered item')
         self.order = order
         return self.order
 
@@ -468,6 +471,7 @@ class OrderUpdateSerializer(serializers.ModelSerializer):
     ordered_items = ItemSerializer(many=True)
     payment_data = JSONField()
     mpesaIds = JSONField(required=False, write_only=True)
+    visaIds = JSONField(required=False, write_only=True)
 
     class Meta:
         model = Orders
@@ -487,6 +491,7 @@ class OrderUpdateSerializer(serializers.ModelSerializer):
                   'ordered_items',
                   'payment_data',
                   'mpesaIds',
+                  'visaIds',
                   )
 
     def validate_status(self, value):
@@ -558,6 +563,9 @@ class OrderUpdateSerializer(serializers.ModelSerializer):
             instance.payment_data = validated_data.get('payment_data')
             if validated_data.get('mpesaIds'):
                 change_mpesa_id_status(validated_data.get('mpesaIds'))
+
+            if validated_data.get('visaIds'):
+                change_visa_id_status(validated_data.get('visaIds'))
         else:
             instance.status = validated_data.get('status', instance.status)
         instance.last_status_change = now()
@@ -570,19 +578,26 @@ class OrderUpdateSerializer(serializers.ModelSerializer):
         items = instance.ordered_items.all()
         for data in items:
             if data.counter:
-                item = Item.objects.get(pk=data.transfer_id)
-                if item:
-                    Item.objects.increase_stock(item, item.sold)
-                else:
-                    print 'stock not found'
+                try:
+                    item = Item.objects.get(pk=data.transfer_id)
+                    if item:
+                        Item.objects.increase_stock(item, item.sold)
+                    else:
+                        logger.info('counter stock not found')
+                except Exception as e:
+                    logger.error('could not find the counter item', exception=e)
+
             elif data.kitchen:
-                item = MenuItem.objects.get(pk=data.transfer_id)
-                if item:
-                    MenuItem.objects.increase_stock(item, item.sold)
-                else:
-                    print 'stock not found'
+                try:
+                    item = MenuItem.objects.get(pk=data.transfer_id)
+                    if item:
+                        MenuItem.objects.increase_stock(item, item.sold)
+                    else:
+                        logger.info('kitchen stock not found')
+                except Exception as e:
+                    logger.error('could not find the kitchen item', exception=e)
             else:
-                print('Unkown point')
+                logger.info('Unkown point')
 
         items.delete()
 
@@ -595,20 +610,20 @@ class OrderUpdateSerializer(serializers.ModelSerializer):
                     if item:
                         Item.objects.decrease_stock(item, ordered_item_data['quantity'])
                     else:
-                        print('stock not found')
+                        logger.info('stock not found')
                 except Exception as e:
-                    print('Error reducing stock!')
+                    logger.error('Error reducing counter stock!', exception=e)
             elif ordered_item_data.get('kitchen'):
                 try:
                     item = MenuItem.objects.get(pk=ordered_item_data['transfer_id'])
                     if item:
                         MenuItem.objects.decrease_stock(item, ordered_item_data['quantity'])
                     else:
-                        print('stock not found')
+                        logger.info('stock not found')
                 except Exception as e:
-                    print('Error reducing stock!')
+                    logger.error('Error reducing kitchen stock!', exception=e)
             else:
-                print('Kitchen or counter were not provided')
+                logger.info('Kitchen or counter were not provided')
         return instance
 
 
@@ -682,8 +697,19 @@ def change_mpesa_id_status(payments_ids):
             p.client_status = 1
             p.save()
         except Exception as e:
-            logger.error(e.message, message="mpesa with id " + str(id) + "not found",
-                         event="change_mpesa_payment_status")
+            logger.error("change_mpesa_payment_status", message="mpesa with id " + str(id) + "not found",
+                         exception=e.message)
+
+
+def change_visa_id_status(payments_ids):
+    for id in payments_ids:
+        try:
+            p = VisaTransactions.objects.get(pk=int(id))
+            p.client_status = 1
+            p.save()
+        except Exception as e:
+            logger.error("change_visa_payment_status", message="visa with id " + str(id) + "not found",
+                         exception=e.message)
 
 
 class ListCancelledOrderSerializer(serializers.ModelSerializer):

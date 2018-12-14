@@ -35,6 +35,7 @@ from .api.shift.urls import urlpatterns as api_user_shift_urls
 from .api.sms.urls import urlpatterns as api_sms_urls
 from .api.table.urls import urlpatterns as api_table_urls
 from .api.terminal.urls import urlpatterns as api_terminal_urls
+from .api.user.urls import urlpatterns as api_user_urls
 from .api.variant.urls import urlpatterns as api_variant_urls
 from .cart.urls import urlpatterns as cart_urls
 from .checkout.urls import urlpatterns as checkout_urls
@@ -64,12 +65,14 @@ from .kitchen_transfer_report.urls import urlpatterns as kitchen_transfer_report
 from .menu_transfer_report.urls import urlpatterns as menu_transfer_report_urls
 from .menutransfer.urls import urlpatterns as menutransfer_urls
 from .mpesa_transactions.urls import urlpatterns as mpesa_transactions_urls
+from .visa_transactions.urls import urlpatterns as visa_transactions_urls
 from .return_sale.urls import urlpatterns as return_sale_urls
 from .return_purchase.urls import urlpatterns as return_purchase_urls
 from .shift.urls import urlpatterns as shift_urls
 import notifications.urls
 from .api.login import ObtainJSONWebToken
 from . import decorators
+
 
 
 urlpatterns = [
@@ -100,6 +103,7 @@ urlpatterns = [
     url(r'^api/sms/', include(api_sms_urls, namespace='sms-api')),
     url(r'^api/table/', include(api_table_urls, namespace='table-api')),
     url(r'^api/terminal/', include(api_terminal_urls, namespace='terminal-api')),
+    url(r'^api/user/', include(api_user_urls, namespace='user-api')),
     url(r'^api/user/code/generate/', include(api_generate_code_urls, namespace='user-generate-code-api')),
     url(r'^api/user/shift/', include(api_user_shift_urls, namespace='user-shift-api')),
     url(r'^api/variant/', include(api_variant_urls, namespace='variant-api')),
@@ -130,6 +134,7 @@ urlpatterns = [
     url(r'^kitchen/transfer/', include(kitchentransfer_urls, namespace='kitchentransfer')),
     url(r'^menu/transfer/', include(menutransfer_urls, namespace='menutransfer')),
     url(r'^mpesa/transactions/', include(mpesa_transactions_urls, namespace='mpesa_transactions')),
+    url(r'^visa/transactions/', include(visa_transactions_urls, namespace='visa_transactions')),
     url(r'^return/sale/', include(return_sale_urls, namespace='return_sale')),
     url(r'^return/purchase/', include(return_purchase_urls, namespace='return_purchase')),
     url(r'^sitemap\.xml$', sitemap, {'sitemaps': sitemaps},
@@ -142,7 +147,6 @@ urlpatterns = [
     # url(r'^api/auth/token/', obtain_jwt_token),
     url(r'^api/auth/token/', ObtainJSONWebToken.as_view()),
 ]
-
 if settings.DEBUG:
     # static files (images, css, javascript, etc.)
     urlpatterns += [

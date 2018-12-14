@@ -1,4 +1,5 @@
 import datetime
+from decimal import Decimal
 from django.db.models import Q, F, Sum, Count
 from rest_framework import generics
 from rest_framework.views import APIView
@@ -9,14 +10,16 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework import pagination
 from .pagination import PostLimitOffsetPagination
 from ...product.models import AttributeChoiceValue
+from ...sale.models import Sales, PaymentOption
 from ...sale.models import Sales
 from ...sale.models import SoldItem as Item
+from ...orders.models import *
 from .serializers import (
     ListSaleSerializer,
     CreateSaleSerializer,
     ItemSerializer
 )
-
+from .serializers import ListOrderSerializer
 from rest_framework.request import Request
 from rest_framework.test import APIRequestFactory
 from structlog import get_logger
@@ -89,6 +92,9 @@ class ListAPIView(generics.ListAPIView):
             pagination.PageNumberPagination.page_size = 10
         if self.request.GET.get('date'):
             queryset_list = queryset_list.filter(date__icontains=self.request.GET.get('date'))
+
+        if self.request.GET.get('user'):
+            queryset_list = queryset_list.filter(user__pk=int(self.request.GET.get('user')))
 
         query = self.request.GET.get('q')
         if query:
@@ -185,18 +191,44 @@ class SoldItemListAPIView(APIView):
 
         if self.request.GET.get('date'):
             date = self.request.GET.get('date')
-            summary = Item.objects.filter(created__icontains=date).values('product_name', 'product_category').annotate(
-                c=Count('product_name', distinct=True)) \
-                .annotate(Sum('total_cost')) \
-                .annotate(Sum('quantity')).order_by('-quantity__sum')
         else:
             date = DateFormat(datetime.datetime.today()).format('Y-m-d')
-            summary = Item.objects.filter(created__icontains=date).values('product_name', 'product_category').annotate(
-                c=Count('product_name', distinct=True)) \
-                .annotate(Sum('total_cost')) \
-                .annotate(Sum('quantity')).order_by('-quantity__sum')
 
-        return Response(summary)
+        summary = Item.objects.filter(created__icontains=date).values('product_name', 'product_category').annotate(
+            c=Count('product_name', distinct=True)) \
+            .annotate(Sum('total_cost')) \
+            .annotate(Sum('quantity')).order_by('-quantity__sum')
+
+        summary = summary.annotate(tax=F('total_cost__sum') * 0.16)
+        total_sales = summary.aggregate(Sum("total_cost__sum"))["total_cost__sum__sum"]
+        total_tax = summary.aggregate(Sum("tax"))["tax__sum"]
+
+        # payment options calculations
+        sales_qs = Sales.objects.filter(created__icontains=date)
+        payments = []
+
+        for i in sales_qs:
+            for j in i.payment_data:
+                try:
+                    payment_name = PaymentOption.objects.get(pk=int(j['payment_id'])).name
+                except:
+                    payment_name = int(j['payment_id'])
+
+                if any(d['payment_id'] == int(j['payment_id']) for d in payments):
+                    for d in payments:
+                        if d['payment_id'] == int(j['payment_id']):
+                            d['value'] += Decimal(j['value'])
+                else:
+                    payments.append({"payment_id": int(j["payment_id"]), "value": Decimal(j["value"]), "name": payment_name})
+
+        response = {
+            "items": summary,
+            "total_sales": total_sales,
+            "total_tax": total_tax,
+            "payments": payments
+        }
+
+        return Response(response)
 
 
 class SaleMarginListAPIView(APIView):
@@ -231,3 +263,70 @@ class SaleMarginListAPIView(APIView):
         result['margin'] = total_sale - total_cost
 
         return Response(result)
+
+
+class UserSaleAPIView(APIView):
+    def get(self, request, format=None, **kwargs):
+        """
+        Return a list of all orders grouped in complete, incomplete and cancelled.
+        """
+
+        if self.request.GET.get('date'):
+            date = self.request.GET.get('date')
+        else:
+            date = DateFormat(datetime.datetime.today()).format('Y-m-d')
+
+        orders = Orders.objects.filter(created__icontains=date)
+
+        user_id = self.request.GET.get('user')
+        user = None
+        if user_id:
+            orders = orders.filter(user__pk=int(user_id))
+            try:
+                user = User.objects.get(pk=int(user_id)).name
+            except:
+                user = "None"
+
+        complete_orders = orders.filter(status="fully-paid")
+        incomplete_orders = orders.filter(status="payment-pending")
+        cancelled_orders = orders.filter(status="cancelled")
+
+        # aggregates
+        complete_totals = complete_orders.aggregate(Sum("total_net"))["total_net__sum"]
+        incomplete_totals = incomplete_orders.aggregate(Sum("total_net"))["total_net__sum"]
+        cancelled_totals = cancelled_orders.aggregate(Sum("total_net"))["total_net__sum"]
+
+        expected_sales = 0
+        if complete_totals:
+            expected_sales += complete_totals
+        if incomplete_totals:
+            expected_sales += incomplete_totals
+
+        complete_serializer = ListOrderSerializer(complete_orders, many=True)
+        incomplete_serializer = ListOrderSerializer(incomplete_orders, many=True)
+        cancelled_serializer = ListOrderSerializer(cancelled_orders, many=True)
+
+        complete_orders = complete_serializer.data
+        incomplete_orders = incomplete_serializer.data
+        cancelled_orders = cancelled_serializer.data
+
+        response = {
+            "expected_sales": expected_sales,
+            "date": date,
+            "user": user,
+            "complete_orders": {
+                "orders": complete_orders,
+                "total_sales": complete_totals
+            },
+            "incomplete_orders": {
+                "orders": incomplete_orders,
+                "total_sales": incomplete_totals
+            },
+            "cancelled_orders": {
+                "orders": cancelled_orders,
+                "total_sales": cancelled_totals
+            }
+        }
+
+        return Response(response)
+

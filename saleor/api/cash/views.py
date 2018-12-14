@@ -87,8 +87,6 @@ def lock_login(request):
                             last = query.last()
                             if last.end_time:
                                 is_started_shift = False
-                                # Shift.objects.create(date=time_now, start_time=time_now, user=obj,
-                                #                      start_counter_balance="0.0")
                             else:
                                 is_started_shift = True
                         else:

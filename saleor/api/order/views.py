@@ -3,7 +3,6 @@ from rest_framework.response import Response
 from rest_framework import generics
 from rest_framework import status
 from django.contrib.auth import get_user_model
-import json
 from django.core import serializers
 from ...orders.models import Orders, OrderedItem, CancelledOrder
 from ...product.models import Stock
@@ -142,10 +141,20 @@ class OrderListAPIView(generics.ListAPIView):
     def get_queryset(self, *args, **kwargs):
         queryset_list = Orders.objects.all()
         query = self.request.GET.get('q')
+        user = self.request.GET.get('user')
+        date = self.request.GET.get('date')
+        
+        if date:
+            queryset_list = queryset_list.filter(created__icontains=date)
+
+        if user:
+            queryset_list = queryset_list.filter(user__pk=int(user))
+
         if query:
             queryset_list = queryset_list.filter(
                 Q(invoice_number__icontains=query)
             ).distinct()
+
         return queryset_list
 
 
@@ -566,7 +575,6 @@ class SearchMenuOrderListAPIView(generics.ListAPIView):
             queryset = queryset.filter(user__pk=int(user_id))
 
         if query:
-            print query
             queryset = queryset.filter(
                 Q(invoice_number__icontains=query) |
                 Q(room__name__icontains=query) |

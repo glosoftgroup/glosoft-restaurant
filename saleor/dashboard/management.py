@@ -75,6 +75,10 @@ def add_stock_payment_options(sender, **kwargs):
         if not visa.exists():
             Payment.objects.create(name="Visa")
 
+        visa_offline = Payment.objects.filter(name='Visa Offline')
+        if not visa_offline.exists():
+            Payment.objects.create(name="Visa Offline")
+
         mpesa = Payment.objects.filter(name='Mpesa')
         if not mpesa.exists():
             Payment.objects.create(name="Mpesa")
@@ -82,8 +86,6 @@ def add_stock_payment_options(sender, **kwargs):
         mpesa_offline = Payment.objects.filter(name='Mpesa Offline')
         if not mpesa_offline.exists():
             Payment.objects.create(name="Mpesa Offline")
-
-
     except Exception as e:
         logger.error("Error creating payment options", exptn=e.message)
 
@@ -93,18 +95,27 @@ def add_payment_options(sender, **kwargs):
         cash = PaymentOption.objects.filter(name='Cash')
         if not cash.exists():
             PaymentOption.objects.create(name="Cash")
+
         visa = PaymentOption.objects.filter(name='Visa')
         if not visa.exists():
             PaymentOption.objects.create(name="Visa")
+
+        visa_offline = Payment.objects.filter(name='Visa Offline')
+        if not visa_offline.exists():
+            Payment.objects.create(name="Visa Offline")
+
         mpesa = PaymentOption.objects.filter(name='Mpesa')
         if not mpesa.exists():
             PaymentOption.objects.create(name="Mpesa")
+
         mpesa_offline = Payment.objects.filter(name='Mpesa Offline')
         if not mpesa_offline.exists():
             PaymentOption.objects.create(name="Mpesa Offline")
+
         points = PaymentOption.objects.filter(name='Loyalty Points')
         if not points.exists():
             PaymentOption.objects.create(name="Loyalty Points")
+
     except Exception as e :
         logger.error("Error creating payment options", exptn=e.message)
 
@@ -214,7 +225,7 @@ def add_view_permissions(sender, **kwargs):
     # create management credit on the client permission
     if not Permission.objects.filter(codename='create_credit'):
         Permission.objects.create(
-            name='can create management credit',
+            name='can create credit',
             content_type=client_url_content_type, codename='create_credit')
 
     # create management credit on the client permission
