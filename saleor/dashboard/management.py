@@ -71,21 +71,13 @@ def add_stock_payment_options(sender, **kwargs):
         if not cheque.exists():
             Payment.objects.create(name="Cheque")
 
-        visa = PaymentOption.objects.filter(name='Visa')
-        if not visa.exists():
-            Payment.objects.create(name="Visa")
-
-        visa_offline = Payment.objects.filter(name='Visa Offline')
-        if not visa_offline.exists():
-            Payment.objects.create(name="Visa Offline")
-
         mpesa = Payment.objects.filter(name='Mpesa')
         if not mpesa.exists():
             Payment.objects.create(name="Mpesa")
 
-        mpesa_offline = Payment.objects.filter(name='Mpesa Offline')
-        if not mpesa_offline.exists():
-            Payment.objects.create(name="Mpesa Offline")
+        visa = Payment.objects.filter(name='Visa')
+        if not visa.exists():
+            Payment.objects.create(name="Visa")
     except Exception as e:
         logger.error("Error creating payment options", exptn=e.message)
 
@@ -100,15 +92,15 @@ def add_payment_options(sender, **kwargs):
         if not visa.exists():
             PaymentOption.objects.create(name="Visa")
 
-        visa_offline = Payment.objects.filter(name='Visa Offline')
+        visa_offline = PaymentOption.objects.filter(name='Visa Offline')
         if not visa_offline.exists():
-            Payment.objects.create(name="Visa Offline")
+            PaymentOption.objects.create(name="Visa Offline")
 
         mpesa = PaymentOption.objects.filter(name='Mpesa')
         if not mpesa.exists():
             PaymentOption.objects.create(name="Mpesa")
 
-        mpesa_offline = Payment.objects.filter(name='Mpesa Offline')
+        mpesa_offline = PaymentOption.objects.filter(name='Mpesa Offline')
         if not mpesa_offline.exists():
             PaymentOption.objects.create(name="Mpesa Offline")
 

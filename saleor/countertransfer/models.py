@@ -395,16 +395,16 @@ class TransferItemManager(BaseUserManager):
         return total_qty
 
     def decrease_stock(self, instance, quantity):
-        instance.sold = models.F('sold') + quantity
-        instance.qty = models.F('qty') - quantity
+        instance.sold = instance.sold + quantity
+        instance.qty = instance.qty - quantity
         instance.expected_qty = instance.qty
-        instance.save(update_fields=['sold', 'qty', 'expected_qty'])
+        instance.save()
 
     def increase_stock(self, instance, quantity):
-        instance.qty = models.F('qty') + quantity
-        instance.sold = models.F('sold') - quantity
+        instance.qty = instance.qty + quantity
+        instance.sold = instance.sold - quantity
         instance.expected_qty = instance.qty
-        instance.save(update_fields=['qty', 'sold', 'expected_qty'])
+        instance.save()
 
     def instance_quantities(self, instance, filter_type='transfer', counter=None):
         if filter_type == 'transfer':
@@ -506,7 +506,7 @@ class CounterTransferItems(models.Model):
     transferred_qty = models.PositiveIntegerField(default=1,
                                                   verbose_name=pgettext_lazy('CounterTransfer field', 'transferred_qty'))
     deficit = models.IntegerField(default=0,
-                                          verbose_name=pgettext_lazy('CounterTransfer field', 'deficit'))
+                                  verbose_name=pgettext_lazy('CounterTransfer field', 'deficit'))
     expected_qty = models.PositiveIntegerField(default=1,
                                                verbose_name=pgettext_lazy('CounterTransfer field', 'expected_qty'))
 

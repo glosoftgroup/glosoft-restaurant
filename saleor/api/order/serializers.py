@@ -574,7 +574,9 @@ class OrderUpdateSerializer(serializers.ModelSerializer):
             ordered_items_data = validated_data.pop('ordered_items')
         except Exception as e:
             raise ValidationError('Ordered items field should not be empty')
-        # return order sold item to transfer stock then delete then
+
+        # return order sold item to transfer stock then delete them
+        # Item = CounterTransferItems
         items = instance.ordered_items.all()
         for data in items:
             if data.counter:
