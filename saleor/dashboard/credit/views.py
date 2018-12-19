@@ -3,28 +3,145 @@ from django.template.response import TemplateResponse
 from django.http import HttpResponse, JsonResponse
 from django.db.models import Count, Sum, F, Q
 from django.core import serializers
+import dateutil.relativedelta
 
 from django.core.paginator import Paginator, EmptyPage, InvalidPage, PageNotAnInteger
 import datetime
 from django.utils.dateformat import DateFormat
+import logging
+from ...utils import render_to_pdf, default_logo
 
-from ...utils import render_to_pdf
 import csv
 import random
 from django.utils.encoding import smart_str
 from datetime import date
-
 from ..views import staff_member_required
 from ..notification.views import custom_notification
 from ...sale.models import Sales, SoldItem, DrawerCash
-from ...credit.models import Credit, CreditedItem
-from ...product.models import Product, ProductVariant
+from ...credit.models import Credit, CreditedItem, CreditHistoryEntry
+from ...product.models import Product, ProductVariant, Stock
 from ...decorators import permission_decorator, user_trail
 from ...dashboard.views import get_low_stock_products
 
 from structlog import get_logger
 
 logger = get_logger(__name__)
+
+
+@staff_member_required
+@permission_decorator('reports.view_sale_reports')
+def credit_history(request, credit_pk=None):
+    if credit_pk:
+        credit = Credit.objects.get(pk=credit_pk)
+        total_amount = CreditHistoryEntry.objects.aggregate(Sum('amount'))['amount__sum']
+        total_balance = CreditHistoryEntry.objects.aggregate(Sum('balance'))['balance__sum']
+    else:
+        credit = Credit()
+    try:
+        try:
+            last_sale = CreditHistoryEntry.objects.latest('id')
+            last_date_of_sales = DateFormat(last_sale.created).format('Y-m-d')
+        except:
+            last_date_of_sales = DateFormat(datetime.datetime.today()).format('Y-m-d')
+
+        all_sales = CreditHistoryEntry.objects.filter(credit=credit)
+        total_sales_amount = 0
+        total_tax_amount = 0
+        total_sales = []
+
+        page = request.GET.get('page', 1)
+        paginator = Paginator(total_sales, 10)
+        try:
+            total_sales = paginator.page(page)
+        except PageNotAnInteger:
+            total_sales = paginator.page(1)
+        except InvalidPage:
+            total_sales = paginator.page(1)
+        except EmptyPage:
+            total_sales = paginator.page(paginator.num_pages)
+        user_trail(request.user.name, 'accessed credit sales reports', 'view')
+        logger.info('User: ' + str(request.user.name) + ' accessed the view credit sales report page')
+        ctx = {
+            'pn': paginator.num_pages,
+            'sales': all_sales,
+            "credit": credit,
+            'total_amount': total_amount,
+            'total_balance': total_balance,
+            "total_sales_amount": total_sales_amount,
+            "total_tax_amount": total_tax_amount,
+            "date": last_date_of_sales
+        }
+        return TemplateResponse(request, 'dashboard/reports/history/sales_list.html', ctx)
+    except ObjectDoesNotExist as e:
+        logger.error(e)
+
+
+@staff_member_required
+@permission_decorator('reports.view_sale_reports')
+def credit_history_api(request, pk=None):
+    if pk:
+        credit = Credit.objects.get(pk=pk)
+        total_amount = CreditHistoryEntry.objects.aggregate(Sum('amount'))['amount__sum']
+        total_balance = CreditHistoryEntry.objects.aggregate(Sum('balance'))['balance__sum']
+    else:
+        credit = Credit()
+    try:
+        try:
+            last_sale = CreditHistoryEntry.objects.latest('id')
+            last_date_of_sales = DateFormat(last_sale.created).format('Y-m-d')
+        except:
+            last_date_of_sales = DateFormat(datetime.datetime.today()).format('Y-m-d')
+
+        all_sales = CreditHistoryEntry.objects.filter(credit=credit)
+        total_sales_amount = 0
+        total_tax_amount = 0
+        total_sales = []
+
+        page = request.GET.get('page', 1)
+        paginator = Paginator(total_sales, 10)
+        try:
+            total_sales = paginator.page(page)
+        except PageNotAnInteger:
+            total_sales = paginator.page(1)
+        except InvalidPage:
+            total_sales = paginator.page(1)
+        except EmptyPage:
+            total_sales = paginator.page(paginator.num_pages)
+        user_trail(request.user.name, 'accessed credit sales reports', 'view')
+        logger.info('User: ' + str(request.user.name) + ' accessed the view credit sales report page')
+        ctx = {
+            'pn': paginator.num_pages,
+            'sales': all_sales,
+            "credit": credit,
+            'total_amount': total_amount,
+            'total_balance': total_balance,
+            "total_sales_amount": total_sales_amount,
+            "total_tax_amount": total_tax_amount,
+            "date": last_date_of_sales
+        }
+        return TemplateResponse(request, 'dashboard/reports/history/sales_list.html', ctx)
+    except ObjectDoesNotExist as e:
+        logger.error(e)
+
+
+@staff_member_required
+@permission_decorator('reports.view_sales_reports')
+def credit_detail_pdf(request, pk=None):
+    try:
+        credit = Credit.objects.get(pk=pk)
+        all_sales = CreditHistoryEntry.objects.filter(credit=credit)
+        img = default_logo()
+        data = {
+            'today': date.today(),
+            'sales': all_sales,
+            'credit': credit,
+            'puller': request.user,
+            'image': img
+        }
+        pdf = render_to_pdf('dashboard/reports/history/pdf/pdf.html', data)
+        return HttpResponse(pdf, content_type='application/pdf')
+    except ObjectDoesNotExist as e:
+        logger.error(e)
 
 
 @staff_member_required
@@ -42,7 +159,7 @@ def credit_list(request):
         total_tax_amount = all_sales.aggregate(Sum('total_tax'))
         total_sales = []
         for sale in all_sales:
-            quantity = CreditedItem.objects.filter(credit=sale).aggregate(c=Count('sku'))
+            quantity = CreditedItem.objects.filter(credit=sale).aggregate(c=Sum('quantity'))
             setattr(sale, 'quantity', quantity['c'])
             total_sales.append(sale)
 
@@ -72,7 +189,8 @@ def credit_detail(request, pk=None):
     try:
         sale = Credit.objects.get(pk=pk)
         items = CreditedItem.objects.filter(credit=sale)
-        return TemplateResponse(request, 'dashboard/reports/credit/details.html', {'items': items, "sale": sale})
+        return TemplateResponse(request, 'dashboard/reports/credit/details.html',
+                                {'items': items, "sale": sale, 'table_name': ''})
     except ObjectDoesNotExist as e:
         logger.error(e)
         return HttpResponse('No items found')
@@ -126,13 +244,54 @@ def credit_paginate(request):
     total_sales = Credit.objects.aggregate(Sum('total_net'))
     total_tax = Credit.objects.aggregate(Sum('total_tax'))
 
+    month = request.GET.get('month')
+    year = request.GET.get('year')
+    period = request.GET.get('period')
+
+    if year and month:
+        if len(str(month)) == 1:
+            m = '0' + str(month)
+            fdate = str(year) + '-' + m
+        else:
+            fdate = str(year) + '-' + str(month)
+
+        d = datetime.datetime.strptime(fdate, "%Y-%m")
+    elif year:
+        fdate = str(year)
+        d = datetime.datetime.strptime(fdate, "%Y")
+
+    if period == 'year':
+        lastyear = d - dateutil.relativedelta.relativedelta(years=1)
+        y = str(lastyear.strftime("%Y"))
+        credits = Credit.objects.filter(created__year__range=[y, year])
+        date_period = str(lastyear.strftime("%Y")) + ' - ' + str(datetime.datetime.now().strftime("%m")) + '/' + str(
+            year)
+    elif period == 'month':
+        credits = Credit.objects.filter(created__year=str(d.strftime("%Y")), created__month=str(d.strftime("%m")))
+        date_period = str(datetime.datetime.strptime(month, "%m").strftime("%B")) + '/' + str(
+            datetime.datetime.strptime(year, "%Y").strftime("%Y"))
+    elif period == 'quarter':
+        p = d - dateutil.relativedelta.relativedelta(months=3)
+        month = str(datetime.datetime.strptime(month, "%m").strftime("%m"))
+        credits = Credit.objects.filter(created__year=str(p.strftime("%Y")),
+                                        created__month__range=[str(p.strftime("%m")), month])
+        date_period = str(p.strftime("%B")) + '/' + str(p.strftime("%Y")) + ' - ' + str(
+            datetime.datetime.strptime(month, "%m").strftime("%B")) + '/' + str(year)
+    else:
+        credits = Credit.objects.all()
+        if not date:
+            date1 = DateFormat(datetime.datetime.today()).format('Y-m-d')
+        else:
+            date1 = date
+        date_period = date1
+
     if date:
         try:
-            all_salesd = Credit.objects.filter(created__icontains=date).order_by('-id')
-            that_date_sum = Credit.objects.filter(created__contains=date).aggregate(Sum('total_net'))
+            all_salesd = credits.filter(created__icontains=date).order_by('-id')
+            total_sales_amount = Credit.objects.filter(created__contains=date).aggregate(Sum('total_net'))
             sales = []
             for sale in all_salesd:
-                quantity = CreditedItem.objects.filter(credit=sale).aggregate(c=Count('sku'))
+                quantity = CreditedItem.objects.filter(credit=sale).aggregate(c=Sum('quantity'))
                 setattr(sale, 'quantity', quantity['c'])
                 sales.append(sale)
 
@@ -147,7 +306,8 @@ def credit_paginate(request):
             return TemplateResponse(request, 'dashboard/reports/credit/p2.html',
                                     {'sales': sales, 'pn': paginator.num_pages, 'sz': 10, 'gid': date,
                                      'total_sales': total_sales, 'total_tax': total_tax, 'tsum': tsum,
-                                     'that_date_sum': that_date_sum, 'date': date, 'today': today})
+                                     "total_sales_amount": total_sales_amount, 'date': date, 'today': today,
+                                     'month': month, 'year': year, 'period': period, 'date_period': date_period})
 
         except ObjectDoesNotExist as e:
             return TemplateResponse(request, 'dashboard/reports/credit/p2.html', {'date': date})
@@ -156,12 +316,12 @@ def credit_paginate(request):
         try:
             last_sale = Credit.objects.latest('id')
             last_date_of_sales = DateFormat(last_sale.created).format('Y-m-d')
-            all_sales = Credit.objects.filter(created__contains=last_date_of_sales)
+            all_sales = credits.filter(created__contains=last_date_of_sales)
             total_sales_amount = all_sales.aggregate(Sum('total_net'))
             total_tax_amount = all_sales.aggregate(Sum('total_tax'))
             sales = []
             for sale in all_sales:
-                quantity = CreditedItem.objects.filter(credit=sale).aggregate(c=Count('sku'))
+                quantity = CreditedItem.objects.filter(credit=sale).aggregate(c=Sum('quantity'))
                 setattr(sale, 'quantity', quantity['c'])
                 sales.append(sale)
 
@@ -169,8 +329,10 @@ def credit_paginate(request):
                 paginator = Paginator(sales, int(list_sz))
                 sales = paginator.page(page)
                 return TemplateResponse(request, 'dashboard/reports/credit/p2.html',
-                                        {'sales': sales, 'pn': paginator.num_pages, 'sz': list_sz, 'gid': 0,
-                                         'total_sales': total_sales, 'total_tax': total_tax, 'tsum': tsum})
+                                        {'sales': sales, 'pn': paginator.num_pages, 'sz': list_sz,
+                                         'gid': 0, 'total_sales': total_sales, "total_sales_amount": total_sales_amount,
+                                         'tsum': tsum, 'month': month, 'year': year, 'period': period,
+                                         'date_period': date_period})
             else:
                 paginator = Paginator(sales, 10)
             if p2_sz:
@@ -198,13 +360,55 @@ def credit_search(request):
         list_sz = request.GET.get('size')
         p2_sz = request.GET.get('psize')
         q = request.GET.get('q')
+        date = request.GET.get('gid')
         if list_sz is None:
             sz = 10
         else:
             sz = list_sz
 
+        month = request.GET.get('month')
+        year = request.GET.get('year')
+        period = request.GET.get('period')
+
+        if year and month:
+            if len(str(month)) == 1:
+                m = '0' + str(month)
+                fdate = str(year) + '-' + m
+            else:
+                fdate = str(year) + '-' + str(month)
+
+            d = datetime.datetime.strptime(fdate, "%Y-%m")
+        elif year:
+            fdate = str(year)
+            d = datetime.datetime.strptime(fdate, "%Y")
+
+        if period == 'year':
+            lastyear = d - dateutil.relativedelta.relativedelta(years=1)
+            y = str(lastyear.strftime("%Y"))
+            credits = Credit.objects.filter(created__year__range=[y, year])
+            date_period = str(lastyear.strftime("%Y")) + ' - ' + str(
+                datetime.datetime.now().strftime("%m")) + '/' + str(year)
+
+        elif period == 'month':
+            credits = Credit.objects.filter(created__year=str(d.strftime("%Y")), created__month=str(d.strftime("%m")))
+            date_period = str(datetime.datetime.strptime(month, "%m").strftime("%B")) + '/' + str(
+                datetime.datetime.strptime(year, "%Y").strftime("%Y"))
+
+        elif period == 'quarter':
+            p = d - dateutil.relativedelta.relativedelta(months=3)
+            month = str(datetime.datetime.strptime(month, "%m").strftime("%m"))
+            credits = Credit.objects.filter(created__year=str(p.strftime("%Y")),
+                                            created__month__range=[str(p.strftime("%m")), month])
+            date_period = str(p.strftime("%B")) + '/' + str(p.strftime("%Y")) + ' - ' + str(
+                datetime.datetime.strptime(month, "%m").strftime("%B")) + '/' + str(year)
+        else:
+            credits = Credit.objects.all()
+            if not date:
+                date = DateFormat(datetime.datetime.today()).format('Y-m-d')
+            date_period = date
+
         if q is not None:
-            all_sales = Credit.objects.filter(
+            all_sales = credits.filter(
                 Q(invoice_number__icontains=q) |
                 Q(terminal__terminal_name__icontains=q) |
                 Q(created__icontains=q) |
@@ -214,12 +418,13 @@ def credit_search(request):
                 Q(user__name__icontains=q)).order_by('id').distinct()
             sales = []
 
-            if request.GET.get('gid'):
-                csales = all_sales.filter(created__icontains=request.GET.get('gid'))
+            if date:
+                csales = all_sales.filter(created__icontains=date)
                 for sale in csales:
-                    quantity = CreditedItem.objects.filter(credit=sale).aggregate(c=Count('sku'))
+                    quantity = CreditedItem.objects.filter(credit=sale).aggregate(c=Sum('quantity'))
                     setattr(sale, 'quantity', quantity['c'])
                     sales.append(sale)
+                total_sales_amount = all_sales.aggregate(Sum('total_net'))
 
                 if p2_sz:
                     paginator = Paginator(sales, int(p2_sz))
@@ -231,30 +436,35 @@ def credit_search(request):
                     sales = paginator.page(page)
                     return TemplateResponse(request, 'dashboard/reports/credit/search.html',
                                             {'sales': sales, 'pn': paginator.num_pages, 'sz': list_sz,
-                                             'gid': request.GET.get('gid'), 'q': q})
+                                             'gid': date, 'q': q, 'month': month, 'year': year,
+                                             'period': period, 'date_period': date_period,
+                                             "total_sales_amount": total_sales_amount})
 
                 paginator = Paginator(sales, 10)
                 sales = paginator.page(page)
                 return TemplateResponse(request, 'dashboard/reports/credit/search.html',
                                         {'sales': sales, 'pn': paginator.num_pages, 'sz': sz,
-                                         'gid': request.GET.get('gid')})
+                                         'gid': request.GET.get('gid'), 'month': month, 'year': year,
+                                         'period': period, 'date_period': date_period,
+                                         "total_sales_amount": total_sales_amount})
 
             else:
                 for sale in all_sales:
-                    quantity = CreditedItem.objects.filter(credit=sale).aggregate(c=Count('sku'))
+                    quantity = CreditedItem.objects.filter(credit=sale).aggregate(c=Sum('quantity'))
                     setattr(sale, 'quantity', quantity['c'])
                     sales.append(sale)
+                total_sales_amount = all_sales.aggregate(Sum('total_net'))
 
                 if list_sz:
-                    print ('lst')
                     paginator = Paginator(sales, int(list_sz))
                     sales = paginator.page(page)
                     return TemplateResponse(request, 'dashboard/reports/credit/search.html',
                                             {'sales': sales, 'pn': paginator.num_pages, 'sz': list_sz, 'gid': 0,
-                                             'q': q})
+                                             'q': q, 'month': month, 'year': year, 'period': period,
+                                             'date_period': date_period,
+                                             "total_sales_amount": total_sales_amount})
 
                 if p2_sz:
-                    print ('pst')
                     paginator = Paginator(sales, int(p2_sz))
                     sales = paginator.page(page)
                     return TemplateResponse(request, 'dashboard/reports/credit/paginate.html', {'sales': sales})
@@ -273,7 +483,9 @@ def credit_search(request):
                     return TemplateResponse(request, 'dashboard/reports/credit/paginate.html', {'sales': sales})
 
                 return TemplateResponse(request, 'dashboard/reports/credit/search.html',
-                                        {'sales': sales, 'pn': paginator.num_pages, 'sz': sz, 'q': q})
+                                        {'sales': sales, 'pn': paginator.num_pages, 'sz': sz, 'q': q, 'month': month,
+                                         'year': year, 'period': period, 'date_period': date_period,
+                                         "total_sales_amount": total_sales_amount})
 
 
 @staff_member_required
@@ -460,7 +672,7 @@ def sales_list_export_csv(request):
     total_tax_amount = all_sales.aggregate(Sum('total_tax'))
     total_sales = []
     for sale in all_sales:
-        quantity = SoldItem.objects.filter(sales=sale).aggregate(c=Count('sku'))
+        quantity = SoldItem.objects.filter(sales=sale).aggregate(c=Sum('quantity'))
         if not sale['customer']:
             sale['customer'] = 'Customer'
         setattr(sale, 'quantity', quantity['c'])
@@ -822,7 +1034,7 @@ def reorder_export_csv(request):
 def due_credit_notifier(request):
     due_credits = Credit.objects.due_credits().filter(notified=False)
     for credit in due_credits:
-        subject = 'NOTIFICATION OF OVERDUE CREDIT: ' + \
+        subject = 'OVERDUE CREDIT: ' + \
                   str(credit.invoice_number) + \
                   ' (' + str(DateFormat(credit.created).format('Y-m-d')) + \
                   ')'
@@ -836,4 +1048,23 @@ def due_credit_notifier(request):
         custom_notification(request.user, body, subject)
         credit.notified = True
         credit.save()
+
+    stocks = Stock.objects.get_low_stock(False)
+    for stock in stocks:
+        subject = ' Low Stock: ' + \
+                  str(stock.variant.display_product()) + \
+                  ' - ' + str(stock.variant.sku) + \
+                  ''
+        body = "Hi,<br>: Low Stock Notification<br>" + \
+               '<table class="table table-xxs"><thead><tr class="bg-primary">' + \
+               '<th>Name</th><th>SKU</th><th>Quantity</th><th>Threshold</th></tr></thead><tbody><tr>' + \
+               '<td>' + str(stock.variant.display_product()) + '</td>' + \
+               '<td>' + str(stock.variant.sku) + '</td>' + \
+               '<td>' + str(stock.quantity) + '</td>' + \
+               '<td>' + str(stock.low_stock_threshold) + '</td>' + \
+               '</tr></tbody>'
+
+        custom_notification(request.user, body, subject)
+        stock.notified = True
+        stock.save()
     return HttpResponse(len(due_credits))

@@ -7,13 +7,16 @@ class OrderStatus:
     SHIPPED = 'shipped'
     PAYMENT_PENDING = 'payment-pending'
     FULLY_PAID = 'fully-paid'
+    CREDITED = 'credited'
 
     CHOICES = [
         (NEW, pgettext_lazy('order status', 'Processing')),
         (CANCELLED, pgettext_lazy('order status', 'Cancelled')),
         (SHIPPED, pgettext_lazy('order status', 'Shipped')),
         (PAYMENT_PENDING, pgettext_lazy('order status', 'Payment pending')),
+        (CREDITED, pgettext_lazy('order status', 'Credited')),
         (FULLY_PAID, pgettext_lazy('order status', 'Fully paid'))]
+
 
 class TransactionStatus:
     DEPOSIT = 'deposit'

@@ -7,6 +7,7 @@ from django.http import HttpResponse
 from django.utils.dateformat import DateFormat
 import datetime
 
+# from datetime import date
 from ...utils import render_to_pdf, default_logo
 from ..views import staff_member_required
 from ...customer.models import Customer

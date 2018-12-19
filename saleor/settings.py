@@ -241,6 +241,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'notifications',
     'compressor',
+    'mathfilters',
 ]
 
 CSRF_FAILURE_VIEW = 'saleor.decorators.friendly_csrf_failure_view'

@@ -7,10 +7,13 @@ from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.utils.timezone import now
 from ...orders.models import (Orders, OrderedItem, CancelledOrder)
-from ...sale.models import Terminal
+from ...sale.models import Terminal, PaymentOption
 from decimal import Decimal
 from saleor.countertransfer.models import CounterTransferItems as Item
+from saleor.customer.models import Customer
 from saleor.menutransfer.models import TransferItems as MenuItem
+from saleor.credit.models import Credit, CreditedItem, CreditHistoryEntry
+from saleor.product.models import Stock
 from saleor.mpesa_transactions.models import MpesaTransactions
 from saleor.visa_transactions.models import VisaTransactions
 from structlog import get_logger
@@ -330,7 +333,9 @@ class OrderSerializer(serializers.ModelSerializer):
                   'point',
                   'waiter',
                   'mpesaIds',
-                  'visaIds'
+                  'visaIds',
+                  'customer',
+                  'customer_name'
                   )
 
     def validate_total_net(self, value):
@@ -386,6 +391,18 @@ class OrderSerializer(serializers.ModelSerializer):
         except Exception as e:
             raise ValidationError('User specified does not exist')
 
+    def validate_customer(self, value):
+        data = self.get_initial()
+        customer_id = int(data.get('customer'))
+        customer_name = data.get('customer_name')
+        user = None
+        try:
+            user = Customer.objects.get(pk=customer_id)
+        except Exception as e:
+            if customer_name:
+                user = Customer.objects.create(name=customer_name, creditable=True)
+        return user
+
     def create(self, validated_data):
         try:
             total_net = Decimal(validated_data.get('total_net'))
@@ -424,6 +441,10 @@ class OrderSerializer(serializers.ModelSerializer):
         order.mobile = validated_data.get('mobile')
         order.discount_amount = validated_data.get('discount_amount')
         order.point = validated_data.get('point')
+        if validated_data.get('customer'):
+            order.customer = validated_data.get('customer')
+        if validated_data.get('customer_name'):
+            order.customer_name = validated_data.get('customer_name')
 
         order.save()
         # change the status of mpesaIds so as not to picked up again
@@ -472,6 +493,9 @@ class OrderUpdateSerializer(serializers.ModelSerializer):
     payment_data = JSONField()
     mpesaIds = JSONField(required=False, write_only=True)
     visaIds = JSONField(required=False, write_only=True)
+    create_credit = serializers.BooleanField(write_only=True)
+    update_credit = serializers.BooleanField(write_only=True)
+    due_date = serializers.CharField(required=False, write_only=True)
 
     class Meta:
         model = Orders
@@ -492,6 +516,11 @@ class OrderUpdateSerializer(serializers.ModelSerializer):
                   'payment_data',
                   'mpesaIds',
                   'visaIds',
+                  'customer',
+                  'customer_name',
+                  'create_credit',
+                  'update_credit',
+                  'due_date'
                   )
 
     def validate_status(self, value):
@@ -505,7 +534,7 @@ class OrderUpdateSerializer(serializers.ModelSerializer):
                 raise ValidationError("Status error. Amount paid is less than balance.")
             else:
                 return value
-        elif status == "cancelled":
+        elif status == "cancelled" or status == "credited":
             pass
             return value
         else:
@@ -548,7 +577,109 @@ class OrderUpdateSerializer(serializers.ModelSerializer):
         else:
             raise ValidationError('Terminal specified does not exist')
 
+    def validate_customer(self, value):
+        data = self.get_initial()
+        customer_id = int(data.get('customer'))
+        customer_name = data.get('customer_name')
+        user = None
+        try:
+            user = Customer.objects.get(pk=customer_id)
+        except Exception as e:
+            print e
+            if customer_name:
+                user = Customer.objects.create(name=customer_name, creditable=True)
+        return user
+
+    def send_to_credit(self, order):
+        credit = Credit()
+        credit.user = order.user
+        credit.invoice_number = order.invoice_number
+        credit.total_net = order.total_net
+        credit.sub_total = order.sub_total
+        credit.balance = order.balance
+        credit.terminal = order.terminal
+        credit.amount_paid = order.amount_paid
+        credit.status = order.status
+        credit.status = 'payment-pending'
+        credit.payment_data = order.payment_data
+        credit.customer = order.customer
+        credit.customer_name = order.customer_name
+
+        try:
+            if order.due_date:
+                from datetime import datetime
+                due_date = datetime.strptime(order.due_date, '%Y-%m-%d').date()
+                credit.due_date = due_date
+        except Exception as e:
+            print e
+            logger.error(e)
+
+        try:
+            credit.table = order.table
+            credit.room = order.room
+            credit.carry = 'Sitting'
+        except Exception as e:
+            credit.carry = 'Take Away'
+            logger.error(e)
+        credit.total_tax = order.total_tax
+        credit.save()
+
+        # add credit history
+        try:
+            history = CreditHistoryEntry()
+            history.credit = credit
+            history.balance = credit.total_net
+            history.amount = credit.amount_paid
+            history.save()
+        except Exception as e:
+            logger.error(e)
+
+        for option in order.payment_data:
+            try:
+                pay_opt = PaymentOption.objects.get(pk=int(option['payment_id']))
+                credit.payment_options.add(pay_opt)
+            except Exception as e:
+                print (e)
+                logger.error("error adding options " + str(e))
+
+        for item in order.items():
+            try:
+                new_item = CreditedItem.objects.create(
+                    credit=credit,
+                    sku=item.sku,
+                    quantity=item.quantity,
+                    product_name=item.product_name,
+                    total_cost=item.total_cost,
+                    unit_cost=item.unit_cost,
+                    product_category=item.product_category
+                )
+                new_item.counter = item.counter
+                new_item.transfer_id = item.transfer_id
+                new_item.order = item.id
+                new_item.attributes = item.attributes
+                new_item.unit_purchase = item.unit_purchase
+                new_item.total_purchase = item.total_purchase
+
+                if item.counter:
+                    try:
+                        stock = Stock.objects.filter(sku=item.sku).first()
+                        new_item.minimum_price = stock.minimum_price
+                        new_item.wholesale_override = stock.wholesale_override
+                        new_item.low_stock_threshold = stock.low_stock_threshold
+                        new_item.unit_purchase = stock.cost_price
+                    except Exception as e:
+                        pass
+                elif item.kitchen:
+                    new_item.is_stock = False
+                else:
+                    pass
+                new_item.kitchen = item.kitchen
+                new_item.save()
+            except Exception as e:
+                logger.error(e.message, exception=e)
+
     def update(self, instance, validated_data):
+
         terminal = validated_data.get('terminal', instance.terminal.id)
         terminal.amount += Decimal(validated_data.get('amount_paid', instance.amount_paid))
         terminal.save()
@@ -558,6 +689,16 @@ class OrderUpdateSerializer(serializers.ModelSerializer):
         instance.debt = instance.debt - validated_data.get('amount_paid', instance.amount_paid)
         instance.amount_paid = instance.amount_paid + validated_data.get('amount_paid', instance.amount_paid)
         instance.balance = validated_data.get('balance', instance.balance)
+        instance.customer = validated_data.get('customer', instance.customer)
+        instance.customer_name = validated_data.get('customer_name', instance.customer_name)
+
+        if validated_data.get('customer_name'):
+            try:
+                customer = Customer.objects.get(name=instance.customer_name)
+            except:
+                customer = Customer.objects.create(name=instance.customer_name, creditable=True)
+            instance.customer = customer
+
         if instance.amount_paid >= instance.total_net:
             instance.status = 'fully-paid'
             instance.payment_data = validated_data.get('payment_data')
@@ -568,6 +709,9 @@ class OrderUpdateSerializer(serializers.ModelSerializer):
                 change_visa_id_status(validated_data.get('visaIds'))
         else:
             instance.status = validated_data.get('status', instance.status)
+
+        if validated_data.get('status') == "credited":
+            instance.status = "credited"
         instance.last_status_change = now()
         instance.save()
         try:
@@ -626,6 +770,12 @@ class OrderUpdateSerializer(serializers.ModelSerializer):
                     logger.error('Error reducing kitchen stock!', exception=e)
             else:
                 logger.info('Kitchen or counter were not provided')
+
+        if validated_data.get('create_credit'):
+            if validated_data.get('due_date'):
+                instance.due_date = validated_data.get('due_date')
+            self.send_to_credit(instance)
+
         return instance
 
 
