@@ -5,14 +5,17 @@ from django.db.models import Q
 from django.template.defaultfilters import date
 from django.core.paginator import Paginator, EmptyPage, InvalidPage, PageNotAnInteger
 from datetime import date
+import logging
 
 from ..views import staff_member_required
 from ...purchase.models import PurchaseProduct
+
 from ...decorators import permission_decorator, user_trail
 from ...utils import render_to_pdf
 import csv
 import random
 from django.utils.encoding import smart_str
+
 from structlog import get_logger
 
 logger = get_logger(__name__)

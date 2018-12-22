@@ -1,3 +1,4 @@
+
 from django.core.exceptions import ObjectDoesNotExist
 from django.template.response import TemplateResponse
 from django.http import HttpResponse
@@ -74,7 +75,7 @@ def sales_detail(request, pk=None):
         for t in items:
             product = ProductVariant.objects.get(sku=t.sku)
             try:
-                tax = product.product_tax * itquantity
+                tax = product.product_tax * t.quantity
             except Exception, e:
                 tax = (0.00) * t.quantity
             setattr(t, 'tax', tax)

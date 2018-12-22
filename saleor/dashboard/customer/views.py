@@ -1,21 +1,23 @@
 from django.shortcuts import get_object_or_404
 from django.template.response import TemplateResponse
 from django.http import HttpResponse
-from django.utils.translation import pgettext_lazy
-from django.contrib import messages
 from django.core.urlresolvers import reverse
+from django.utils.translation import pgettext_lazy
 from django.core.paginator import Paginator, PageNotAnInteger, InvalidPage, EmptyPage
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Count, Sum, Q
+from django.contrib import messages
+from ..views import staff_member_required
 from django.db import IntegrityError
 
-from ..views import staff_member_required
-from ...customer.models import Customer, AddressBook
 from ...sale.models import (Sales, SoldItem)
 from ...credit.models import Credit
+from ...utils import render_to_pdf, default_logo
+from datetime import date
 from ...decorators import permission_decorator, user_trail
 from saleor.booking.models import Book, RentPayment
 from saleor.room.models import Maintenance
+from ...customer.models import Customer, AddressBook
 import json
 import random
 
@@ -23,16 +25,33 @@ from structlog import get_logger
 
 logger = get_logger(__name__)
 
-table_name = 'Customers'
-
 
 @staff_member_required
 @permission_decorator('customer.view_customer')
 def users(request):
-    global table_name
-
-    ctx = {'table_name': table_name}
-    return TemplateResponse(request, 'dashboard/customer/users.html', ctx)
+    try:
+        users = Customer.objects.all().order_by('-id')
+        page = request.GET.get('page', 1)
+        paginator = Paginator(users, 10)
+        try:
+            users = paginator.page(page)
+        except PageNotAnInteger:
+            users = paginator.page(1)
+        except InvalidPage:
+            users = paginator.page(1)
+        except EmptyPage:
+            users = paginator.page(paginator.num_pages)
+        user_trail(request.user.name, 'accessed customers page', 'view')
+        logger.info('User: ' + str(request.user.name) + 'view customers')
+        if request.GET.get('initial'):
+            return HttpResponse(paginator.num_pages)
+        else:
+            return TemplateResponse(request, 'dashboard/customer/users.html',
+                                    {'users': users, 'pn': paginator.num_pages, 'table_name': 'Customers'})
+    except TypeError as e:
+        logger.error(e)
+        return TemplateResponse(request, 'dashboard/customer/users.html',
+                                {'users': users, 'pn': paginator.num_pages, 'table_name': 'Customers'})
 
 
 @staff_member_required
@@ -41,10 +60,12 @@ def user_add(request):
     try:
         user_trail(request.user.name, 'accessed add customer page', 'view')
         logger.info('User: ' + str(request.user.name) + 'accessed add customer page')
-        return TemplateResponse(request, 'dashboard/customer/add.html',{'permissions':"permissions", 'groups':"groups"})
+        return TemplateResponse(request, 'dashboard/customer/add.html',
+                                {'permissions': "permissions", 'groups': "groups"})
     except TypeError as e:
         logger.error(e)
         return HttpResponse('error accessing add users page')
+
 
 @staff_member_required
 def user_process(request):
@@ -95,14 +116,13 @@ def user_detail(request, pk):
             room = None
             balance_with_charges = 0
 
-        ctx = {'user': user, 'table_name': 
-                'Customer', 'room':room, 'booking':booking, 
+        ctx = {'user': user, 'table_name':
+                'Customer', 'room':room, 'booking':booking,
                 'balance_with_charges':balance_with_charges}
         user_trail(request.user.name, 'accessed detail page to view customer: ' + str(user.name), 'view')
         logger.info('User: ' + str(request.user.name) + ' accessed detail page to view customer:' + str(user.name))
         return TemplateResponse(request, 'dashboard/customer/detail.html', ctx)
     except:
-        print ('*')*100
         return TemplateResponse(request, 'dashboard/customer/detail.html', {})
 
 
@@ -128,74 +148,71 @@ def sales_detail(request, pk):
             total_sales = paginator.page(1)
         except EmptyPage:
             total_sales = paginator.page(paginator.num_pages)
-        user_trail(request.user.name, 'accessed sales details for customer'+str(customer.name), 'view')
-        logger.info('User: ' + str(request.user.name) + 'accessed sales details for customer'+str(customer.name))
+        user_trail(request.user.name, 'accessed sales details for customer' + str(customer.name), 'view')
+        logger.info('User: ' + str(request.user.name) + 'accessed sales details for customer' + str(customer.name))
         if request.GET.get('initial'):
             return HttpResponse(paginator.num_pages)
         else:
             data = {
                 'sales': total_sales,
-                "total_sales_amount":total_sales_amount,
-                "total_tax_amount":total_tax_amount,
-                "customer":customer,
-                'pn': paginator.num_pages
+                "total_sales_amount": total_sales_amount,
+                "total_tax_amount": total_tax_amount,
+                "customer": customer,
+                "pn": paginator.num_pages
             }
-            return TemplateResponse(request, 'dashboard/customer/sales/sales_list.html',data)
+            return TemplateResponse(request, 'dashboard/customer/sales/sales_list.html', data)
     except ObjectDoesNotExist as e:
         logger.error(e)
+
 
 def sales_items_detail(request, pk=None, ck=None):
     try:
         customer = get_object_or_404(Customer, pk=ck)
         sale = Sales.objects.get(pk=pk)
         items = SoldItem.objects.filter(sales=sale)
-        return TemplateResponse(request, 'dashboard/customer/sales/details.html',{'items': items, "sale":sale, "customer":customer})
+        return TemplateResponse(request, 'dashboard/customer/sales/details.html',
+                                {'items': items, "sale": sale, "customer": customer})
     except ObjectDoesNotExist as e:
         logger.error(e)
 
 
 @permission_decorator('customer.delete_customer')
 def user_delete(request, pk):
-    global table_name
     user = get_object_or_404(Customer, pk=pk)
     if request.method == 'POST':
         user.delete()
         user_trail(request.user.name, 'deleted customer: ' + str(user.name))
-        ctx = {'table_name': table_name}
-        return TemplateResponse(request, 'dashboard/customer/users.html', ctx)
+        return HttpResponse('success')
 
 
 @permission_decorator('customer.change_customer')
 def user_edit(request, pk):
     user = get_object_or_404(Customer, pk=pk)
     ctx = {'user': user}
-    user_trail(request.user.name, 'accessed edit page for customer '+ str(user.name),'update')
-    logger.info('User: '+str(request.user.name)+' accessed edit page for customer: '+str(user.name))
+    user_trail(request.user.name, 'accessed edit page for customer ' + str(user.name), 'update')
+    logger.info('User: ' + str(request.user.name) + ' accessed edit page for customer: ' + str(user.name))
     return TemplateResponse(request, 'dashboard/customer/edit.html', ctx)
+
 
 def user_update(request, pk):
     user = get_object_or_404(Customer, pk=pk)
     if request.method == 'POST':
         name = request.POST.get('name')
         email = request.POST.get('email')
+        if request.POST.get('creditable'):
+            user.creditable = True
+        else:
+            user.creditable = False
         nid = request.POST.get('nid')
-        nationality = request.POST.get('nationality')
-        mobile = request.POST.get('mobile')
-        description = request.POST.get('description')
-        image = request.FILES.get('image')
-        if image:
-            user.image = image
-
+        mobile = request.POST.get('mobile').replace(' ', '').replace('(', '').replace(')', '').replace('-', '')
         user.name = name
         user.email = email
         user.nid = nid
-        user.nationality = nationality
         user.mobile = mobile
-        user.description = description
         user.save()
         user_trail(request.user.name, 'updated customer: ' + str(user.name))
-        logger.info('User: ' + str(request.user.name) + ' updated supplier: ' + str(user.name))
-        return HttpResponse("success without image")
+        logger.info('User: ' + str(request.user.name) + ' updated customer: ' + str(user.name))
+        return HttpResponse("success")
 
 
 @staff_member_required
@@ -210,13 +227,13 @@ def customer_pagination(request):
         paginator = Paginator(users, int(list_sz))
         users = paginator.page(page)
         return TemplateResponse(request, 'dashboard/customer/pagination/p2.html',
-                                {'users':users, 'pn': paginator.num_pages, 'sz': list_sz, 'gid': 0})
+                                {'users': users, 'pn': paginator.num_pages, 'sz': list_sz, 'gid': 0})
     else:
         paginator = Paginator(users, 10)
     if p2_sz:
         paginator = Paginator(users, int(p2_sz))
         users = paginator.page(page)
-        return TemplateResponse(request, 'dashboard/customer/pagination/paginate.html', {"users":users})
+        return TemplateResponse(request, 'dashboard/customer/pagination/paginate.html', {"users": users})
 
     try:
         users = paginator.page(page)
@@ -226,7 +243,8 @@ def customer_pagination(request):
         users = paginator.page(1)
     except EmptyPage:
         users = paginator.page(paginator.num_pages)
-    return TemplateResponse(request, 'dashboard/customer/pagination/paginate.html', {"users":users})
+    return TemplateResponse(request, 'dashboard/customer/pagination/paginate.html', {"users": users})
+
 
 @staff_member_required
 def customer_search(request):
@@ -242,7 +260,7 @@ def customer_search(request):
 
         if q is not None:
             queryset_list = Customer.objects.filter(
-                Q(name__icontains=q)|
+                Q(name__icontains=q) |
                 Q(email__icontains=q) |
                 Q(mobile__icontains=q)
             ).order_by('-id')
@@ -259,10 +277,10 @@ def customer_search(request):
             users = queryset_list
             if p2_sz:
                 users = paginator.page(page)
-                return TemplateResponse(request, 'dashboard/customer/pagination/paginate.html', {"users":users})
+                return TemplateResponse(request, 'dashboard/customer/pagination/paginate.html', {"users": users})
 
             return TemplateResponse(request, 'dashboard/customer/pagination/search.html',
-            {"users":users, 'pn': paginator.num_pages, 'sz': sz, 'q': q})
+                                    {"users": users, 'pn': paginator.num_pages, 'sz': sz, 'q': q})
 
 
 @staff_member_required
@@ -276,9 +294,10 @@ def is_creditable(request):
                 if int(request.POST.get('is_creditable')) == 0:
                     customer.creditable = False;
                 customer.save()
-            return HttpResponse(json.dumps({'success':customer.creditable}),content_type='application/json')
+            return HttpResponse(json.dumps({'success': customer.creditable}), content_type='application/json')
     else:
-        return HttpResponse(json.dumps({'error':'Invalid method GET'}),content_type='applicatoin/json')
+        return HttpResponse(json.dumps({'error': 'Invalid method GET'}), content_type='applicatoin/json')
+
 
 # reports
 @staff_member_required
@@ -301,10 +320,13 @@ def customer_report(request):
         if request.GET.get('initial'):
             return HttpResponse(paginator.num_pages)
         else:
-            return TemplateResponse(request, 'dashboard/customer/reports/list.html',{'users': users, 'pn': paginator.num_pages})
+            return TemplateResponse(request, 'dashboard/customer/reports/list.html',
+                                    {'users': users, 'pn': paginator.num_pages})
     except TypeError as e:
         logger.error(e)
-        return TemplateResponse(request, 'dashboard/customer/reports/list.html', {'users': users, 'pn': paginator.num_pages})
+        return TemplateResponse(request, 'dashboard/customer/reports/list.html',
+                                {'users': users, 'pn': paginator.num_pages})
+
 
 @staff_member_required
 def report_search(request):
@@ -320,7 +342,7 @@ def report_search(request):
 
         if q is not None:
             queryset_list = Customer.objects.filter(
-                Q(name__icontains=q)|
+                Q(name__icontains=q) |
                 Q(email__icontains=q) |
                 Q(mobile__icontains=q)
             ).order_by('-id')
@@ -337,10 +359,11 @@ def report_search(request):
             users = queryset_list
             if p2_sz:
                 users = paginator.page(page)
-                return TemplateResponse(request, 'dashboard/customer/pagination/report_paginate.html', {"users":users})
+                return TemplateResponse(request, 'dashboard/customer/pagination/report_paginate.html', {"users": users})
 
             return TemplateResponse(request, 'dashboard/customer/pagination/report_search.html',
-            {"users":users, 'pn': paginator.num_pages, 'sz': sz, 'q': q})
+                                    {"users": users, 'pn': paginator.num_pages, 'sz': sz, 'q': q})
+
 
 @staff_member_required
 def report_pagination(request):
@@ -354,13 +377,13 @@ def report_pagination(request):
         paginator = Paginator(users, int(list_sz))
         users = paginator.page(page)
         return TemplateResponse(request, 'dashboard/customer/pagination/report_p2.html',
-                                {'users':users, 'pn': paginator.num_pages, 'sz': list_sz, 'gid': 0})
+                                {'users': users, 'pn': paginator.num_pages, 'sz': list_sz, 'gid': 0})
     else:
         paginator = Paginator(users, 10)
     if p2_sz:
         paginator = Paginator(users, int(p2_sz))
         users = paginator.page(page)
-        return TemplateResponse(request, 'dashboard/customer/pagination/report_paginate.html', {"users":users})
+        return TemplateResponse(request, 'dashboard/customer/pagination/report_paginate.html', {"users": users})
 
     try:
         users = paginator.page(page)
@@ -370,14 +393,48 @@ def report_pagination(request):
         users = paginator.page(1)
     except EmptyPage:
         users = paginator.page(paginator.num_pages)
-    return TemplateResponse(request, 'dashboard/customer/pagination/report_paginate.html', {"users":users})
+    return TemplateResponse(request, 'dashboard/customer/pagination/report_paginate.html', {"users": users})
+
+
+# credit views
+table_name = 'credit'
+
+
+@staff_member_required
+@permission_decorator('customer.view_customer')
+def credit_api(request):
+    global table_name
+    data = {
+        "table_name": table_name,
+    }
+    return TemplateResponse(request, 'dashboard/customer/' + table_name.lower() + '/list_api.html', data)
+
+
+@staff_member_required
+@permission_decorator('reports.view_sale_reports')
+def single_list(request, pk=None):
+    global table_name
+    if not pk:
+        return HttpResponse('Instance pk required')
+    name = ''
+    try:
+        name = Credit.objects.get(pk=pk).customer.name
+    except Exception as e:
+        pass
+    data = {
+        "table_name": table_name,
+        "pk": pk,
+        "name": name
+    }
+    return TemplateResponse(request, 'dashboard/customer/' + table_name.lower() + '/more.html', data)
+
 
 # credit views
 @staff_member_required
 @permission_decorator('customer.view_customer')
-def credit_report(request):
+def credit_distinct(request):
     try:
-        users =  Credit.objects.filter(~Q(customer=None)).order_by('-id')
+        users = Credit.objects.filter(~Q(customer=None)).distinct('customer').order_by('customer')
         page = request.GET.get('page', 1)
         paginator = Paginator(users, 10)
         try:
@@ -393,10 +450,41 @@ def credit_report(request):
         if request.GET.get('initial'):
             return HttpResponse(paginator.num_pages)
         else:
-            return TemplateResponse(request, 'dashboard/customer/credit/list.html',{'users': users, 'pn': paginator.num_pages})
+            return TemplateResponse(request, 'dashboard/customer/credit/list_distinct.html',
+                                    {'users': users, 'pn': paginator.num_pages})
     except TypeError as e:
         logger.error(e)
-        return TemplateResponse(request, 'dashboard/customer/credit/list.html', {'users': users, 'pn': paginator.num_pages})
+        return TemplateResponse(request, 'dashboard/customer/credit/list_distinct.html',
+                                {'users': users, 'pn': paginator.num_pages})
+
+
+@staff_member_required
+@permission_decorator('customer.view_customer')
+def credit_report(request):
+    try:
+        users = Credit.objects.filter(~Q(customer=None)).order_by('-id')
+        page = request.GET.get('page', 1)
+        paginator = Paginator(users, 10)
+        try:
+            users = paginator.page(page)
+        except PageNotAnInteger:
+            users = paginator.page(1)
+        except InvalidPage:
+            users = paginator.page(1)
+        except EmptyPage:
+            users = paginator.page(paginator.num_pages)
+        user_trail(request.user.name, 'accessed customers page', 'view')
+        logger.info('User: ' + str(request.user.name) + 'view customers')
+        if request.GET.get('initial'):
+            return HttpResponse(paginator.num_pages)
+        else:
+            return TemplateResponse(request, 'dashboard/customer/credit/list.html',
+                                    {'users': users, 'pn': paginator.num_pages})
+    except TypeError as e:
+        logger.error(e)
+        return TemplateResponse(request, 'dashboard/customer/credit/list.html',
+                                {'users': users, 'pn': paginator.num_pages})
+
 
 @staff_member_required
 def credit_search(request):
@@ -411,7 +499,7 @@ def credit_search(request):
             sz = list_sz
         if q is not None:
             queryset_list = Credit.objects.filter(~Q(customer=None)).filter(
-                Q(customer__name__icontains=q)|
+                Q(customer__name__icontains=q) |
                 Q(customer__email__icontains=q) |
                 Q(customer__mobile__icontains=q)
             ).order_by('-id')
@@ -428,10 +516,11 @@ def credit_search(request):
             users = queryset_list
             if p2_sz:
                 users = paginator.page(page)
-                return TemplateResponse(request, 'dashboard/customer/pagination/credit_paginate.html', {"users":users})
+                return TemplateResponse(request, 'dashboard/customer/pagination/credit_paginate.html', {"users": users})
 
             return TemplateResponse(request, 'dashboard/customer/pagination/credit_search.html',
-            {"users":users, 'pn': paginator.num_pages, 'sz': sz, 'q': q})
+                                    {"users": users, 'pn': paginator.num_pages, 'sz': sz, 'q': q})
+
 
 @staff_member_required
 def credit_pagination(request):
@@ -445,13 +534,13 @@ def credit_pagination(request):
         paginator = Paginator(users, int(list_sz))
         users = paginator.page(page)
         return TemplateResponse(request, 'dashboard/customer/pagination/credit_p2.html',
-                                {'users':users, 'pn': paginator.num_pages, 'sz': list_sz, 'gid': 0})
+                                {'users': users, 'pn': paginator.num_pages, 'sz': list_sz, 'gid': 0})
     else:
         paginator = Paginator(users, 10)
     if p2_sz:
         paginator = Paginator(users, int(p2_sz))
         users = paginator.page(page)
-        return TemplateResponse(request, 'dashboard/customer/pagination/credit_paginate.html', {"users":users})
+        return TemplateResponse(request, 'dashboard/customer/pagination/credit_paginate.html', {"users": users})
 
     try:
         users = paginator.page(page)
@@ -461,8 +550,32 @@ def credit_pagination(request):
         users = paginator.page(1)
     except EmptyPage:
         users = paginator.page(paginator.num_pages)
-    return TemplateResponse(request, 'dashboard/customer/pagination/credit_paginate.html', {"users":users})
+    return TemplateResponse(request, 'dashboard/customer/pagination/credit_paginate.html', {"users": users})
 
+
+@staff_member_required
+def costomer_loyalty_points_pdf(request):
+    try:
+        image = request.POST.get('image')
+        sales_date = request.POST.get('date')
+        if not sales_date:
+            sales_date = None
+
+        img = default_logo()
+        data = {
+            'today': date.today(),
+            'puller': request.user,
+            'image': img,
+            'category': image,
+            'sales_date': sales_date
+        }
+        pdf = render_to_pdf('dashboard/customer/pdf/loyalty_points.html', data)
+        response = HttpResponse(pdf, content_type='application/pdf')
+        response['Content-Disposition'] = 'filename=some_file.pdf'
+
+        return response
+    except ObjectDoesNotExist as e:
+        logger.error(e)
 
 
 @staff_member_required
@@ -498,6 +611,7 @@ def add_dependency(request, pk):
                                 'dashboard/customer/_newContact.html',
                                 ctx)
 
+
 @staff_member_required
 def refresh_dependency(request, pk=None):
     if request.method == 'GET':
@@ -528,28 +642,28 @@ def dependency_delete(request, pk):
                             'dashboard/customer/modal_delete.html',
                             ctx)
 
+
 @staff_member_required
 def pay(request, pk=None):
     try:
         customer = Customer.objects.get(pk=pk)
     except:
-        customer = none
+        customer = None
 
     # create payment instance
     if request.method == 'POST':
         instance = RentPayment()
         try:
-            instance.invoice_number = 'inv/fx/0'+str(RentPayment.objects.latest('id').id)
+            instance.invoice_number = 'inv/fx/0' + str(RentPayment.objects.latest('id').id)
             instance.invoice_number += ''.join(random.choice('0123456789ABCDEF') for i in range(4))
         except Exception as e:
-            instance.invoice_number = 'inv/fx/1'+''.join(random.choice('0123456789ABCDEF') for i in range(4))
+            instance.invoice_number = 'inv/fx/1' + ''.join(random.choice('0123456789ABCDEF') for i in range(4))
 
         instance.customer = customer
         if request.POST.get('date_paid'):
             instance.date_paid = request.POST.get('date_paid')
         if request.POST.get('amount_paid'):
             instance.amount_paid = request.POST.get('amount_paid')
-        print instance.amount_paid
 
         book = Book.objects.get(customer__pk=customer.pk, active=True, room__is_booked=True)
         instance.room = book.room
@@ -559,7 +673,7 @@ def pay(request, pk=None):
             instance.room = book.room
             book_amount = book.amount_paid.gross
             book_balance = book.balance.gross
-            if  book_amount== 0:
+            if book_amount == 0:
                 try:
                     instance.total_amount = book_balance
                     # add all the amount paid so far
@@ -567,9 +681,9 @@ def pay(request, pk=None):
                     # calculate the balance
                     bookBalance = book_balance - instance.amount_paid.gross
                     book.balance = bookBalance
-                    #calculate the balance with the charges
+                    # calculate the balance with the charges
                     book.balance_with_charges = bookBalance + book.service_charges.gross + book.room.service_charges
-                    #record the balance and the service charges in the RentPayment model
+                    # record the balance and the service charges in the RentPayment model
                     instance.balance = bookBalance
                     instance.service_charges = book.service_charges.gross + book.room.service_charges
                     book.service_charges = 0
@@ -577,14 +691,14 @@ def pay(request, pk=None):
                     instance.save()
                     book.save()
                 except Exception as e:
-                    print (e)
+                    logger.error(e)
             else:
                 try:
-                    #total amount remaining
+                    # total amount remaining
                     instance.total_amount = book.balance_with_charges.gross
-                    #the total amount paid
+                    # the total amount paid
                     book.amount_paid = book_amount + instance.amount_paid.gross
-                    #calculate the balance with the charges
+                    # calculate the balance with the charges
                     bookBalanceWitharges = book.balance_with_charges.gross - instance.amount_paid.gross
                     book.balance_with_charges = bookBalanceWitharges
                     # calculate the balance without the charges
@@ -600,17 +714,18 @@ def pay(request, pk=None):
                     instance.save()
                     book.save()
                 except Exception as e:
-                    print (e)
+                    logger.error(e)
 
             data = {'success': 'success'}
             return HttpResponse(json.dumps(data), content_type='application/json')
 
         except Exception as e:
-            print e
+            logger.error(e)
             return HttpResponse('Invalid request method')
         return HttpResponse('Invalid request method')
 
     return HttpResponse('Invalid request method')
+
 
 @staff_member_required
 def payments(request):
@@ -619,6 +734,7 @@ def payments(request):
     ctx = {'table_name': table_name}
     return TemplateResponse(request, 'dashboard/customer/reports/payments.html', ctx)
 
+
 @staff_member_required
 def booking_invoice(request, pk=None):
     if request.method == 'GET':
@@ -626,10 +742,10 @@ def booking_invoice(request, pk=None):
         instance = get_object_or_404(Book, pk=pk)
         if not instance.invoice_number:
             try:
-                instance.invoice_number = 'inv/fx/0'+str(Book.objects.latest('id').id)
+                instance.invoice_number = 'inv/fx/0' + str(Book.objects.latest('id').id)
                 instance.invoice_number += ''.join(random.choice('0123456789ABCDEF') for i in range(4))
             except Exception as e:
-                instance.invoice_number = 'inv/fx/1'+''.join(random.choice('0123456789ABCDEF') for i in range(4))
+                instance.invoice_number = 'inv/fx/1' + ''.join(random.choice('0123456789ABCDEF') for i in range(4))
             instance.save()
 
         total_balance = instance.balance.gross + instance.service_charges.gross
@@ -641,6 +757,6 @@ def booking_invoice(request, pk=None):
         except:
             reason = None
 
-        ctx = {'table_name': table_name, 'instance': instance, 'reason':reason,
-            'customer':instance.customer, 'total_balance':total_balance}
+        ctx = {'table_name': table_name, 'instance': instance, 'reason': reason,
+               'customer': instance.customer, 'total_balance': total_balance}
         return TemplateResponse(request, 'dashboard/customer/reports/invoice.html', ctx)

@@ -1,3 +1,4 @@
+
 from django.core.exceptions import ObjectDoesNotExist
 from django.template.response import TemplateResponse
 from django.http import HttpResponse
@@ -7,8 +8,11 @@ from ...utils import image64
 from django.core.paginator import Paginator, EmptyPage, InvalidPage, PageNotAnInteger
 import datetime
 from django.utils.dateformat import DateFormat
+import logging
+
 from ...utils import render_to_pdf
 from datetime import date
+
 from ..views import staff_member_required
 from ...sale.models import Sales, SoldItem
 from ...product.models import ProductVariant

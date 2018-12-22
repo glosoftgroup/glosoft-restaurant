@@ -6,13 +6,13 @@ from django.core.exceptions import ObjectDoesNotExist
 import datetime
 from datetime import timedelta
 from django.utils.dateformat import DateFormat
+import logging
 import random
 from decimal import Decimal
 from calendar import monthrange
 import calendar
 
 import re
-
 from ..views import staff_member_required
 from ...sale.models import Sales, SoldItem, Terminal
 from ...product.models import Category
@@ -28,7 +28,6 @@ logger = get_logger(__name__)
 
 
 @staff_member_required
-# @permission_decorator('reports.view_sales_reports')
 def sales_category_chart(request, image=None):
     get_date = request.GET.get('date')
     today = datetime.datetime.now()
@@ -109,14 +108,11 @@ def sales_category_chart(request, image=None):
                 "hcateg": highest_category_sales,
                 "sales_date": date
             }
-            # return TemplateResponse(request, 'dashboard/reports/sales/charts/sale_by_category.html', data)
             return TemplateResponse(request, 'dashboard/reports/sales/ajax/category.html', data)
         except ObjectDoesNotExist as e:
             return TemplateResponse(request, 'dashboard/reports/sales/ajax/category.html', {"e": e, "date": date})
-        # return TemplateResponse(request, 'dashboard/reports/sales/charts/sale_by_category.html', {"e":e, "date":date})
         except IndexError as e:
             return TemplateResponse(request, 'dashboard/reports/sales/ajax/category.html', {"e": e, "date": date})
-        # return TemplateResponse(request, 'dashboard/reports/sales/charts/sale_by_category.html', {"e": e, "date":date})
 
 
 @staff_member_required

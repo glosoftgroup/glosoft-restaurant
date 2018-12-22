@@ -1,7 +1,7 @@
 from django.conf.urls import url
-from django.contrib.auth.decorators import permission_required
+from django.contrib.auth.decorators import login_required, permission_required
 
-from . import views, sales
+from . import views, sales, pdf
 from django.conf import settings
 from django.conf.urls.static import static
 
@@ -20,27 +20,34 @@ urlpatterns = [
             (views.user_delete), name='customer-delete'),
         url(r'^edit/(?P<pk>[0-9]+)/$', permission_required('customer.change_customer', login_url='account_login')
             (views.user_edit), name='customer-edit'),
-        url(r'^user_update/(?P<pk>[0-9]+)/$', views.user_update, name='customer-update'),
+        url(r'^user_update(?P<pk>[0-9]+)/$', views.user_update, name='customer-update'),
         url(r'^customer/paginate/$', views.customer_pagination, name='customer-paginate'),
         url(r'^customer/search/$', views.customer_search, name='customer-search'),
 
-        url( r'^customer/sales/paginate/customer-sales-detail$', sales.sales_paginate, name = 'customer_sales_paginate'),
-        url( r'^customer/sales/search/$', sales.sales_search, name = 'customer_sales_search'),
+        url(r'^customer/sales/paginate/customer-sales-detail$', sales.sales_paginate, name = 'customer_sales_paginate'),
+        url(r'^customer/sales/search/$', sales.sales_search, name = 'customer_sales_search'),
         url(r'^customer/sales/list/pdf/$', sales.sales_list_pdf, name='customers_sales_list_pdf'),
 
-        url( r'^customer/canbe/creditable/$', views.is_creditable, name = 'is_creditable'),
+        url(r'^customer/canbe/creditable/$', views.is_creditable, name = 'is_creditable'),
 
         # reports urls
         url(r'^reports/$', permission_required('customer.view_customer', login_url='not_found')
             (views.customer_report), name='customer_report_list'),        
         url(r'^report/paginate/$', views.report_pagination, name='customer-report-paginate'),
         url(r'^report/search/$', views.report_search, name='customer-report-search'),
-
+        url(r'^reports/loyalty-points/pdf/$', views.costomer_loyalty_points_pdf, name='costomer_loyalty_points_pdf'),
         # credit urls        
         url(r'^credit-list/$', permission_required('customer.view_customer', login_url='not_found')
-            (views.credit_report), name='customer_credit_list'),        
+            (views.credit_report), name='customer_credit_list'),
+        url(r'^credit/$', permission_required('customer.view_customer', login_url='not_found')
+            (views.credit_api), name='customer-credit-list'),
+        url(r'^credit/(?P<pk>[0-9]+)/detail/$', permission_required('customer.view_customer', login_url='not_found')
+            (views.single_list), name='single-credit-list'),
         url(r'^credit/paginate/$', views.credit_pagination, name='customer-credit-paginate'),
         url(r'^credit/search/$', views.credit_search, name='customer-credit-search'),
+
+        #pdf 
+        url(r'^credit/pdf/$', pdf.pdf, name='customer-credit-pdf'),
 
         #customer dependencies
         url(r'^delete/contact/(?P<pk>[0-9]+)/$', views.dependency_delete, name='dependency-delete'),

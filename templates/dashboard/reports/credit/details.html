@@ -10,11 +10,12 @@
  Credit Sales Report
 {% endblock %}
 {% block breadcrumbs %}
-     <li class="active"><a href="{% url 'dashboard:credit_list' %}">Credit Sales</a></li>
-     <li>Receipt</li>
- {% endblock %}
 
-{% block menu_report_class %}active{% endblock %}
+<li class=""><a href="{% url 'dashboard:customer_credit_list' %}">{{ table_name }} Credit Report </a></li>
+<li>Receipt</li>
+{% endblock %}
+
+{% block menu_creditreport_class %}active{% endblock %}
  {% block custom_css %}
    <style type="text/css">
     label.error{
@@ -29,7 +30,7 @@
     <div class="row">
         <div class="col-md-12" style="margin-bottom:10px;">
         <a class="btn btn-primary pull-left" href="{% url 'dashboard:credit_list' %}"><i class="icon-arrow-left13 position-left"></i> Back To Credit Sales List</a>
-        <a class="btn btn-primary pull-right printPdf" data-url="{% url 'dashboard:pdf-sale-detail' pk=sale.pk%}" href="javascript:;"><i class="fa fa-file-pdf-o position-left"></i> Print</a>
+        <a class="btn btn-primary pull-right printPdf" data-url="{% url 'dashboard:pdf-credit-detail' pk=sale.pk%}" href="javascript:;"><i class="fa fa-file-pdf-o position-left"></i> Print</a>
         </div>
     </div>
 </div>
@@ -55,7 +56,7 @@
                         <tr class="bg-primary">
                           <th>Transaction Date</th>
                           <th>Item Name</th>         
-                          <th>Selling Price</th>
+                          <th>Unit Cost</th>
                           <th>Quantity</th>
                           <th>Discount</th>
                           <th>Total Sales (KShs)</th>
@@ -92,11 +93,10 @@
             <div class="row">
               <div class="col-md-6 col-md-offset-3 text-center" style="margin-top: 20px;">
                   <span>
-                   Total Credit Sales: Kshs {{sale.total_net}}<br />
-                   Total Tax: Kshs {{sale.total_tax}}
+                   Total Credit Sales: Kshs {{sale.total_net}}
                  </span><br>
                   <span> Thank you for partnering with us.<br />
-                  <span>Report pulled by {{request.user.name}}</span></span>
+                  <span>Report pulled by {% if request.user.name %}{{request.user.name}}{% else %}{{request.user.email}}{% endif %}</span></span>
                   <input type="hidden" class="setValue">
                   <input type="hidden" class="setName">
 
@@ -112,11 +112,13 @@
 
 {% endblock%}
 {% block custom_js %}
+<script > var back_path = "{{request.path}}";</script>
+<script type="text/javascript" src="{% static 'backend/js/pdf/open-pdf.js' %}"></script>
 <script>
     $('.printPdf').on('click', function(){
        var url = $(this).data('url');
         $.get(url, function(data){
-             window.open("data:application/pdf," + escape(data));
+             openPdf(data);
         });
     });
 </script>

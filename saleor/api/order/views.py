@@ -108,6 +108,8 @@ class OrderCreateAPIView(generics.CreateAPIView):
         if serializer.data['status'] == 'fully-paid':
             send_to_sale(instance)
 
+        if serializer.data['status'] == 'credit':
+
             logger.info('User: ' + str(self.request.user) +
                         ' made a takeaway order sale:' + str(serializer.data['invoice_number']))
             terminal = Terminal.objects.get(pk=int(serializer.data['terminal']))
@@ -468,6 +470,12 @@ class OrderUpdateAPIView(generics.RetrieveUpdateAPIView):
                         'cancelled order:#' + str(serializer.data['invoice_number']))
 
             return 'Successfully deleted, status: 204'
+        elif instance.status == 'credited':
+            user_trail(self.request.user.name,
+                       'credited order:#' + str(serializer.data['invoice_number']), 'delete')
+
+            logger.info('User: ' + str(self.request.user) +
+                        'credited order:#' + str(serializer.data['invoice_number']))
 
 
 def send_to_sale(credit):
@@ -481,6 +489,10 @@ def send_to_sale(credit):
     sale.amount_paid = credit.amount_paid
     sale.status = credit.status
     sale.payment_data = credit.payment_data
+    if credit.customer_name:
+        sale.customer_name = credit.customer_name
+    if credit.customer:
+        sale.customer = credit.customer
 
     try:
         sale.table = credit.table

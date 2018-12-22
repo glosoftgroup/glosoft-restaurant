@@ -51,7 +51,7 @@
                   <tr class="bg-primary">
                        <th>Transaction Date</th>
                           <th>Item Name</th>
-                          <th>Selling Price</th>
+                          <th>Unit Cost</th>
                           <th>Quantity</th>
                           <th>Total Sales</th>
                   </tr>
@@ -60,7 +60,7 @@
                     {% if items %}
                         {% for item in items %}
                           <tr>
-                            <td>{{item.sales.created|date:"d-m-Y H:i a"}}</td>
+                            <td>{{item.credit.created|date:"d-m-Y H:i a"}}</td>
                             <td>{{item.product_name}}</td>
                             <td>{{item.unit_cost}}</td>
                             <td>{{item.quantity}}</td>
@@ -81,7 +81,7 @@
                          {% else %}
                             {{ puller.email | upper }}
                          {% endif %}
-                     </span></p>
+                     </span>, On: {{today | date:'d-m-Y'}}</p>
 
          </div>
      </body>
