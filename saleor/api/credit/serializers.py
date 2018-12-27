@@ -72,6 +72,8 @@ class ItemsSerializer(serializers.ModelSerializer):
             'tax',
             'discount',
             'attributes',
+            'counter',
+            'kitchen'
         )
 
     def get_item_pk(self, obj):
