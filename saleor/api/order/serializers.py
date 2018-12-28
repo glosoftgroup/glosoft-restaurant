@@ -731,6 +731,7 @@ class OrderUpdateSerializer(serializers.ModelSerializer):
                     else:
                         logger.info('counter stock not found')
                 except Exception as e:
+                    print e
                     logger.error('could not find the counter item', exception=e)
 
             elif data.kitchen:

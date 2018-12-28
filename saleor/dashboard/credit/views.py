@@ -1038,9 +1038,19 @@ def due_credit_notifier(request):
                   str(credit.invoice_number) + \
                   ' (' + str(DateFormat(credit.created).format('Y-m-d')) + \
                   ')'
+        if credit.customer.name:
+            name = credit.customer.name
+        else:
+            name = "Customer"
+
+        if credit.customer.mobile:
+            mobile = credit.customer.mobile
+        else:
+            mobile = "-"
+
         body = "Hi,<br>Customer:" + \
-               str(credit.customer.name) + \
-               '(' + str(credit.customer.mobile) + \
+               str(name) + \
+               '(' + str(mobile) + \
                ')<br><b>Credit date:</b>' + str(DateFormat(credit.created).format('Y-m-d')) + \
                '<br><b>Due Date:</b>' + str(DateFormat(credit.due_date).format('Y-m-d')) + \
                '<br><b>Invoice Number:</b>' + str(credit.invoice_number) + \
