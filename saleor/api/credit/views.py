@@ -49,9 +49,17 @@ class CreditListAPIView(generics.ListAPIView):
     def get_queryset(self, *args, **kwargs):
         queryset_list = Credit.objects.all()
         query = self.request.GET.get('q')
+        status = self.request.GET.get('status')
+
+        if status:
+            queryset_list = queryset_list.filter(status__icontains=status)
+
         if query:
             queryset_list = queryset_list.filter(
-                Q(invoice_number__icontains=query)
+                Q(invoice_number__icontains=query) |
+                Q(room__name__icontains=query) |
+                Q(table__name__icontains=query) |
+                Q(user__name__icontains=query)
             ).distinct()
         return queryset_list
 
