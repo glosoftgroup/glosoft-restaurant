@@ -585,7 +585,6 @@ class OrderUpdateSerializer(serializers.ModelSerializer):
         try:
             user = Customer.objects.get(pk=customer_id)
         except Exception as e:
-            print e
             if customer_name:
                 user = Customer.objects.create(name=customer_name, creditable=True)
         return user
@@ -611,7 +610,6 @@ class OrderUpdateSerializer(serializers.ModelSerializer):
                 due_date = datetime.strptime(order.due_date, '%Y-%m-%d').date()
                 credit.due_date = due_date
         except Exception as e:
-            print e
             logger.error(e)
 
         try:
@@ -639,7 +637,6 @@ class OrderUpdateSerializer(serializers.ModelSerializer):
                 pay_opt = PaymentOption.objects.get(pk=int(option['payment_id']))
                 credit.payment_options.add(pay_opt)
             except Exception as e:
-                print (e)
                 logger.error("error adding options " + str(e))
 
         for item in order.items():
@@ -731,7 +728,6 @@ class OrderUpdateSerializer(serializers.ModelSerializer):
                     else:
                         logger.info('counter stock not found')
                 except Exception as e:
-                    print e
                     logger.error('could not find the counter item', exception=e)
 
             elif data.kitchen:
