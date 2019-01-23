@@ -13,6 +13,8 @@
 {% block menu_sales_class %}active{% endblock %}
  {% block custom_css %}
  <link href="{% static 'backend/js/plugins/tokenize/tokenize2.css' %}" rel="stylesheet" type="text/css">
+ <link href="{% static 'backend/js/plugins/pickers/wickedpicker/src/wickedpicker.css' %}" rel="stylesheet" type="text/css">
+ <link href="{% static 'backend/js/plugins/pickers/bootstrap-datepicker/css/bootstrap-datepicker.min.css' %}" rel="stylesheet" type="text/css">
    <style type="text/css">
      .clickable-row td.td{
       cursor: pointer;
@@ -22,7 +24,7 @@
    </style>
  {% endblock %}
 {% block breadcrumbs %} 
-    <li class="visible-s">{% trans "Discounts" context "Dashboard sales (discounts) list." %}
+<li class="visible-s"><a href="{% url 'dashboard:sale-list' %}">{% trans "Discounts" context "Dashboard sales (discounts) list." %}</a>
     </li>
  
 {% endblock %}
@@ -70,63 +72,119 @@
             <!-- add form -->
             <div class="col-md-12">
                  <div id="toggle-div" class="col-md-12" style="display: none;">
-       <!-- add attr form here -->
-       <form class="form" enctype="multipart/form-data" id="sale-details" name="sale-details">
-            {% csrf_token %}
-     <table class="table">
-        <thead>
-            <tr class="bg-primary">            
-            <th>Name</th>            
-            <th>Value</th>
-            <th>Type</th>
-            <th>Product(s)</th>
-            <th>Start Date</th>
-            <th>End Date</th>
-            <th></th>
-            </tr>
-        </thead>
-        <tbody>
-          <tr>        
-          <!-- name -->
-          <td>
-            <input type="text" placeholder="Discount Name" id="id_name" class="form-control" name="name">
-            </td> 
-            <!-- value  -->
-            <td width="10%">
-              <input type="number" placeholder="Value" id="id_value" class="form-control" name="value">
-            </td>
-            <!-- type -->
-            <td>
-              <select name="type" class="form-control bootstrap-select validate" required="" id="id_type">
-                <option>---</option>
-                <option value="fixed">KES</option>
-                <option value="percentage">%</option>                
-              </select>
-            </td>
-            <!-- product -->
-            <td>
-              <select id="variants" multiple=""></select>
-            </td>
-            <!-- customer -->
-            <td class="hidden">
-              <select id="customers" multiple=""></select>
-            </td>
-            <!-- start date -->
-            <td>
-              <input type="text" class="form-control pickadate-selectors" placeholder="Start date" id="id_start_date" name="start_date">
-            </td>
-            <!-- end date -->
-            <td>
-              <input type="text" class="form-control pickadate-selectors" placeholder="End date" id="id_end_date" name="end_date">
-            </td>
-            <td>
-              <button class="btn btn-xs btn-primary hvr-glow btn-raised legitRipple waves-effect waves-light" id="createDiscountBtn" onclick="return false;" data-token="{% csrf_token %}" data-createurl="{% url 'dashboard:create-discount' %}" type="submit">Add <i class="icon-arrow-right14 position-right"></i></button>
-            </td>
-          </tr>
-        </tbody>
-      </table> </form>
-       <!-- ./form -->
-      </div>
+                     <form class="form" enctype="multipart/form-data" id="sale-details" name="sale-details">
+                         {% csrf_token %}
+                         <div class="row">
+                             <div class="col-md-4">
+                                 <div class="form-group">
+                                     <label for="id_name">Discount Name</label>
+                                     <input type="text" placeholder="Discount Name" id="id_name" class="form-control" name="name">
+                                 </div>
+                             </div>
+                             <div class="col-md-2">
+                                 <div class="form-group">
+                                     <label for="id_quantity">Quantity</label>
+                                     <input type="text" placeholder="quantity" id="id_quantity" class="form-control" name="quantity">
+                                 </div>
+                             </div>
+                             <div class="col-md-2">
+                                 <div class="form-group">
+                                     <label for="id_value">For Price</label>
+                                     <input type="number" placeholder="Value" id="id_value" class="form-control" name="value">
+                                 </div>
+                             </div>
+                             <div class="col-md-2">
+                                 <div class="form-group">
+                                     <label for="id_type">Type</label>
+                                     <select name="type" class="form-control bootstrap-select validate" required="" id="id_type">
+                                         <option>---</option>
+                                         <option value="fixed">KES</option>
+                                         <option value="percentage">%</option>
+                                     </select>
+                                 </div>
+                             </div>
+                         </div>
+                         <div class="row">
+                            <div class="col-md-4">
+                                 <div class="form-group">
+                                     <label for="id_period">Period</label>
+                                     <select name="type" class="form-control bootstrap-select period" required="" id="id_period">
+                                         <option>---</option>
+                                         <option value="day">Day</option>
+                                         <option value="date">Date</option>
+                                         <option value="range">Range</option>
+                                     </select>
+                                 </div>
+                             </div>
+                             <div class="col-md-2 hidden" id="start_date_div">
+                                 <div class="form-group">
+                                     <label for="id_start_date">From</label>
+                                     <input type="text" class="form-control datepicker" placeholder="Start date" id="id_start_date" name="start_date">
+                                 </div>
+                             </div>
+                             <div class="col-md-2 hidden" id="end_date_div">
+                                 <div class="form-group">
+                                     <label for="id_end_date">To</label>
+                                     <input type="text" class="form-control datepicker" placeholder="End date" id="id_end_date" name="end_date">
+                                 </div>
+                             </div>
+                             <div class="col-md-4 hidden" id="date_div">
+                                 <div class="form-group">
+                                     <label for="id_date">Date</label>
+                                     <input type="text" class="form-control datepicker" placeholder="End date" id="id_date" name="date">
+                                 </div>
+                             </div>
+                             <div class="col-md-4" id="day_div">
+                                 <div class="form-group">
+                                     <label for="id_name">Day</label>
+                                     <select name="type" class="form-control bootstrap-select day" required="" id="id_day">
+                                         <option>---</option>
+                                         <option value="Monday">Monday</option>
+                                         <option value="Tuesday">Tuesday</option>
+                                         <option value="Wednesday">Wednesday</option>
+                                         <option value="Thursday">Thursday</option>
+                                         <option value="Friday">Friday</option>
+                                         <option value="Saturday">Saturday</option>
+                                         <option value="Sunday">Sunday</option>
+                                     </select>
+                                 </div>
+                             </div>
+                             <div class="col-md-2">
+                                 <div class="form-group">
+                                     <label for="id_name">Start Time</label>
+                                     <input type="text" name="start_time" class="form-control timepicker" id="id_start_time"/>
+                                 </div>
+                             </div>
+                             <div class="col-md-2">
+                                 <div class="form-group">
+                                     <label for="id_name">End Time</label>
+                                     <input type="text" name="end_time" class="form-control timepicker" id="id_end_time"/>
+                                 </div>
+                             </div>
+
+                         </div>
+
+                         <div class="row">
+                             <div class="col-md-12">
+                                 <div class="form-group">
+                                     <label for="id_name">Product(s)</label>
+                                     <select id="variants" multiple=""></select>
+                                 </div>
+                             </div>
+                         </div>
+                         <div class="row">
+                             <div class="col-md-12">
+                                 <button class="btn btn-xs btn-primary hvr-glow btn-raised legitRipple waves-effect
+                                 waves-light" id="createDiscountBtn" onclick="return false;"
+                                         data-token="{% csrf_token %}"
+                                         data-createurl="{% url 'dashboard:create-discount' %}"
+                                         type="submit">
+                                     Add <i class="icon-arrow-right14 position-right"></i>
+                                 </button>
+                             </div>
+                         </div>
+                     </form>
+              </div>
             </div>
             <!-- ./add form -->
 
@@ -240,13 +298,62 @@
 
 {% block custom_js %}
 <script type="text/javascript" src="{% static 'backend/js/plugins/forms/selects/bootstrap_multiselect.js' %}"></script>
+<script type="text/javascript" src="{% static 'backend/js/plugins/pickers/wickedpicker/src/wickedpicker.js' %}"></script>
+<script type="text/javascript" src="{% static 'backend/js/plugins/pickers/bootstrap_datepicker/js/bootstrap-datepicker.min.js' %}"></script>
   <script type="text/javascript" src="{% static 'backend/js/pages/form_multiselect.js' %}"></script>
 <script type="text/javascript" src="{% static 'backend/js/plugins/forms/selects/bootstrap_select.min.js' %}"></script>
 <script type="text/javascript" src="{% static 'backend/js/backend.js' %}"></script>
 <script type="text/javascript" src="{% static 'backend/js/plugins/tokenize/tokenize2.js' %}"></script>
 <script type="text/javascript" src="{% static 'backend/js/discount/discount.js' %}"></script>
 <script type="text/javascript">
-  $(document).ready(function() {
+$(document).ready(function() {
+
+    $('.datepicker').datepicker({
+        format: 'yyyy-mm-dd',
+        //startDate: new Date(),
+        autoclose: true
+    });
+
+    $('.timepicker').wickedpicker();
+
+    $('.period').on('change', function(){
+        var selected = $('.period option:selected').val();
+        if(selected == "date"){
+            $('#date_div').removeClass('hidden');
+            $('#start_date_div').addClass('hidden');
+            $('#end_date_div').addClass('hidden');
+            $('#day_div').addClass('hidden');
+
+            // refresh the other to be null
+            $("#id_day").val('none');
+            $("#id_day").selectpicker("refresh");
+
+            $("#id_start_date").val("");
+            $("#id_end_date").val("");
+        }else if(selected == "range"){
+            $('#date_div').addClass('hidden');
+            $('#start_date_div').removeClass('hidden');
+            $('#end_date_div').removeClass('hidden');
+            $('#day_div').addClass('hidden');
+
+            // refresh others to be null
+            $("#id_day").val('none');
+            $("#id_day").selectpicker("refresh");
+
+            $("#id_date").val("");
+        }else if(selected == "day"){
+            $('#date_div').addClass('hidden');
+            $('#start_date_div').addClass('hidden');
+            $('#end_date_div').addClass('hidden');
+            $('#day_div').removeClass('hidden');
+
+            // refresh others to be null
+            $("#id_start_date").val("");
+            $("#id_end_date").val("");
+            $("#id_date").val("");
+        }
+    });
+
     var toggleBtn = $('#toggle-add-form');
     var toggleDiv = $('#toggle-div');
     var addurl = toggleBtn.data('href');

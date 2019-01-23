@@ -41,14 +41,21 @@ $(function(){
         }, 
         end_date: {
           required:true,          
-        },     
-
+		},
+		quantity:{
+			required: true,
+			digits: true
+		}
     },
     messages:{
       name:{
         required: "Provide a name",
         minlength: "at least 3 characters long"
-      },      
+	  }, 
+	  quantity:{
+		required: "Provide a quantity",
+		digits: "digits only"
+	  }    
     },
     
   });
@@ -66,8 +73,13 @@ $(function() {
 	var name  = $('#id_name');
 	var value = $('#id_value');
 	var type  = $('#id_type');
+	var day = $('#id_day');
+	var date = $('#id_date');
+	var quantity = $('#id_quantity');
 	var id_start_date = $('#id_start_date');
 	var id_end_date = $('#id_end_date');
+	var id_start_time = $('#id_start_time');
+	var id_end_time = $('#id_end_time');
 	var deleteBtn = $('.delete-discount');
 	var deleteUrl = '#';
 	var modalId = $('#modal_instance');
@@ -154,7 +166,22 @@ $(function() {
       } 
       if(id_end_date.val()){
         dynamicData['end_date'] = id_end_date.val();
-      }  
+	  }
+	  if(id_start_time.val()){
+        dynamicData['start_time'] = id_start_time.val();
+      } 
+      if(id_end_time.val()){
+        dynamicData['end_time'] = id_end_time.val();
+	  }   
+	  if(day.val() && day.val() != "---"){
+        dynamicData['day'] = day.val();
+	  } 
+	  if(date.val()){
+        dynamicData['date'] = date.val();
+	  }
+	  if(quantity.val()){
+        dynamicData['quantity'] = quantity.val();
+	  }
 
 	 sendDiscountData(dynamicData,createUrl,'post')
 	 .done(function(){

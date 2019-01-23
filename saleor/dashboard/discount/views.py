@@ -251,10 +251,20 @@ def create_discount(request):
             discount.value = request.POST.get('value')
         if request.POST.get('name'):
             discount.name = request.POST.get('name')
+        if request.POST.get('quantity'):
+            discount.quantity = request.POST.get('quantity')
         if request.POST.get('start_date'):
             discount.start_date = request.POST.get('start_date')
         if request.POST.get('end_date'):
             discount.end_date = request.POST.get('end_date')
+        if request.POST.get('start_time'):
+            discount.start_time = request.POST.get('start_time')
+        if request.POST.get('end_time'):
+            discount.end_time = request.POST.get('end_time')
+        if request.POST.get('day'):
+            discount.day = request.POST.get('day')
+        if request.POST.get('date'):
+            discount.date = request.POST.get('date')
         discount.save()
         for variant in variants:
             discount.variant.add(variant)

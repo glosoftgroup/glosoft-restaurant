@@ -72,7 +72,13 @@
               <div class="form-group">
                 {{ form.type|materializecss:"input-field s12" }}
               </div>
+              <div class="form-group">
+                <label>Quantity:</label>
+                {{ form.quantity }}
+              </div>
+
             </div>
+
             <div class="col-md-6 ">
               <div class="form-group hidden">
                 <label>Customer(s)</label>
@@ -105,6 +111,31 @@
                 </div>
                </div>
               </div>
+
+              <div class="row">
+               <div class="col-md-12">
+               <div class="form-group">
+                <label>Day</label>
+                {{ form.day }}
+                </div>
+               </div>
+              </div>
+
+              <div class="row">
+               <div class="col-md-6">
+               <div class="form-group">
+                <label>Start Date:</label>
+                {{ form.start_time }}
+                </div>
+               </div>
+               <div class="col-md-6">
+               <div class="form-group">
+                <label>End Date:</label>
+                {{ form.end_time }}
+                </div>
+               </div>
+              </div>
+
             </div>           
            
           </div>
