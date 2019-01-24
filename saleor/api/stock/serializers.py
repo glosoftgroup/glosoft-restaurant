@@ -23,6 +23,7 @@ class TableListSerializer(serializers.ModelSerializer):
     price = serializers.SerializerMethodField()
     tax = serializers.SerializerMethodField()
     discount = serializers.SerializerMethodField()
+    discounts = serializers.SerializerMethodField()
     product_category = serializers.SerializerMethodField()
     qty = serializers.SerializerMethodField()
     stock = serializers.SerializerMethodField()
@@ -30,7 +31,7 @@ class TableListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Table
-        fields = fields + ('productName', 'price', 'tax', 'discount',
+        fields = fields + ('productName', 'price', 'tax', 'discount', 'discounts',
                            'product_category', 'qty', 'stock', 'sku')
 
     def get_discount(self, obj):
@@ -47,6 +48,31 @@ class TableListSerializer(serializers.ModelSerializer):
                 discount = discount.amount.gross
 
         return discount
+
+    def get_discounts(self, obj):
+        discounts = []
+        today = date.today()
+        all_discounts = Sale.objects.filter(start_date__lte=today).filter(end_date__gte=today)
+        # discount_list = get_variant_discounts(obj.variant, all_discounts)
+        # for discount in discount_list:
+        for discount in all_discounts:
+            try:
+                dis = {}
+                dis['name'] = discount.name
+                dis['quantity'] = discount.quantity
+                dis['price'] = discount.value
+                dis['start_time'] = discount.start_time
+                dis['end_time'] = discount.end_time
+                dis['start_date'] = discount.start_date
+                dis['end_date'] = discount.end_date
+                dis['date'] = discount.date
+                dis['day'] = discount.day
+                discounts.append(dis)
+            except Exception as e:
+                print(e)
+                pass
+
+        return discounts
 
     def get_sku(self, obj):
         return obj.variant.sku
@@ -141,3 +167,4 @@ class SearchTransferredStockListSerializer(serializers.Serializer):
     counter = serializers.JSONField(allow_null=True)
     kitchen = serializers.JSONField(allow_null=True)
     attributes_list = serializers.JSONField(allow_null=True)
+    discounts = serializers.JSONField(allow_null=True)

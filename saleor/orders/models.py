@@ -17,6 +17,7 @@ from ..kitchen.models import Kitchen
 from ..customer.models import Customer
 from ..room.models import Room
 from ..sale.models import Terminal, PaymentOption
+from saleor.discount.models import Sale
 from . import OrderStatus
 
 
@@ -190,6 +191,15 @@ class OrderedItem(models.Model):
     cold = models.BooleanField(default=False)
     attributes = HStoreField(
         pgettext_lazy('SoldItem field', 'attributes'), default={})
+    discount_id = models.ForeignKey(
+        Sale, related_name='order_item_discount', blank=True, null=True, default='',
+        verbose_name=pgettext_lazy('OrderedItem field', 'Discount'))
+    discount_quantity = models.IntegerField(
+        pgettext_lazy('OrderedItem field', 'discount quantity'),
+        validators=[MinValueValidator(0)], default=Decimal(0))
+    discount_amount = models.DecimalField(
+        pgettext_lazy('OrderedItem field', 'discount'), default=Decimal(0), max_digits=255, decimal_places=2)
+    discount_set_status = models.BooleanField(default=False)
     objects = OrderItemManager()
 
     class Meta:

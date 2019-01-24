@@ -42,6 +42,10 @@ item_fields = (
     'attributes',
     'unit_purchase',
     'total_purchase',
+    'discount_id',
+    'discount_quantity',
+    'discount_amount',
+    'discount_set_status'
 )
 
 

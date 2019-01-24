@@ -6,6 +6,11 @@ from rest_framework import serializers
 from saleor.countertransfer.models import CounterTransfer as Table
 from saleor.countertransfer.models import CounterTransferItems as Item
 from saleor.product.models import Stock, ProductVariant
+from saleor.discount.models import Sale
+
+from structlog import get_logger
+
+logger = get_logger(__name__)
 
 global fields, item_fields, module
 module = 'countertransfer'
@@ -90,11 +95,12 @@ class ItemsStockSerializer(serializers.ModelSerializer):
     product_name = serializers.SerializerMethodField()
     counter = serializers.SerializerMethodField()
     attributes_list = serializers.SerializerMethodField()
+    discounts = serializers.SerializerMethodField()
 
     class Meta:
         model = Item
         fields = format_fields(item_fields, ['productName', 'price', 'unit_price']) + \
-                 ('total_cost', 'product_name', 'unit_cost', 'attributes_list', 'unit_purchase')
+                 ('total_cost', 'product_name', 'unit_cost', 'attributes_list', 'unit_purchase', 'discounts')
 
     def get_sku(self, obj):
         try:
@@ -141,6 +147,32 @@ class ItemsStockSerializer(serializers.ModelSerializer):
                           .values('attributes').order_by('attributes')
         except:
             return None
+
+    def get_discounts(self, obj):
+        try:
+            discounts = []
+            all_discounts = Sale.objects.filter(variant__pk=obj.stock.variant.pk)
+            for disc in all_discounts:
+                try:
+                    dis = {}
+                    dis['id'] = disc.id
+                    dis['name'] = disc.name
+                    dis['quantity'] = disc.quantity
+                    dis['price'] = disc.value
+                    dis['start_time'] = disc.start_time
+                    dis['end_time'] = disc.end_time
+                    dis['start_date'] = disc.start_date
+                    dis['end_date'] = disc.end_date
+                    dis['date'] = disc.date
+                    dis['day'] = disc.day
+                    discounts.append(dis)
+                except Exception as e:
+                    logger.info('Error in appending disc to discounts: ' + str(e))
+        except Exception as e:
+            logger.info('Error in assigning discounts: ' + str(e))
+            discounts = []
+
+        return discounts
 
 
 class CloseTransferItemSerializer(serializers.ModelSerializer):
@@ -274,16 +306,16 @@ def carry_items(instance, items):
         try:
             item.stock = Stock.objects.get(pk=item.stock.pk)
         except Exception as e:
-            print e
+            print (e)
             pass
         query = Item.objects.filter(transfer=instance, stock=item.stock)
         if query.exists():
-            print 'updating....'
+            print ('updating....')
             single = query.first()
             single.qty = int(single.qty) + int(item.qty)
             single.transferred_qty = int(single.transferred_qty) + int(item.qty)
             single.expected_qty = single.qty
-            print single.transferred_qty
+            print (single.transferred_qty)
             single.price = Decimal(single.price) + Decimal(item.price)
             if single.qty > 0:
                 single.save()
@@ -321,11 +353,11 @@ def create_items(instance, items):
         try:
             item['stock'] = Stock.objects.get(pk=item['stock'])
         except Exception as e:
-            print e
+            print(e)
             pass
         query = Item.objects.filter(transfer=instance, stock=item['stock'])
         if query.exists():
-            print 'updating....'
+            print('updating....')
             single = query.first()
             single.qty = int(single.qty) + int(item['qty'])
             single.transferred_qty = int(single.transferred_qty) + int(item['qty'])
@@ -366,7 +398,7 @@ class CreateListSerializer(serializers.ModelSerializer):
         fields = fields + ('counter_transfer_items',)
 
     def create(self, validated_data):
-        print validated_data
+        print (validated_data)
         instance = Table()
         instance.name = validated_data.get('name')
         instance.counter = validated_data.get('counter')
