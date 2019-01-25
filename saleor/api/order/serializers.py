@@ -116,9 +116,6 @@ class ListItemSerializer(serializers.ModelSerializer):
                         print('sdsdsdsddsdsdsdsdsdsd')
                         logger.info('Error in appending disc to discounts: ' + str(e))
         except Exception as e:
-            print("--------------------")
-            print(e)
-            print("--------------------")
             logger.info('Error in assigning discounts: ' + str(e))
             discounts = []
 
