@@ -500,7 +500,6 @@ def send_to_sale(credit):
         sale.carry = 'Sitting'
     except Exception as e:
         sale.carry = 'Take Away'
-        print e
     sale.total_tax = credit.total_tax
     sale.save()
 
@@ -528,6 +527,12 @@ def send_to_sale(credit):
         new_item.attributes = item.attributes
         new_item.unit_purchase = item.unit_purchase
         new_item.total_purchase = item.total_purchase
+        if item.discount_id:
+            new_item.discount_id = item.discount_id.pk
+        new_item.discount_quantity = item.discount_quantity
+        new_item.discount_total = item.discount_total
+        new_item.discount_set_status = item.discount_set_status
+        new_item.cold = item.cold
 
         if item.counter:
             try:

@@ -43,6 +43,10 @@ class ItemSerializer(serializers.ModelSerializer):
                 'attributes',
                 'unit_purchase',
                 'total_purchase',
+                'discount_id',
+                'discount_quantity',
+                'discount_total',
+                'discount_set_status'
                  )
 
     def get_quantity(self, obj):
@@ -211,9 +215,9 @@ class CreateSaleSerializer(serializers.ModelSerializer):
                 if item:
                     Item.objects.decrease_stock(item, sold_item_data['quantity'])
                 else:
-                    print 'stock not found'
+                    print('stock not found')
             except Exception as e:
-                print 'Error reducing stock!'
+                print('Error reducing stock!')
 
         return sale
 

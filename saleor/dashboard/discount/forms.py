@@ -7,6 +7,9 @@ from django_prices.forms import PriceField
 
 from ...discount.models import Sale, Voucher
 from ...shipping.models import ShippingMethodCountry, COUNTRY_CODE_CHOICES
+from structlog import get_logger
+
+logger = get_logger(__name__)
 
 
 class SaleForm(forms.ModelForm):
@@ -14,6 +17,7 @@ class SaleForm(forms.ModelForm):
     class Meta:
         model = Sale
         exclude = []
+
     def __init__(self, *args, **kwargs):        
         super(SaleForm, self).__init__(*args, **kwargs)
         for field_name, field in self.fields.items():
@@ -27,27 +31,40 @@ class SaleForm(forms.ModelForm):
         field.widget.attrs['class'] = 'form-control multiselect'
         field.widget.attrs['multiple'] = 'multiple'
 
-
         field = self.fields['categories'] 
         field.widget.attrs['class'] = 'form-control multiselect'
         field.widget.attrs['multiple'] = 'multiple'
+
+        CHOICES = ((None, 'None',), ('Monday', 'Monday',), ('Tuesday', 'Tuesday',), ('Wednesday', 'Wednesday',),
+                   ('Thursday', 'Thursday',), ('Friday', 'Friday',), ('Saturday', 'Saturday',), ('Sunday', 'Sunday',))
+        self.fields['day'] = forms.ChoiceField(choices=CHOICES, widget=forms.Select, initial='1')
+        field = self.fields['day']
+        field.widget.attrs['class'] = 'form-control bootstrap-select'
+
+        field = self.fields['date']
+        field.widget.attrs['class'] = 'form-control pickadate-selectors'
 
         field = self.fields['start_date']
         field.widget.attrs['class'] = 'form-control pickadate-selectors'
         
         field = self.fields['end_date']
         field.widget.attrs['class'] = 'form-control pickadate-selectors'
+
         field = self.fields['value']
         field.widget.attrs['required'] = 'required'
+
     def clean(self):
-        cleaned_data = super(SaleForm, self).clean()
-        discount_type = cleaned_data['type']
-        value = cleaned_data['value']
-        if discount_type == Sale.PERCENTAGE and value > 100:
-            self.add_error('value', pgettext_lazy(
-                'Sale (discount) error',
-                'Sale cannot exceed 100%'))
-        return cleaned_data
+        try:
+            cleaned_data = super(SaleForm, self).clean()
+            discount_type = cleaned_data['type']
+            value = cleaned_data['value']
+            if discount_type == Sale.PERCENTAGE and value > 100:
+                self.add_error('value', pgettext_lazy(
+                    'Sale (discount) error',
+                    'Sale cannot exceed 100%'))
+            return cleaned_data
+        except Exception as e:
+            logger.error(e)
 
 
 class VoucherForm(forms.ModelForm):

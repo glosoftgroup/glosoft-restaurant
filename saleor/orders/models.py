@@ -197,7 +197,7 @@ class OrderedItem(models.Model):
     discount_quantity = models.IntegerField(
         pgettext_lazy('OrderedItem field', 'discount quantity'),
         validators=[MinValueValidator(0)], default=Decimal(0))
-    discount_amount = models.DecimalField(
+    discount_total = models.DecimalField(
         pgettext_lazy('OrderedItem field', 'discount'), default=Decimal(0), max_digits=255, decimal_places=2)
     discount_set_status = models.BooleanField(default=False)
     objects = OrderItemManager()

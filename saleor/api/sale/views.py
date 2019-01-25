@@ -330,3 +330,55 @@ class UserSaleAPIView(APIView):
 
         return Response(response)
 
+
+class DiscountSaleAPIView(APIView):
+    def get(self, request, format=None, **kwargs):
+        """
+        Return a list of all orders grouped in complete, incomplete and cancelled.
+        """
+
+        if self.request.GET.get('date'):
+            date = self.request.GET.get('date')
+        else:
+            date = DateFormat(datetime.datetime.today()).format('Y-m-d')
+
+        orders = Sales.objects.filter(created__icontains=date)
+        discount_ids = [str(i.id) for i in Sale.objects.all()]
+
+        user_id = self.request.GET.get('user')
+        user = None
+        if user_id:
+            orders = orders.filter(user__pk=int(user_id))
+            try:
+                user = User.objects.get(pk=int(user_id)).name
+            except:
+                user = "None"
+
+        complete_orders = orders.filter(status="fully-paid")
+        incomplete_orders = orders.filter(status="payment-pending")
+
+        # aggregates
+        complete_totals = complete_orders.aggregate(Sum("total_net"))["total_net__sum"]
+        incomplete_totals = incomplete_orders.aggregate(Sum("total_net"))["total_net__sum"]
+
+        expected_sales = 0
+        if complete_totals:
+            expected_sales += complete_totals
+        if incomplete_totals:
+            expected_sales += incomplete_totals
+
+        complete_serializer = ListSaleSerializer(complete_orders, many=True)
+
+        complete_orders = complete_serializer.data
+
+        response = {
+            "expected_sales": expected_sales,
+            "date": date,
+            "user": user,
+            "complete_orders": {
+                "orders": complete_orders
+            }
+        }
+
+        return Response(response)
+

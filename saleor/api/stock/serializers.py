@@ -53,8 +53,6 @@ class TableListSerializer(serializers.ModelSerializer):
         discounts = []
         today = date.today()
         all_discounts = Sale.objects.filter(start_date__lte=today).filter(end_date__gte=today)
-        # discount_list = get_variant_discounts(obj.variant, all_discounts)
-        # for discount in discount_list:
         for discount in all_discounts:
             try:
                 dis = {}

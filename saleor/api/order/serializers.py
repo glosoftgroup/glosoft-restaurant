@@ -16,6 +16,7 @@ from saleor.credit.models import Credit, CreditedItem, CreditHistoryEntry
 from saleor.product.models import Stock
 from saleor.mpesa_transactions.models import MpesaTransactions
 from saleor.visa_transactions.models import VisaTransactions
+from saleor.discount.models import Sale as Discount
 from structlog import get_logger
 
 logger = get_logger(__name__)
@@ -44,7 +45,7 @@ item_fields = (
     'total_purchase',
     'discount_id',
     'discount_quantity',
-    'discount_amount',
+    'discount_total',
     'discount_set_status'
 )
 
@@ -66,10 +67,11 @@ class ListItemSerializer(serializers.ModelSerializer):
     counter = serializers.SerializerMethodField()
     kitchen = serializers.SerializerMethodField()
     attributes_list = serializers.SerializerMethodField()
+    discounts = serializers.SerializerMethodField()
 
     class Meta:
         model = OrderedItem
-        fields = item_fields + ('attributes_list',)
+        fields = item_fields + ('attributes_list', 'discounts',)
 
     def get_attributes_list(self, obj):
         if obj.attributes:
@@ -87,6 +89,40 @@ class ListItemSerializer(serializers.ModelSerializer):
             return {"id": obj.kitchen.id, "name": obj.kitchen.name}
         except:
             return None
+
+    def get_discounts(self, obj):
+        try:
+            discounts = []
+            print(obj.discount_id.pk)
+            if obj.discount_id:
+                all_discounts = Discount.objects.filter(pk=obj.discount_id.pk)
+                for disc in all_discounts:
+                    try:
+                        dis = {}
+                        dis['id'] = disc.id
+                        dis['name'] = disc.name
+                        dis['quantity'] = disc.quantity
+                        dis['price'] = disc.value
+                        dis['start_time'] = disc.start_time
+                        dis['end_time'] = disc.end_time
+                        dis['start_date'] = disc.start_date
+                        dis['end_date'] = disc.end_date
+                        dis['date'] = disc.date
+                        dis['day'] = disc.day
+                        discounts.append(dis)
+                    except Exception as e:
+                        print('sdsdsdsddsdsdsdsdsdsd')
+                        print(e)
+                        print('sdsdsdsddsdsdsdsdsdsd')
+                        logger.info('Error in appending disc to discounts: ' + str(e))
+        except Exception as e:
+            print("--------------------")
+            print(e)
+            print("--------------------")
+            logger.info('Error in assigning discounts: ' + str(e))
+            discounts = []
+
+        return discounts
 
 
 class ListOrderSerializer(serializers.ModelSerializer):
@@ -660,6 +696,12 @@ class OrderUpdateSerializer(serializers.ModelSerializer):
                 new_item.attributes = item.attributes
                 new_item.unit_purchase = item.unit_purchase
                 new_item.total_purchase = item.total_purchase
+                if item.discount_id:
+                    new_item.discount_id = item.discount_id.pk
+                new_item.discount_quantity = item.discount_quantity
+                new_item.discount_total = item.discount_total
+                new_item.discount_set_status = item.discount_set_status
+                new_item.cold = item.cold
 
                 if item.counter:
                     try:

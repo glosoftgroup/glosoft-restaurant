@@ -224,8 +224,10 @@ def sale_edit(request, pk=None):
         instance = Sale()
     form = forms.SaleForm(
         request.POST or None, instance=instance)
+
     if form.is_valid():
         instance = form.save()
+        instance.save()
         msg = pgettext_lazy(
             'Sale (discount) message', 'Updated sale') if pk else pgettext_lazy(
             'Sale (discount) message', 'Added sale')

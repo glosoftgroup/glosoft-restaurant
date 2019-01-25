@@ -10,7 +10,8 @@ from .views import (
     ItemListAPIView,
     SoldItemListAPIView,
     SaleMarginListAPIView,
-    UserSaleAPIView
+    UserSaleAPIView,
+    DiscountSaleAPIView
     )
 
 
@@ -23,6 +24,8 @@ urlpatterns = [
 
     url(r'^totals/$', SoldItemListAPIView.as_view(),
         name='list-sales'),
+    url(r'^discount/$', DiscountSaleAPIView.as_view(),
+        name='discount-sales'),
     url(r'^user/totals/$', UserSaleAPIView.as_view(),
         name='user-sales'),
     url(r'^margin/', SaleMarginListAPIView.as_view(),
