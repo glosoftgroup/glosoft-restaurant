@@ -356,10 +356,6 @@ class DiscountSaleAPIView(APIView):
             logger.info('Error in getting discount using id: ' + str(discount_id) + ', Exception: ' + str(e))
 
         items = Item.objects.filter(created__icontains=date, discount_set_status=True)
-        v = []
-        for i in items:
-            setattr(i, "discount_unit_amount", discount_amount)
-            v.append(i)
 
         total_discount_amount = 0
         if discount:
