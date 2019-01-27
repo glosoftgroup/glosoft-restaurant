@@ -295,3 +295,31 @@ class ListOrderSerializer(serializers.ModelSerializer):
         return obj.created.strftime('%Y-%m-%d %I:%M:%S %p')
 
 
+class DiscountedItemSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = SoldItem
+        fields = (
+                'id',
+                'transfer_id',
+                'order_id',
+                'is_stock',
+                'returned_quantity',
+                'sku',
+                'quantity',
+                'unit_cost',
+                'total_cost',
+                'product_name',
+                'product_category',
+                'tax',
+                'discount',
+                'attributes',
+                'unit_purchase',
+                'total_purchase',
+                'discount_id',
+                'discount_quantity',
+                'discount_total',
+                'discount_set_status'
+                 )
+
+

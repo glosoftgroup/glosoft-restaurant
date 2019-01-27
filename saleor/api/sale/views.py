@@ -10,14 +10,15 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework import pagination
 from .pagination import PostLimitOffsetPagination
 from ...product.models import AttributeChoiceValue
-from ...sale.models import Sales, PaymentOption
+from ...discount.models import Sale as Discount
 from ...sale.models import Sales
 from ...sale.models import SoldItem as Item
 from ...orders.models import *
 from .serializers import (
     ListSaleSerializer,
     CreateSaleSerializer,
-    ItemSerializer
+    ItemSerializer,
+    DiscountedItemSerializer
 )
 from .serializers import ListOrderSerializer
 from rest_framework.request import Request
@@ -342,42 +343,50 @@ class DiscountSaleAPIView(APIView):
         else:
             date = DateFormat(datetime.datetime.today()).format('Y-m-d')
 
-        orders = Sales.objects.filter(created__icontains=date)
-        discount_ids = [str(i.id) for i in Sale.objects.all()]
+        discount_id = self.request.GET.get('discount')
+        discount_amount = 0
 
-        user_id = self.request.GET.get('user')
-        user = None
-        if user_id:
-            orders = orders.filter(user__pk=int(user_id))
-            try:
-                user = User.objects.get(pk=int(user_id)).name
-            except:
-                user = "None"
+        try:
+            discount = Discount.objects.get(pk=int(discount_id))
+            description = str(discount.quantity) + ' items @' + str(discount.value)
+            discount_amount = discount.value
+        except Exception as e:
+            discount = None
+            description = "Default Discount"
+            logger.info('Error in getting discount using id: ' + str(discount_id) + ', Exception: ' + str(e))
 
-        complete_orders = orders.filter(status="fully-paid")
-        incomplete_orders = orders.filter(status="payment-pending")
+        items = Item.objects.filter(created__icontains=date, discount_set_status=True)
+        v = []
+        for i in items:
+            setattr(i, "discount_unit_amount", discount_amount)
+            v.append(i)
 
-        # aggregates
-        complete_totals = complete_orders.aggregate(Sum("total_net"))["total_net__sum"]
-        incomplete_totals = incomplete_orders.aggregate(Sum("total_net"))["total_net__sum"]
+        total_discount_amount = 0
+        if discount:
+            items = items.filter(discount_id=str(discount.id))
+            total_discount_amount = items.aggregate(Sum("discount_total"))["discount_total__sum"]
 
-        expected_sales = 0
-        if complete_totals:
-            expected_sales += complete_totals
-        if incomplete_totals:
-            expected_sales += incomplete_totals
+        extracted_items = items.values(
+            'sku',
+            'product_name',
+            'product_category',
+            'unit_cost',
+            'discount_set_status').annotate(
+            count=Count('product_name', distinct=True)).annotate(
+            discount_total=Sum('discount_total')).annotate(
+            discount_quantity=Sum('discount_quantity'))
 
-        complete_serializer = ListSaleSerializer(complete_orders, many=True)
-
-        complete_orders = complete_serializer.data
+        final_items = []
+        for i in extracted_items:
+            i["discount_price"] = discount_amount
+            final_items.append(i)
 
         response = {
-            "expected_sales": expected_sales,
-            "date": date,
-            "user": user,
-            "complete_orders": {
-                "orders": complete_orders
-            }
+            "total": total_discount_amount,
+            "description": description,
+            "items": final_items,
+            "date": datetime.datetime.strptime(date, '%Y-%m-%d').strftime(
+                                     '%b %d, %Y')
         }
 
         return Response(response)

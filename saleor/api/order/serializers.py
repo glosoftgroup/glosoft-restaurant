@@ -111,9 +111,7 @@ class ListItemSerializer(serializers.ModelSerializer):
                         dis['day'] = disc.day
                         discounts.append(dis)
                     except Exception as e:
-                        print('sdsdsdsddsdsdsdsdsdsd')
                         print(e)
-                        print('sdsdsdsddsdsdsdsdsdsd')
                         logger.info('Error in appending disc to discounts: ' + str(e))
         except Exception as e:
             logger.info('Error in assigning discounts: ' + str(e))
