@@ -259,6 +259,8 @@ class SoldItem(models.Model):
         pgettext_lazy('SoldItem field', 'created'),
         default=now, editable=False)
     cold = models.BooleanField(default=False)
+    cold_quantity = models.IntegerField(
+        pgettext_lazy('SoldItem field', 'cold quantity'), default=Decimal(0))
     attributes = HStoreField(
         pgettext_lazy('SoldItem field', 'attributes'), default={})
     discount_id = models.CharField(

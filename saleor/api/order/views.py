@@ -533,6 +533,7 @@ def send_to_sale(credit):
         new_item.discount_total = item.discount_total
         new_item.discount_set_status = item.discount_set_status
         new_item.cold = item.cold
+        new_item.cold_quantity = item.cold_quantity
 
         if item.counter:
             try:

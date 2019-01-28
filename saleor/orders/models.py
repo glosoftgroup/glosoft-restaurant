@@ -189,6 +189,8 @@ class OrderedItem(models.Model):
     ready = models.BooleanField(default=False)
     collected = models.BooleanField(default=False)
     cold = models.BooleanField(default=False)
+    cold_quantity = models.IntegerField(
+        pgettext_lazy('OrderedItem field', 'cold quantity'), default=Decimal(0))
     attributes = HStoreField(
         pgettext_lazy('SoldItem field', 'attributes'), default={})
     discount_id = models.ForeignKey(

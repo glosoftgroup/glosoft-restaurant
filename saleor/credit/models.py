@@ -203,6 +203,8 @@ class CreditedItem(models.Model):
         Kitchen, related_name='credit_item_kitchen', blank=True, null=True, default='',
         verbose_name=pgettext_lazy('CreditItem field', 'Kitchen'))
     cold = models.BooleanField(default=False)
+    cold_quantity = models.IntegerField(
+        pgettext_lazy('CreditItem field', 'cold quantity'), default=Decimal(0))
     attributes = HStoreField(
         pgettext_lazy('SoldItem field', 'attributes'), default={})
     discount_id = models.CharField(

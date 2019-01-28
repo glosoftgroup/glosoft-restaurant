@@ -236,6 +236,7 @@ def getCounterItemsJsonData(obj):
                 dis['end_date'] = disc.end_date
                 dis['date'] = disc.date
                 dis['day'] = disc.day
+                dis['description'] = str(disc.quantity) + ' items @' + str(disc.value)
                 discounts.append(dis)
             except Exception as e:
                 logger.info('Error in assigning discounts: ' + str(e))

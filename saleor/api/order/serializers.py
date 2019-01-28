@@ -40,6 +40,7 @@ item_fields = (
     'ready',
     'collected',
     'cold',
+    'cold_quantity',
     'attributes',
     'unit_purchase',
     'total_purchase',
@@ -68,10 +69,11 @@ class ListItemSerializer(serializers.ModelSerializer):
     kitchen = serializers.SerializerMethodField()
     attributes_list = serializers.SerializerMethodField()
     discounts = serializers.SerializerMethodField()
+    stock = serializers.SerializerMethodField()
 
     class Meta:
         model = OrderedItem
-        fields = item_fields + ('attributes_list', 'discounts',)
+        fields = item_fields + ('attributes_list', 'discounts','stock',)
 
     def get_attributes_list(self, obj):
         if obj.attributes:
@@ -90,10 +92,22 @@ class ListItemSerializer(serializers.ModelSerializer):
         except:
             return None
 
+    def get_stock(self, obj):
+        """ quantity """
+        try:
+            if obj.counter:
+                transferred_item = Item.objects.get(pk=obj.transfer_id)
+            elif obj.kitchen:
+                transferred_item = MenuItem.objects.get(pk=obj.transfer_id)
+            stock = transferred_item.qty
+        except Exception as e:
+            stock = obj.quantity
+
+        return stock
+
     def get_discounts(self, obj):
         try:
             discounts = []
-            print(obj.discount_id.pk)
             if obj.discount_id:
                 all_discounts = Discount.objects.filter(pk=obj.discount_id.pk)
                 for disc in all_discounts:
@@ -111,7 +125,6 @@ class ListItemSerializer(serializers.ModelSerializer):
                         dis['day'] = disc.day
                         discounts.append(dis)
                     except Exception as e:
-                        print(e)
                         logger.info('Error in appending disc to discounts: ' + str(e))
         except Exception as e:
             logger.info('Error in assigning discounts: ' + str(e))
@@ -697,6 +710,7 @@ class OrderUpdateSerializer(serializers.ModelSerializer):
                 new_item.discount_total = item.discount_total
                 new_item.discount_set_status = item.discount_set_status
                 new_item.cold = item.cold
+                new_item.cold_quantity = item.cold_quantity
 
                 if item.counter:
                     try:

@@ -40,6 +40,7 @@ class CustomerDiscountListSerializer(serializers.ModelSerializer):
 
 
 class DiscountListSerializer(serializers.ModelSerializer):
+    description = serializers.SerializerMethodField()
     class Meta:
         model = Sale
         fields = ('id',
@@ -54,4 +55,13 @@ class DiscountListSerializer(serializers.ModelSerializer):
                   'start_date',
                   'end_date',
                   'start_time',
-                  'end_time')
+                  'end_time',
+                  'description')
+
+    def get_description(self, obj):
+        try:
+            description = str(obj.quantity) + ' items @' + str(obj.value)
+        except Exception as e:
+            description = obj.name
+
+        return description
