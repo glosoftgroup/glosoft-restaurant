@@ -690,6 +690,7 @@ def product_edit(request, pk, name=None):
     product = Product.objects.get(pk=product.pk)
     payment_options = PaymentOption.objects.all()
     suppliers = Supplier.objects.all()
+    sections = Section.objects.all().order_by('-id')
     stock = Stock()
     stock_form = forms.StockForm(request.POST or None, instance=stock,
                                  product=product)
@@ -726,7 +727,9 @@ def product_edit(request, pk, name=None):
            'variants_delete_form': variants_delete_form,
            'payment_options': payment_options,
            'suppliers': suppliers,
-           'variant_form': variant_form}
+           'variant_form': variant_form,
+           'sections': sections
+           }
 
     if name:
         ctx['go'] = 'True'
@@ -2018,7 +2021,26 @@ def attr_list_f32d(request):
         variants = json.loads(request.POST.get('variants'))
         if request.POST.get('name'):
             pk = request.POST.get('name')
-            product_class = get_object_or_404(ProductClass, pk=int(pk))
+            categ_pk = request.POST.get('categ_pk')
+            product_pk = request.POST.get('product_pk')
+
+            product_class_verifier = get_object_or_404(ProductClass, pk=int(pk))
+
+            if not pk or product_class_verifier.name == "None":
+                categ = get_object_or_404(Category, pk=int(categ_pk))
+                # before creating check if it exists
+                product_class_checker = ProductClass.objects.filter(name=categ.name)
+                if product_class_checker.exists():
+                    # get the first instance
+                    product_class = product_class_checker.first()
+                # else create
+                else:
+                    product_class = ProductClass.objects.create(name=categ.name)
+                product = get_object_or_404(Product, pk=int(product_pk))
+                product.product_class = product_class
+                product.save()
+            else:
+                product_class = product_class_verifier
         if request.POST.get('newclass'):
             product_class = ProductClass.objects.create(name=request.POST.get('newclass'))
         if product_class:

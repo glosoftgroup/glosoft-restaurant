@@ -53,8 +53,10 @@
 {% block menu_discounts_class %} active{% endblock %}
 
 {% block custom_css %}
-<link href="{% static 'backend/js/plugins/tokenize/tokenize2.css' %}" rel="stylesheet" type="text/css">
+    <link href="{% static 'backend/js/plugins/tokenize/tokenize2.css' %}" rel="stylesheet" type="text/css">
+    <link href="{% static 'backend/js/plugins/pickers/wickedpicker/src/wickedpicker.css' %}" rel="stylesheet" type="text/css">
 {% endblock %}
+
 {% block content %}
   <div class="panel panel-default">
     <div class="panel-body">
@@ -130,13 +132,13 @@
               <div class="row">
                <div class="col-md-6">
                <div class="form-group">
-                <label>Start Date:</label>
+                <label>Start Time:</label>
                 {{ form.start_time }}
                 </div>
                </div>
                <div class="col-md-6">
                <div class="form-group">
-                <label>End Date:</label>
+                <label>End Time:</label>
                 {{ form.end_time }}
                 </div>
                </div>
@@ -175,8 +177,12 @@
 <script type="text/javascript" src="{% static 'backend/js/plugins/forms/selects/bootstrap_multiselect.js' %}"></script>
 <script type="text/javascript" src="{% static 'backend/js/plugins/forms/selects/bootstrap_select.min.js' %}"></script>
  <script type="text/javascript" src="{% static 'backend/js/pages/form_multiselect.js' %}"></script>
+<script type="text/javascript" src="{% static 'backend/js/plugins/pickers/wickedpicker/src/wickedpicker.js' %}"></script>
 <script type="text/javascript">
-  // Basic select
+$(document).ready(function() {
+    $('.timepicker').wickedpicker();
+
+     // Basic select
     $('.bootstrap-select').selectpicker();
      // Default initialization
     $(".styled, .multiselect-container input").uniform({
@@ -191,6 +197,7 @@
         formatSubmit: 'yyyy-mm-dd',
 
     });
+ });
 </script>
 <script type="text/javascript" src="{% static 'backend/js/plugins/tokenize/tokenize2.js' %}"></script>
 <script type="text/javascript" src="{% static 'backend/js/backend.js' %}"></script>

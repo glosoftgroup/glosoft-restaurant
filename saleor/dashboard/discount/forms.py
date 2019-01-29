@@ -24,8 +24,9 @@ class SaleForm(forms.ModelForm):
             field.widget.attrs['class'] = 'form-control'
 
         field = self.fields['variant'] 
-        field.widget.attrs['class'] = 'form-control multiselect'
+        field.widget.attrs['class'] = 'form-control multiselects'
         field.widget.attrs['multiple'] = 'multiple'
+        field.widget.attrs['id'] = 'variants'
 
         field = self.fields['customers'] 
         field.widget.attrs['class'] = 'form-control multiselect'
@@ -40,18 +41,35 @@ class SaleForm(forms.ModelForm):
         self.fields['day'] = forms.ChoiceField(choices=CHOICES, widget=forms.Select, initial='1')
         field = self.fields['day']
         field.widget.attrs['class'] = 'form-control bootstrap-select'
+        field.widget.attrs['id'] = 'id_day'
 
         field = self.fields['date']
         field.widget.attrs['class'] = 'form-control pickadate-selectors'
+        field.widget.attrs['id'] = 'id_date'
 
         field = self.fields['start_date']
         field.widget.attrs['class'] = 'form-control pickadate-selectors'
-        
+        field.widget.attrs['id'] = 'id_start_date'
+
         field = self.fields['end_date']
         field.widget.attrs['class'] = 'form-control pickadate-selectors'
+        field.widget.attrs['id'] = 'id_end_date'
+
+        field = self.fields['start_time']
+        field.widget.attrs['class'] = 'form-control timepicker'
+        field.widget.attrs['id'] = 'id_start_time'
+
+        field = self.fields['end_time']
+        field.widget.attrs['class'] = 'form-control timepicker'
+        field.widget.attrs['id'] = 'id_start_time'
 
         field = self.fields['value']
         field.widget.attrs['required'] = 'required'
+        field.widget.attrs['id'] = 'id_value'
+
+        field = self.fields['quantity']
+        field.widget.attrs['class'] = 'form-control'
+        field.widget.attrs['id'] = 'id_quantity'
 
     def clean(self):
         try:

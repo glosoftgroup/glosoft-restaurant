@@ -69,11 +69,12 @@ class ListItemSerializer(serializers.ModelSerializer):
     kitchen = serializers.SerializerMethodField()
     attributes_list = serializers.SerializerMethodField()
     discounts = serializers.SerializerMethodField()
-    stock = serializers.SerializerMethodField()
+    available_stock = serializers.SerializerMethodField()
+    transferred_qty = serializers.SerializerMethodField()
 
     class Meta:
         model = OrderedItem
-        fields = item_fields + ('attributes_list', 'discounts','stock',)
+        fields = item_fields + ('attributes_list', 'discounts','available_stock', 'transferred_qty',)
 
     def get_attributes_list(self, obj):
         if obj.attributes:
@@ -92,7 +93,7 @@ class ListItemSerializer(serializers.ModelSerializer):
         except:
             return None
 
-    def get_stock(self, obj):
+    def get_available_stock(self, obj):
         """ quantity """
         try:
             if obj.counter:
@@ -100,6 +101,19 @@ class ListItemSerializer(serializers.ModelSerializer):
             elif obj.kitchen:
                 transferred_item = MenuItem.objects.get(pk=obj.transfer_id)
             stock = transferred_item.qty
+        except Exception as e:
+            stock = obj.quantity
+
+        return stock
+
+    def get_transferred_qty(self, obj):
+        """ quantity """
+        try:
+            if obj.counter:
+                transferred_item = Item.objects.get(pk=obj.transfer_id)
+            elif obj.kitchen:
+                transferred_item = MenuItem.objects.get(pk=obj.transfer_id)
+            stock = transferred_item.transferred_qty
         except Exception as e:
             stock = obj.quantity
 

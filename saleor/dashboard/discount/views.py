@@ -219,24 +219,43 @@ def disc_products_search(request):
 @staff_member_required
 def sale_edit(request, pk=None):
     if pk:
-        instance = get_object_or_404(Sale, pk=pk)
+        discount = get_object_or_404(Sale, pk=pk)
     else:
-        instance = Sale()
-    form = forms.SaleForm(
-        request.POST or None, instance=instance)
+        discount = Sale()
 
-    if form.is_valid():
-        instance = form.save()
-        instance.save()
-        msg = pgettext_lazy(
-            'Sale (discount) message', 'Updated sale') if pk else pgettext_lazy(
-            'Sale (discount) message', 'Added sale')
-        messages.success(request, msg)
-        user_trail(request.user.name, 'updated discount : ' + str(instance.name), 'update')
-        logger.info('User: ' + str(request.user.name) + ' updated discount:' + str(instance.name))
-        return redirect('dashboard:sale-update', pk=instance.pk)
-    ctx = {'sale': instance, 'form': form}
-    return TemplateResponse(request, 'dashboard/discount/sale_form.html', ctx)
+    try:
+        if request.method == 'POST':
+            if request.POST.get('type'):
+                discount.type = request.POST.get('type')
+            if request.POST.get('value'):
+                discount.value = request.POST.get('value')
+            if request.POST.get('name'):
+                discount.name = request.POST.get('name')
+            if request.POST.get('quantity'):
+                discount.quantity = request.POST.get('quantity')
+            discount.start_date = request.POST.get('start_date', None)
+            discount.end_date = request.POST.get('end_date', None)
+            if request.POST.get('start_time'):
+                discount.start_time = request.POST.get('start_time')
+            if request.POST.get('end_time'):
+                discount.end_time = request.POST.get('end_time')
+            discount.day = request.POST.get('day', None)
+            discount.date = request.POST.get('date', None)
+            discount.save(update_fields=["quantity", "value", "type", "name", "day", "date", "start_date", "end_date",
+                                         "start_time", "end_time"])
+            if request.POST.get('variants'):
+                variants = json.loads(request.POST.get('variants'))
+                discount.variant.clear()
+                for variant in variants:
+                    discount.variant.add(variant)
+            return HttpResponse(json.dumps({'message': str(discount.name)+ ' updated successfully', 'status': '200',
+                                            'type': 'update'}))
+    except Exception as e:
+        return HttpResponse(json.dumps({'message': 'Error updating the discount', 'status': '400', 'type': 'update'}))
+
+    form = forms.SaleForm(None, instance=discount)
+    ctx = {'sale': discount, 'form': form}
+    return TemplateResponse(request, 'dashboard/discount/sale_form_update.html', ctx)
 
 
 @staff_member_required
@@ -275,9 +294,11 @@ def create_discount(request):
                 discount.customers.add(customer)
         except:
             pass
-        return HttpResponse(json.dumps({'message': discount.name}))
+        return HttpResponse(json.dumps({'message': str(discount.name) + ' updated successfully', 'status': '200',
+                                        'type': 'create'}))
     else:
-        return HttpResponse(json.dumps({'message': 'Invalid method'}))
+        return HttpResponse(json.dumps({'message': 'Error creating the new discount', 'status': '400',
+                                        'type': 'create'}))
 
 
 @staff_member_required

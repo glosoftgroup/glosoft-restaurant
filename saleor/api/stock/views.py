@@ -196,9 +196,15 @@ def getCounterItemsJsonData(obj):
 
     """ quantity """
     try:
-        quantity = CounterItems.objects.instance_quantities(obj.stock, filter_type='stock', counter=obj.counter)
+        quantity = obj.qty
     except:
         quantity = 0
+
+    """ transferred_qty """
+    try:
+        transferred_qty = obj.transferred_qty
+    except:
+        transferred_qty = 0
 
     """ tax """
     try:
@@ -248,6 +254,7 @@ def getCounterItemsJsonData(obj):
         "id": id,
         "sku": sku,
         "quantity": quantity,
+        "transferred_qty": transferred_qty,
         "product_name": product_name,
         "product_category": product_category,
         "unit_cost": unit_cost,
@@ -305,6 +312,12 @@ def getMenuItemsJsonData(obj):
     except:
         quantity = 0
 
+    """ transferred_qty """
+    try:
+        transferred_qty = obj.transferred_qty
+    except:
+        transferred_qty = 0
+
     try:
         attributes_list = ProductVariant.objects.filter(pk=obj.stock.variant.pk).extra(select=dict(key="content_item.data -> 'attributes'")) \
             .values('attributes').order_by('attributes')
@@ -323,6 +336,7 @@ def getMenuItemsJsonData(obj):
         "id": id,
         "sku": sku,
         "quantity": quantity,
+        "transferred_qty": transferred_qty,
         "product_name": product_name,
         "product_category": product_category,
         "unit_cost": unit_cost,

@@ -160,6 +160,7 @@ class SearchTransferredStockListSerializer(serializers.Serializer):
     product_category = serializers.CharField(max_length=200, allow_null=True)
     unit_cost = serializers.DecimalField(max_digits=11, decimal_places=2)
     quantity = serializers.IntegerField()
+    transferred_qty = serializers.IntegerField()
     tax = serializers.CharField(max_length=200)
     discount = serializers.CharField(max_length=200)
     counter = serializers.JSONField(allow_null=True)
