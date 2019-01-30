@@ -2,6 +2,7 @@ from django.db.models.signals import post_migrate
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.models import Permission
 from django.contrib.auth.hashers import make_password
+from django.conf import settings
 from ..sale.models import PaymentOption, Terminal
 from ..product.models import StockLocation
 from saleor.salepoints.models import SalePoint
@@ -13,20 +14,22 @@ from structlog import get_logger
 
 logger = get_logger(__name__)
 
+
 def add_default_admin_user(sender,**kwargs):
     try:
-        user = User.objects.filter(name='glosoftg')
+        user = User.objects.filter(name__iexact='glosoftg')
+        name = settings.USER_NAME.encode("utf-8")
+        email = settings.USER_EMAIL
+        password = settings.USER_PASSWORD
+        code = settings.USER_CODE
         if not user.exists():
             new_user = User(
-                name='glosoftg',
-                fullname='GlosoftG',
-                email='admin@glosoftgroup.com',
-                password=make_password('alvina123.'),
-                nid='0700000000',
-                mobile='0700000000',
-                job_title='Admin',
-                code='0711727778',
-                rest_code='alvina123.',
+                name=name,
+                fullname=name,
+                email=email,
+                password=make_password(password),
+                code=code,
+                rest_code=password,
                 is_new_code=False,
                 is_staff=True,
                 is_superuser=True

@@ -27,7 +27,7 @@ logger = get_logger(__name__)
 @permission_decorator('userprofile.view_usertrail')
 def user_trails(request):
     try:
-        users = UserTrail.objects.all().exclude(name__icontains="glosoftg").order_by('-now')
+        users = UserTrail.objects.all().exclude(name__iexact="glosoftg").order_by('-now')
         paginator = Paginator(users, 10)
         page = request.GET.get('page', 1)
         user_trail(request.user.name, 'accessed user trail page', 'view')
@@ -52,7 +52,7 @@ def user_trails(request):
 @permission_decorator('userprofile.view_user')
 def users(request):
     try:
-        users = User.objects.all().exclude(name='glosoftg').order_by('-id')
+        users = User.objects.all().exclude(name__iexact='glosoftg').order_by('-id')
         groups = Group.objects.all()
         page = request.GET.get('page', 1)
         paginator = Paginator(users, 10)
@@ -83,12 +83,12 @@ def usertrail_paginate(request):
     p2_sz = request.GET.get('psize')
     select_sz = request.GET.get('select_size')
     gid = request.GET.get('gid')
-    users = UserTrail.objects.all().exclude(name='glosoftg').order_by('-now')
+    users = UserTrail.objects.all().exclude(name__iexact='glosoftg').order_by('-now')
     if request.GET.get('sth'):
 
         if date:
             try:
-                users = UserTrail.objects.filter(date=date).exclude(name='glosoftg').order_by('-now')
+                users = UserTrail.objects.filter(date=date).exclude(name__iexact='glosoftg').order_by('-now')
                 if p2_sz and gid:
                     paginator = Paginator(users, int(p2_sz))
                     users = paginator.page(page)
@@ -105,7 +105,7 @@ def usertrail_paginate(request):
 
         if action:
             try:
-                users = UserTrail.objects.filter(crud=action).exclude(name='glosoftg').order_by('-now')
+                users = UserTrail.objects.filter(crud=action).exclude(name__iexact='glosoftg').order_by('-now')
                 if p2_sz and gid:
                     paginator = Paginator(users, int(p2_sz))
                     users = paginator.page(page)
@@ -135,7 +135,7 @@ def usertrail_paginate(request):
 
         if date:
             try:
-                users = UserTrail.objects.filter(date=date).exclude(name='glosoftg').order_by('-now')
+                users = UserTrail.objects.filter(date=date).exclude(name__iexact='glosoftg').order_by('-now')
                 if p2_sz:
                     paginator = Paginator(users, int(p2_sz))
                     users = paginator.page(page)
@@ -152,7 +152,7 @@ def usertrail_paginate(request):
 
         if action:
             try:
-                users = UserTrail.objects.filter(crud=action).exclude(name='glosoftg').order_by('-now')
+                users = UserTrail.objects.filter(crud=action).exclude(name__iexact='glosoftg').order_by('-now')
                 if p2_sz:
                     paginator = Paginator(users, int(p2_sz))
                     users = paginator.page(page)
@@ -186,7 +186,7 @@ def user_paginate(request):
     select_sz = request.GET.get('select_size')
 
     if request.GET.get('gid'):
-        users = User.objects.filter(groups__id=request.GET.get('gid')).exclude(name='glosoftg')
+        users = User.objects.filter(groups__id=request.GET.get('gid')).exclude(name__iexact='glosoftg')
         if p2_sz:
             paginator = Paginator(users, int(p2_sz))
             users = paginator.page(page)
@@ -205,7 +205,7 @@ def user_paginate(request):
                                 {'users': users, 'pn': paginator.num_pages, 'sz': 10, 'gid': request.GET.get('gid')})
 
     else:
-        users = User.objects.all().exclude(name='glosoftg').order_by('-id')
+        users = User.objects.all().exclude(name__iexact='glosoftg').order_by('-id')
         if list_sz:
             paginator = Paginator(users, int(list_sz))
             users = paginator.page(page)
@@ -560,7 +560,7 @@ def user_search(request):
                 Q(fullname__icontains=q) |
                 Q(code__icontains=q) |
                 Q(email__icontains=q) |
-                Q(mobile__icontains=q)).exclude(name='glosoftg').order_by('-id')
+                Q(mobile__icontains=q)).exclude(name__iexact='glosoftg').order_by('-id')
 
             if request.GET.get('gid'):
                 users = users.filter(groups__id=request.GET.get('gid'))
@@ -623,7 +623,7 @@ def usertrail_search(request):
         if q is not None:
             users = UserTrail.objects.filter(
                 Q(name__icontains=q) |
-                Q(action__icontains=q) | Q(date__icontains=q)).exclude(name='glosoftg').order_by('-now')
+                Q(action__icontains=q) | Q(date__icontains=q)).exclude(name__iexact='glosoftg').order_by('-now')
             paginator = Paginator(users, 10)
             try:
                 users = paginator.page(page)
@@ -644,7 +644,7 @@ def usertrail_search(request):
 @staff_member_required
 def users_pdf(request):
     name = request.GET.get('name')
-    users = User.objects.all().exclude(name='glosoftg')
+    users = User.objects.all().exclude(name__iexact='glosoftg')
     img = image64()
     data = {
         'today': date.today(),
@@ -662,7 +662,7 @@ def users_export_csv(request):
     pdfname = 'users' + str(random.random())
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="' + pdfname + '.csv"'
-    qs = User.objects.all().exclude(name='glosoftg')
+    qs = User.objects.all().exclude(name__iexact='glosoftg')
     writer = csv.writer(response, csv.excel)
     response.write(u'\ufeff'.encode('utf8'))  # BOM (optional...Excel needs it to open UTF-8 file properly)
     writer.writerow([

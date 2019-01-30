@@ -44,7 +44,7 @@ class ListAPIView(generics.ListAPIView):
             else:
                 queryset_list = Table.objects.all.select_related()
         except Exception as e:
-            queryset_list = Table.objects.all().exclude(user__name__icontains="glosoftg")
+            queryset_list = Table.objects.all().exclude(user__name__iexact="glosoftg")
 
         page_size = 'page_size'
         if self.request.GET.get(page_size):
