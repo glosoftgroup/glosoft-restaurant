@@ -7,6 +7,9 @@ from django_prices.forms import PriceField
 
 from ...discount.models import Sale, Voucher
 from ...shipping.models import ShippingMethodCountry, COUNTRY_CODE_CHOICES
+from structlog import get_logger
+
+logger = get_logger(__name__)
 
 
 class SaleForm(forms.ModelForm):
@@ -14,40 +17,72 @@ class SaleForm(forms.ModelForm):
     class Meta:
         model = Sale
         exclude = []
+
     def __init__(self, *args, **kwargs):        
         super(SaleForm, self).__init__(*args, **kwargs)
         for field_name, field in self.fields.items():
             field.widget.attrs['class'] = 'form-control'
 
         field = self.fields['variant'] 
-        field.widget.attrs['class'] = 'form-control multiselect'
+        field.widget.attrs['class'] = 'form-control multiselects'
         field.widget.attrs['multiple'] = 'multiple'
+        field.widget.attrs['id'] = 'variants'
 
         field = self.fields['customers'] 
         field.widget.attrs['class'] = 'form-control multiselect'
         field.widget.attrs['multiple'] = 'multiple'
 
-
         field = self.fields['categories'] 
         field.widget.attrs['class'] = 'form-control multiselect'
         field.widget.attrs['multiple'] = 'multiple'
 
+        CHOICES = ((None, 'None',), ('Monday', 'Monday',), ('Tuesday', 'Tuesday',), ('Wednesday', 'Wednesday',),
+                   ('Thursday', 'Thursday',), ('Friday', 'Friday',), ('Saturday', 'Saturday',), ('Sunday', 'Sunday',))
+        self.fields['day'] = forms.ChoiceField(choices=CHOICES, widget=forms.Select, initial='1')
+        field = self.fields['day']
+        field.widget.attrs['class'] = 'form-control bootstrap-select'
+        field.widget.attrs['id'] = 'id_day'
+
+        field = self.fields['date']
+        field.widget.attrs['class'] = 'form-control pickadate-selectors'
+        field.widget.attrs['id'] = 'id_date'
+
         field = self.fields['start_date']
         field.widget.attrs['class'] = 'form-control pickadate-selectors'
-        
+        field.widget.attrs['id'] = 'id_start_date'
+
         field = self.fields['end_date']
         field.widget.attrs['class'] = 'form-control pickadate-selectors'
+        field.widget.attrs['id'] = 'id_end_date'
+
+        field = self.fields['start_time']
+        field.widget.attrs['class'] = 'form-control timepicker'
+        field.widget.attrs['id'] = 'id_start_time'
+
+        field = self.fields['end_time']
+        field.widget.attrs['class'] = 'form-control timepicker'
+        field.widget.attrs['id'] = 'id_start_time'
+
         field = self.fields['value']
         field.widget.attrs['required'] = 'required'
+        field.widget.attrs['id'] = 'id_value'
+
+        field = self.fields['quantity']
+        field.widget.attrs['class'] = 'form-control'
+        field.widget.attrs['id'] = 'id_quantity'
+
     def clean(self):
-        cleaned_data = super(SaleForm, self).clean()
-        discount_type = cleaned_data['type']
-        value = cleaned_data['value']
-        if discount_type == Sale.PERCENTAGE and value > 100:
-            self.add_error('value', pgettext_lazy(
-                'Sale (discount) error',
-                'Sale cannot exceed 100%'))
-        return cleaned_data
+        try:
+            cleaned_data = super(SaleForm, self).clean()
+            discount_type = cleaned_data['type']
+            value = cleaned_data['value']
+            if discount_type == Sale.PERCENTAGE and value > 100:
+                self.add_error('value', pgettext_lazy(
+                    'Sale (discount) error',
+                    'Sale cannot exceed 100%'))
+            return cleaned_data
+        except Exception as e:
+            logger.error(e)
 
 
 class VoucherForm(forms.ModelForm):

@@ -16,6 +16,7 @@ from saleor.credit.models import Credit, CreditedItem, CreditHistoryEntry
 from saleor.product.models import Stock
 from saleor.mpesa_transactions.models import MpesaTransactions
 from saleor.visa_transactions.models import VisaTransactions
+from saleor.discount.models import Sale as Discount
 from structlog import get_logger
 
 logger = get_logger(__name__)
@@ -39,9 +40,14 @@ item_fields = (
     'ready',
     'collected',
     'cold',
+    'cold_quantity',
     'attributes',
     'unit_purchase',
     'total_purchase',
+    'discount_id',
+    'discount_quantity',
+    'discount_total',
+    'discount_set_status'
 )
 
 
@@ -62,10 +68,13 @@ class ListItemSerializer(serializers.ModelSerializer):
     counter = serializers.SerializerMethodField()
     kitchen = serializers.SerializerMethodField()
     attributes_list = serializers.SerializerMethodField()
+    discounts = serializers.SerializerMethodField()
+    available_stock = serializers.SerializerMethodField()
+    transferred_qty = serializers.SerializerMethodField()
 
     class Meta:
         model = OrderedItem
-        fields = item_fields + ('attributes_list',)
+        fields = item_fields + ('attributes_list', 'discounts','available_stock', 'transferred_qty',)
 
     def get_attributes_list(self, obj):
         if obj.attributes:
@@ -83,6 +92,59 @@ class ListItemSerializer(serializers.ModelSerializer):
             return {"id": obj.kitchen.id, "name": obj.kitchen.name}
         except:
             return None
+
+    def get_available_stock(self, obj):
+        """ quantity """
+        try:
+            if obj.counter:
+                transferred_item = Item.objects.get(pk=obj.transfer_id)
+            elif obj.kitchen:
+                transferred_item = MenuItem.objects.get(pk=obj.transfer_id)
+            stock = transferred_item.qty
+        except Exception as e:
+            stock = obj.quantity
+
+        return stock
+
+    def get_transferred_qty(self, obj):
+        """ quantity """
+        try:
+            if obj.counter:
+                transferred_item = Item.objects.get(pk=obj.transfer_id)
+            elif obj.kitchen:
+                transferred_item = MenuItem.objects.get(pk=obj.transfer_id)
+            stock = transferred_item.transferred_qty
+        except Exception as e:
+            stock = obj.quantity
+
+        return stock
+
+    def get_discounts(self, obj):
+        try:
+            discounts = []
+            if obj.discount_id:
+                all_discounts = Discount.objects.filter(pk=obj.discount_id.pk)
+                for disc in all_discounts:
+                    try:
+                        dis = {}
+                        dis['id'] = disc.id
+                        dis['name'] = disc.name
+                        dis['quantity'] = disc.quantity
+                        dis['price'] = disc.value
+                        dis['start_time'] = disc.start_time
+                        dis['end_time'] = disc.end_time
+                        dis['start_date'] = disc.start_date
+                        dis['end_date'] = disc.end_date
+                        dis['date'] = disc.date
+                        dis['day'] = disc.day
+                        discounts.append(dis)
+                    except Exception as e:
+                        logger.info('Error in appending disc to discounts: ' + str(e))
+        except Exception as e:
+            logger.info('Error in assigning discounts: ' + str(e))
+            discounts = []
+
+        return discounts
 
 
 class ListOrderSerializer(serializers.ModelSerializer):
@@ -585,7 +647,6 @@ class OrderUpdateSerializer(serializers.ModelSerializer):
         try:
             user = Customer.objects.get(pk=customer_id)
         except Exception as e:
-            print e
             if customer_name:
                 user = Customer.objects.create(name=customer_name, creditable=True)
         return user
@@ -611,7 +672,6 @@ class OrderUpdateSerializer(serializers.ModelSerializer):
                 due_date = datetime.strptime(order.due_date, '%Y-%m-%d').date()
                 credit.due_date = due_date
         except Exception as e:
-            print e
             logger.error(e)
 
         try:
@@ -639,7 +699,6 @@ class OrderUpdateSerializer(serializers.ModelSerializer):
                 pay_opt = PaymentOption.objects.get(pk=int(option['payment_id']))
                 credit.payment_options.add(pay_opt)
             except Exception as e:
-                print (e)
                 logger.error("error adding options " + str(e))
 
         for item in order.items():
@@ -659,6 +718,13 @@ class OrderUpdateSerializer(serializers.ModelSerializer):
                 new_item.attributes = item.attributes
                 new_item.unit_purchase = item.unit_purchase
                 new_item.total_purchase = item.total_purchase
+                if item.discount_id:
+                    new_item.discount_id = item.discount_id.pk
+                new_item.discount_quantity = item.discount_quantity
+                new_item.discount_total = item.discount_total
+                new_item.discount_set_status = item.discount_set_status
+                new_item.cold = item.cold
+                new_item.cold_quantity = item.cold_quantity
 
                 if item.counter:
                     try:

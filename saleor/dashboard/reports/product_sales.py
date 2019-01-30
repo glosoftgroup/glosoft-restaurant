@@ -90,9 +90,6 @@ def sales_paginate(request):
                     try:
                         itemPrice = t['unit_purchase'] * t['quantity__sum']
                     except Exception as e:
-                        print ("*") * 100
-                        print e
-                        print ("*") * 100
                         itemPrice = 0
                     totalSalesCost = t['total_cost__sum']
                     try:
@@ -270,15 +267,17 @@ def sales_search(request):
                 date = DateFormat(datetime.datetime.today()).format('Y-m-d')
 
         if point and point != 'all':
-            all_items = SoldItem.objects.filter(sale_point__name__icontains=point)
+            try:
+                all_items = SoldItem.objects.filter(sale_point__name__icontains=point)
+            except:
+                all_items = SoldItem.objects.all()
         else:
             all_items = SoldItem.objects.all()
 
         if q is not None:
             all_sales = all_items.filter(
                 Q(product_name__icontains=q) |
-                Q(product_category__icontains=q) |
-                Q(sale_point__name__icontains=q)).filter(sales__created__contains=date). \
+                Q(product_category__icontains=q)).filter(sales__created__contains=date). \
                 values('sku', 'product_category', 'product_name'). \
                 annotate(c=Count('product_name', distinct=True)).annotate(Sum('total_cost')). \
                 annotate(Sum('quantity'))
@@ -397,15 +396,17 @@ def sales_list_pdf(request):
                 date = DateFormat(datetime.datetime.today()).format('Y-m-d')
 
         if point and point != 'all':
-            all_items = SoldItem.objects.filter(sale_point__name__icontains=point)
+            try:
+                all_items = SoldItem.objects.filter(sale_point__name__icontains=point)
+            except:
+                all_items = SoldItem.objects.all()
         else:
             all_items = SoldItem.objects.all()
 
         if q is not None:
             all_sales = all_items.filter(
                 Q(product_name__icontains=q) |
-                Q(product_category__icontains=q) |
-                Q(sale_point__name__icontains=q)).filter(sales__created__contains=date). \
+                Q(product_category__icontains=q)).filter(sales__created__contains=date). \
                 values('sku', 'product_category', 'product_name'). \
                 annotate(c=Count('product_name', distinct=True)).annotate(Sum('total_cost')). \
                 annotate(Sum('quantity'))

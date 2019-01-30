@@ -17,6 +17,7 @@ from ..counter.models import Counter
 from ..kitchen.models import Kitchen
 from ..table.models import Table
 from ..room.models import Room
+from saleor.discount.models import Sale as Discount
 
 import json
 import ast
@@ -257,8 +258,19 @@ class SoldItem(models.Model):
     created = models.DateTimeField(
         pgettext_lazy('SoldItem field', 'created'),
         default=now, editable=False)
+    cold = models.BooleanField(default=False)
+    cold_quantity = models.IntegerField(
+        pgettext_lazy('SoldItem field', 'cold quantity'), default=Decimal(0))
     attributes = HStoreField(
         pgettext_lazy('SoldItem field', 'attributes'), default={})
+    discount_id = models.CharField(
+        pgettext_lazy('SoldItem field', 'discount_id'), max_length=128, null=True)
+    discount_quantity = models.IntegerField(
+        pgettext_lazy('SoldItem field', 'discount quantity'),
+        validators=[MinValueValidator(0)], default=Decimal(0))
+    discount_total = models.DecimalField(
+        pgettext_lazy('SoldItem field', 'discount'), default=Decimal(0), max_digits=255, decimal_places=2)
+    discount_set_status = models.BooleanField(default=False)
     objects = SoldItemManager()
 
     class Meta:

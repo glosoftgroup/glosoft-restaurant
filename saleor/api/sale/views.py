@@ -10,14 +10,15 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework import pagination
 from .pagination import PostLimitOffsetPagination
 from ...product.models import AttributeChoiceValue
-from ...sale.models import Sales, PaymentOption
+from ...discount.models import Sale as Discount
 from ...sale.models import Sales
 from ...sale.models import SoldItem as Item
 from ...orders.models import *
 from .serializers import (
     ListSaleSerializer,
     CreateSaleSerializer,
-    ItemSerializer
+    ItemSerializer,
+    DiscountedItemSerializer
 )
 from .serializers import ListOrderSerializer
 from rest_framework.request import Request
@@ -326,6 +327,62 @@ class UserSaleAPIView(APIView):
                 "orders": cancelled_orders,
                 "total_sales": cancelled_totals
             }
+        }
+
+        return Response(response)
+
+
+class DiscountSaleAPIView(APIView):
+    def get(self, request, format=None, **kwargs):
+        """
+        Return a list of all orders grouped in complete, incomplete and cancelled.
+        """
+
+        if self.request.GET.get('date'):
+            date = self.request.GET.get('date')
+        else:
+            date = DateFormat(datetime.datetime.today()).format('Y-m-d')
+
+        discount_id = self.request.GET.get('discount')
+        discount_amount = 0
+
+        try:
+            discount = Discount.objects.get(pk=int(discount_id))
+            description = str(discount.quantity) + ' items @' + str(discount.value)
+            discount_amount = discount.value
+        except Exception as e:
+            discount = None
+            description = "Default Discount"
+            logger.info('Error in getting discount using id: ' + str(discount_id) + ', Exception: ' + str(e))
+
+        items = Item.objects.filter(created__icontains=date, discount_set_status=True)
+
+        total_discount_amount = 0
+        if discount:
+            items = items.filter(discount_id=str(discount.id))
+            total_discount_amount = items.aggregate(Sum("discount_total"))["discount_total__sum"]
+
+        extracted_items = items.values(
+            'sku',
+            'product_name',
+            'product_category',
+            'unit_cost',
+            'discount_set_status').annotate(
+            count=Count('product_name', distinct=True)).annotate(
+            discount_total=Sum('discount_total')).annotate(
+            discount_quantity=Sum('discount_quantity'))
+
+        final_items = []
+        for i in extracted_items:
+            i["discount_price"] = discount_amount
+            final_items.append(i)
+
+        response = {
+            "total": total_discount_amount,
+            "description": description,
+            "items": final_items,
+            "date": datetime.datetime.strptime(date, '%Y-%m-%d').strftime(
+                                     '%b %d, %Y')
         }
 
         return Response(response)

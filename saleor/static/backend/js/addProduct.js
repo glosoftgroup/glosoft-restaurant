@@ -299,11 +299,14 @@ $(function() {
   // open modal
   modalBtnD.on('click',function(){
     getDetail(getProductClass(),getDetailUrl).done(function(data){
+     modalIdD.modal();
+     /*
       if(data['name'] == 'None' ){
         alertUser('Change Sub category and try again!','bg-danger','You cannot add attributes!');
       }else{
         modalIdD.modal();
       }
+      */
     });
 
   });
@@ -316,10 +319,12 @@ $(function() {
 
   // add New Class
   // ajax
-  function addNewClassD(name,attributes,variants) {
+  function addNewClassD(name, categ_pk, productPk, attributes, variants) {
     var dynamicData = {};
     //dynamicData["attributes"] = JSON.stringify(attributes);
     dynamicData["name"] = name;
+    dynamicData["categ_pk"] = categ_pk;
+    dynamicData["product_pk"] = productPk;
     dynamicData["csrfmiddlewaretoken"]  = jQuery("[name=csrfmiddlewaretoken]").val();
     dynamicData['variants']= JSON.stringify(variants);
     return $.ajax({
@@ -338,6 +343,8 @@ $(function() {
 
   addClassBtnD.on('click',function(){
     var cname = $('#id_product_class').val();
+    var categ_pk = $('#id_categories').val();
+    var productPk  = pageUrls.data('pk');
     var attributes = getAttributesD.val();
     //var variants = getAttributesTwoD.val();
     if(!attributes && !variants){
@@ -348,7 +355,8 @@ $(function() {
       alertUser('Sub category name required!','bg-danger','Error!');
       return false;
     }
-    addNewClassD(cname,variants,attributes)
+
+    addNewClassD(cname, categ_pk, productPk, variants, attributes)
     .done(function(data){
       alertUser('Attribute added successfully!');
       //refreshAttributes();

@@ -55,6 +55,8 @@ class TrackSerializer(serializers.ModelSerializer):
 class ItemsSerializer(serializers.ModelSerializer):
     available_stock = SerializerMethodField()
     item_pk = SerializerMethodField()
+    counter = SerializerMethodField()
+    kitchen = SerializerMethodField()
 
     class Meta:
         model = CreditedItem
@@ -72,6 +74,8 @@ class ItemsSerializer(serializers.ModelSerializer):
             'tax',
             'discount',
             'attributes',
+            'counter',
+            'kitchen'
         )
 
     def get_item_pk(self, obj):
@@ -84,11 +88,26 @@ class ItemsSerializer(serializers.ModelSerializer):
         except:
             return 0
 
+    def get_counter(self, obj):
+        if obj.counter:
+            return {"id": obj.counter.id, "name": obj.counter.name}
+        else:
+            return None
+
+    def get_kitchen(self, obj):
+        if obj.kitchen:
+            return {"id": obj.kitchen.id, "name": obj.kitchen.name}
+        else:
+            return None
+
 
 class CreditListSerializer(serializers.ModelSerializer):
     update_url = HyperlinkedIdentityField(view_name='credit-api:update-credit')
     credititems = ItemsSerializer(many=True)
     cashier = SerializerMethodField()
+    discount_amount = SerializerMethodField()
+    table = SerializerMethodField()
+    user = SerializerMethodField()
 
     class Meta:
         model = Credit
@@ -112,12 +131,33 @@ class CreditListSerializer(serializers.ModelSerializer):
             'total_tax',
             'discount_amount',
             'due_date',
-            'debt'
+            'debt',
+            'table'
         )
 
     def get_cashier(self, obj):
         name = User.objects.get(pk=obj.user.id)
         return name.name
+
+    def get_discount_amount(self, obj):
+        if not obj.discount_amount:
+            return "0.00"
+        else:
+            return obj.discount_amount
+
+    def get_table(self, obj):
+        if obj.table:
+            return obj.table.name
+        else:
+            return "Take Away"
+
+    def get_user(self, obj):
+        if obj.user.fullname:
+            return obj.user.fullname
+        elif obj.user.name:
+            return obj.user.name
+        else:
+            return "Cashier"
 
 
 class CreateCreditSerializer(serializers.ModelSerializer):

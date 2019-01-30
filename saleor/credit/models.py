@@ -24,6 +24,7 @@ from ..room.models import Room
 from ..site.models import SiteSettings
 from ..sale.models import Terminal, PaymentOption
 from . import OrderStatus
+from saleor.discount.models import Sale as Discount
 
 
 class CreditManager(models.Manager):
@@ -201,6 +202,19 @@ class CreditedItem(models.Model):
     kitchen = models.ForeignKey(
         Kitchen, related_name='credit_item_kitchen', blank=True, null=True, default='',
         verbose_name=pgettext_lazy('CreditItem field', 'Kitchen'))
+    cold = models.BooleanField(default=False)
+    cold_quantity = models.IntegerField(
+        pgettext_lazy('CreditItem field', 'cold quantity'), default=Decimal(0))
+    attributes = HStoreField(
+        pgettext_lazy('SoldItem field', 'attributes'), default={})
+    discount_id = models.CharField(
+        pgettext_lazy('CreditedItem field', 'discount_id'), max_length=128, null=True)
+    discount_quantity = models.IntegerField(
+        pgettext_lazy('CreditedItem field', 'discount quantity'),
+        validators=[MinValueValidator(0)], default=Decimal(0))
+    discount_total = models.DecimalField(
+        pgettext_lazy('CreditedItem field', 'discount'), default=Decimal(0), max_digits=255, decimal_places=2)
+    discount_set_status = models.BooleanField(default=False)
 
     class Meta:
         #unique_together = ('sales')

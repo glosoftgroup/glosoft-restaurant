@@ -1,4 +1,5 @@
 import datetime
+from datetime import date
 from rest_framework import generics
 from django.db.models import Q
 from django.contrib.auth import get_user_model
@@ -21,6 +22,7 @@ from .serializers import (
     UpdateSerializer,
     SearchTransferredStockListSerializer
 )
+from saleor.discount.models import Sale
 from structlog import get_logger
 
 logger = get_logger(__name__)
@@ -129,7 +131,7 @@ class SearchTransferredStockListAPIView(APIView):
                 Q(transfer__date=today) |
                 Q(transfer__date=yesterday)
             ).filter(qty__gte=1).distinct('menu').select_related()
-            print menu_stock
+            print (menu_stock)
             if query:
                 menu_stock = menu_stock.filter(
                     Q(menu__category__name__icontains=query) |
@@ -194,9 +196,15 @@ def getCounterItemsJsonData(obj):
 
     """ quantity """
     try:
-        quantity = CounterItems.objects.instance_quantities(obj.stock, filter_type='stock', counter=obj.counter)
+        quantity = obj.qty
     except:
         quantity = 0
+
+    """ transferred_qty """
+    try:
+        transferred_qty = obj.transferred_qty
+    except:
+        transferred_qty = 0
 
     """ tax """
     try:
@@ -214,15 +222,39 @@ def getCounterItemsJsonData(obj):
         attributes_list = ProductVariant.objects.filter(pk=obj.stock.variant.pk).extra(select=dict(key="content_item.data -> 'attributes'")) \
             .values('attributes').order_by('attributes')
     except Exception as ex:
-        print "error"
-        print ex
-
+        print (ex)
         attributes_list = {}
+
+    try:
+        discounts = []
+        all_discounts = Sale.objects.filter(variant__pk=obj.stock.variant.pk)
+        print(obj.stock.variant.pk)
+        for disc in all_discounts:
+            try:
+                dis = {}
+                dis['id'] = disc.id
+                dis['name'] = disc.name
+                dis['quantity'] = disc.quantity
+                dis['price'] = disc.value
+                dis['start_time'] = disc.start_time
+                dis['end_time'] = disc.end_time
+                dis['start_date'] = disc.start_date
+                dis['end_date'] = disc.end_date
+                dis['date'] = disc.date
+                dis['day'] = disc.day
+                dis['description'] = str(disc.quantity) + ' items @' + str(disc.value)
+                discounts.append(dis)
+            except Exception as e:
+                logger.info('Error in assigning discounts: ' + str(e))
+    except Exception as e:
+        logger.info('Error in assigning discounts: ' + str(e))
+        discounts = []
 
     json_data = {
         "id": id,
         "sku": sku,
         "quantity": quantity,
+        "transferred_qty": transferred_qty,
         "product_name": product_name,
         "product_category": product_category,
         "unit_cost": unit_cost,
@@ -230,7 +262,8 @@ def getCounterItemsJsonData(obj):
         "discount": discount,
         "counter": counter,
         "kitchen": None,
-        "attributes_list": attributes_list
+        "attributes_list": attributes_list,
+        "discounts": discounts
     }
 
     return json_data
@@ -279,11 +312,19 @@ def getMenuItemsJsonData(obj):
     except:
         quantity = 0
 
+    """ transferred_qty """
+    try:
+        transferred_qty = obj.transferred_qty
+    except:
+        transferred_qty = 0
+
     try:
         attributes_list = ProductVariant.objects.filter(pk=obj.stock.variant.pk).extra(select=dict(key="content_item.data -> 'attributes'")) \
             .values('attributes').order_by('attributes')
     except:
         attributes_list = {}
+
+    discounts = []
 
     """ tax """
     tax = 0
@@ -295,6 +336,7 @@ def getMenuItemsJsonData(obj):
         "id": id,
         "sku": sku,
         "quantity": quantity,
+        "transferred_qty": transferred_qty,
         "product_name": product_name,
         "product_category": product_category,
         "unit_cost": unit_cost,
@@ -302,7 +344,8 @@ def getMenuItemsJsonData(obj):
         "discount": discount,
         "kitchen": kitchen,
         "counter": None,
-        "attributes_list": attributes_list
+        "attributes_list": attributes_list,
+        "discounts": discounts
     }
 
     return json_data

@@ -251,6 +251,8 @@ class Sale(models.Model):
     value = models.DecimalField(
         pgettext_lazy('Sale (discount) field', 'value'),
         max_digits=12, decimal_places=2, default=0)
+    quantity = models.PositiveIntegerField(
+        pgettext_lazy('Sale (discount) field', 'quantity'), default=1)
     products = models.ManyToManyField(
         'product.Product', blank=True,
         verbose_name=pgettext_lazy('Sale (discount) field', 'products'))
@@ -262,14 +264,19 @@ class Sale(models.Model):
         'product.Category', blank=True,
         verbose_name=pgettext_lazy('Sale (discount) field', 'categories'))
     customers = models.ManyToManyField(
-        Customer, blank=True,related_name='customer_discount',
+        Customer, blank=True, related_name='customer_discount',
         verbose_name=pgettext_lazy('Sale (discount) field', 'customers'))
     
     start_date = models.DateField(
-        pgettext_lazy('Sale field', 'start date'), default=date.today)
+        pgettext_lazy('Sale field', 'start date'), null=True, blank=True)
     end_date = models.DateField(
         pgettext_lazy('Sale field', 'end date'), null=True, blank=True)
-
+    day = models.CharField(pgettext_lazy('Sale (discount) field', 'day'), max_length=255, null=True, blank=True)
+    date = models.DateField(pgettext_lazy('Sale field', 'date'), null=True, blank=True)
+    start_time = models.CharField(pgettext_lazy('Sale (discount) field', 'start_time'),
+                                  max_length=255, null=True, blank=True)
+    end_time = models.CharField(pgettext_lazy('Sale (discount) field', 'end_time'),
+                                max_length=255, null=True, blank=True)
     
     class Meta:
         app_label = 'discount'

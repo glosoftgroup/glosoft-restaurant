@@ -43,6 +43,10 @@ class ItemSerializer(serializers.ModelSerializer):
                 'attributes',
                 'unit_purchase',
                 'total_purchase',
+                'discount_id',
+                'discount_quantity',
+                'discount_total',
+                'discount_set_status'
                  )
 
     def get_quantity(self, obj):
@@ -211,9 +215,9 @@ class CreateSaleSerializer(serializers.ModelSerializer):
                 if item:
                     Item.objects.decrease_stock(item, sold_item_data['quantity'])
                 else:
-                    print 'stock not found'
+                    print('stock not found')
             except Exception as e:
-                print 'Error reducing stock!'
+                print('Error reducing stock!')
 
         return sale
 
@@ -289,5 +293,33 @@ class ListOrderSerializer(serializers.ModelSerializer):
 
     def get_created(self, obj):
         return obj.created.strftime('%Y-%m-%d %I:%M:%S %p')
+
+
+class DiscountedItemSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = SoldItem
+        fields = (
+                'id',
+                'transfer_id',
+                'order_id',
+                'is_stock',
+                'returned_quantity',
+                'sku',
+                'quantity',
+                'unit_cost',
+                'total_cost',
+                'product_name',
+                'product_category',
+                'tax',
+                'discount',
+                'attributes',
+                'unit_purchase',
+                'total_purchase',
+                'discount_id',
+                'discount_quantity',
+                'discount_total',
+                'discount_set_status'
+                 )
 
 

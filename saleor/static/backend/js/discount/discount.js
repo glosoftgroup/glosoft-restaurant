@@ -41,14 +41,21 @@ $(function(){
         }, 
         end_date: {
           required:true,          
-        },     
-
+		},
+		quantity:{
+			required: true,
+			digits: true
+		}
     },
     messages:{
       name:{
         required: "Provide a name",
         minlength: "at least 3 characters long"
-      },      
+	  }, 
+	  quantity:{
+		required: "Provide a quantity",
+		digits: "digits only"
+	  }    
     },
     
   });
@@ -66,8 +73,13 @@ $(function() {
 	var name  = $('#id_name');
 	var value = $('#id_value');
 	var type  = $('#id_type');
+	var day = $('#id_day');
+	var date = $('#id_date');
+	var quantity = $('#id_quantity');
 	var id_start_date = $('#id_start_date');
 	var id_end_date = $('#id_end_date');
+	var id_start_time = $('#id_start_time');
+	var id_end_time = $('#id_end_time');
 	var deleteBtn = $('.delete-discount');
 	var deleteUrl = '#';
 	var modalId = $('#modal_instance');
@@ -143,28 +155,82 @@ $(function() {
       }else{
         dynamicData['type'] = type.val();
       }
-      if(getVariants.val()){
+
+      if(!getVariants.val()){
+      	alertUser('Product(s) field required','bg-danger','Ooops!');
+      	return false;
+      }else{
         dynamicData['variants'] = JSON.stringify(getVariants.val());
       }
+
       if(getCustomers.val()){
         dynamicData['customers'] = JSON.stringify(getCustomers.val());
-      } 
+      }
+      if(!id_start_date.val() && !id_end_date.val() && !date.val() && (!day.val() || day.val() == "---")){
+      	alertUser('Period (day or date or start & end date) field (s) required','bg-danger','Ooops!');
+      	return false;
+      }
+
       if(id_start_date.val()){
         dynamicData['start_date'] = id_start_date.val();
+        dynamicData['day'] = null;
+        dynamicData['date'] = null;
       } 
       if(id_end_date.val()){
         dynamicData['end_date'] = id_end_date.val();
-      }  
+        dynamicData['day'] = null;
+        dynamicData['date'] = null;
+	  }
+      if(!id_start_time.val()){
+      	alertUser('Start Time field required','bg-danger','Ooops!');
+      	return false;
+      }else{
+        dynamicData['start_time'] = id_start_time.val();
+      }
+
+      if(!id_end_time.val()){
+        alertUser('End Time field required','bg-danger','Ooops!');
+        return false;
+      }else{
+        dynamicData['end_time'] = id_end_time.val();
+      }
+
+	  if(day.val() && day.val() != "---"){
+        dynamicData['day'] = day.val();
+        dynamicData['start_date'] = null;
+        dynamicData['end_date'] = null;
+	  } 
+	  if(date.val()){
+        dynamicData['date'] = date.val();
+        dynamicData['start_date'] = null;
+        dynamicData['end_date'] = null;
+	  }
+
+     if(!quantity.val()){
+      	alertUser('Quantity field required','bg-danger','Ooops!');
+      	return false;
+     }else{
+        dynamicData['quantity'] = quantity.val();
+     }
 
 	 sendDiscountData(dynamicData,createUrl,'post')
-	 .done(function(){
-	 	alertUser('Discount Added successfully');
-	 	toggleDiv.slideUp('slow');
-	 	refreshTable();
-	 	//window.location.href = redirectUrl;
+	 .done(function(response){
+	    var response = JSON.parse(response);
+	    if(response.status == '200'){
+	 	    alertUser(response.message);
+	 	}else{
+	 	    alertUser(response.message,'bg-danger','Oops!');
+	 	}
+	 	if(response.type == "create"){
+	 	    toggleDiv.slideUp('slow');
+	 	    refreshTable();
+	 	}else{
+	 	    window.location.href = redirectUrl;
+	 	}
 	 })
-	 .fail(function(){
-	 	alertUser('Error adding discount','bg-danger','Oops!');
+	 .fail(function(errRsponse){
+	    var response = JSON.parse(errRsponse);
+	    alertUser(response.message,'bg-danger','Oops!');
 	 });
 	});
 
