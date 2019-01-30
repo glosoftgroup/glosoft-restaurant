@@ -268,11 +268,11 @@ class Sale(models.Model):
         verbose_name=pgettext_lazy('Sale (discount) field', 'customers'))
     
     start_date = models.DateField(
-        pgettext_lazy('Sale field', 'start date'), null=True, blank=True)
+        pgettext_lazy('Sale field', 'start date'), blank=True, null=True)
     end_date = models.DateField(
-        pgettext_lazy('Sale field', 'end date'), null=True, blank=True)
+        pgettext_lazy('Sale field', 'end date'), blank=True, null=True)
     day = models.CharField(pgettext_lazy('Sale (discount) field', 'day'), max_length=255, null=True, blank=True)
-    date = models.DateField(pgettext_lazy('Sale field', 'date'), null=True, blank=True)
+    date = models.DateField(pgettext_lazy('Sale field', 'date'), blank=True, null=True)
     start_time = models.CharField(pgettext_lazy('Sale (discount) field', 'start_time'),
                                   max_length=255, null=True, blank=True)
     end_time = models.CharField(pgettext_lazy('Sale (discount) field', 'end_time'),

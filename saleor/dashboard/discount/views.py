@@ -233,14 +233,34 @@ def sale_edit(request, pk=None):
                 discount.name = request.POST.get('name')
             if request.POST.get('quantity'):
                 discount.quantity = request.POST.get('quantity')
-            discount.start_date = request.POST.get('start_date', None)
-            discount.end_date = request.POST.get('end_date', None)
+
+            if request.POST.get('start_date'):
+                discount.start_date = request.POST.get('start_date')
+            else:
+                discount.start_date = None
+
+            if request.POST.get('end_date'):
+                discount.end_date = request.POST.get('end_date')
+            else:
+                discount.end_date = None
+
             if request.POST.get('start_time'):
                 discount.start_time = request.POST.get('start_time')
             if request.POST.get('end_time'):
                 discount.end_time = request.POST.get('end_time')
-            discount.day = request.POST.get('day', None)
-            discount.date = request.POST.get('date', None)
+
+            if request.POST.get('day'):
+                discount.day = request.POST.get('day')
+            else:
+                discount.day = None
+
+            if request.POST.get('date'):
+                discount.date = request.POST.get('date')
+            else:
+                discount.date = None
+
+            # discount.day = request.POST.get('day', None)
+            # discount.date = request.POST.get('date', None)
             discount.save(update_fields=["quantity", "value", "type", "name", "day", "date", "start_date", "end_date",
                                          "start_time", "end_time"])
             if request.POST.get('variants'):
@@ -271,7 +291,13 @@ def create_discount(request):
         if request.POST.get('value'):
             discount.value = request.POST.get('value')
         if request.POST.get('name'):
-            discount.name = request.POST.get('name')
+            name = request.POST.get('name')
+            name_checker = Sale.objects.filter(name__iexact=name)
+            if name_checker.exists():
+                return HttpResponse(json.dumps({'message': 'Discount already exists', 'status': '400',
+                                                'type': 'create'}))
+            else:
+                discount.name = name
         if request.POST.get('quantity'):
             discount.quantity = request.POST.get('quantity')
         if request.POST.get('start_date'):

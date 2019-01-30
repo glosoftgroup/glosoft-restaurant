@@ -61,7 +61,7 @@ class SaleForm(forms.ModelForm):
 
         field = self.fields['end_time']
         field.widget.attrs['class'] = 'form-control timepicker'
-        field.widget.attrs['id'] = 'id_start_time'
+        field.widget.attrs['id'] = 'id_end_time'
 
         field = self.fields['value']
         field.widget.attrs['required'] = 'required'
