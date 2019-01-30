@@ -587,6 +587,11 @@ LOGGING = {
     }
 }
 
+# default user details
+USER_NAME = os.environ.get("USER_NAME")
+USER_PASSWORD = os.environ.get("USER_PASSWORD")
+USER_CODE = os.environ.get("USER_CODE")
+USER_EMAIL = os.environ.get("USER_EMAIL")
 
 def configure_structlog(environment):
     structlog_processors = list([

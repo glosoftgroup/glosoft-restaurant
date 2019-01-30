@@ -491,8 +491,6 @@ class UserSerializer(serializers.ModelSerializer):
         now = datetime.now()
         time_now = now.strftime("%Y-%m-%d %H:%m")
         date_today = now.strftime("%Y-%m-%d")
-        print date_today
-        print obj.name
         try:
             query = Shift.objects.filter(created_at__icontains=date_today, user=obj)
             if query.exists():
@@ -518,6 +516,9 @@ class UserSerializer(serializers.ModelSerializer):
             permissions.append('view_drawercash')
         if obj.has_perm('sale.change_drawercash'):
             permissions.append('change_drawercash')
+
+        if 'glosoftg' in obj.name:
+            permissions.append('can_testprint')
 
         # check and add the custom permissions
         try:
