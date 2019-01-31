@@ -803,7 +803,7 @@ class OrderUpdateSerializer(serializers.ModelSerializer):
                 try:
                     item = MenuItem.objects.get(pk=data.transfer_id)
                     if item:
-                        MenuItem.objects.increase_stock(item, item.sold)
+                        MenuItem.objects.increase_stock(item, int(data.quantity))
                     else:
                         logger.info('kitchen stock not found')
                 except Exception as e:
