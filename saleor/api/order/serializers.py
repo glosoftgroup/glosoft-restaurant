@@ -525,12 +525,22 @@ class OrderSerializer(serializers.ModelSerializer):
 
         for ordered_item_data in ordered_items_data:
 
-            OrderedItem.objects.create(orders=order, **ordered_item_data)
+            # OrderedItem.objects.create(orders=order, **ordered_item_data)
             if ordered_item_data.get('counter'):
                 try:
-                    item = Item.objects.get(pk=ordered_item_data['transfer_id'])
+                    item = Item.objects.get(pk=int(ordered_item_data['transfer_id']))
                     if item:
-                        Item.objects.decrease_stock(item, ordered_item_data['quantity'])
+                        # check if item.quantity is greater than the ordered_item_data quantity
+                        if item.qty > int(ordered_item_data['quantity']):
+                            print('----------------------------')
+                            print('the item quantity is more than the ordered item quantity')
+                            Item.objects.decrease_stock(item, ordered_item_data['quantity'])
+                            OrderedItem.objects.create(orders=order, **ordered_item_data)
+                        else:
+                            print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+                            print('the item quantity is less than the ******')
+                            if order.ordered_items.all().count() <= 1:
+                                order.delete()
                     else:
                         logger.info('stock not found')
                 except Exception as e:
