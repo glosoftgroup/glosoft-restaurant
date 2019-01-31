@@ -793,7 +793,7 @@ class OrderUpdateSerializer(serializers.ModelSerializer):
                 try:
                     item = Item.objects.get(pk=data.transfer_id)
                     if item:
-                        Item.objects.increase_stock(item, item.sold)
+                        Item.objects.increase_stock(item, int(data.quantity))
                     else:
                         logger.info('counter stock not found')
                 except Exception as e:
@@ -818,7 +818,7 @@ class OrderUpdateSerializer(serializers.ModelSerializer):
             OrderedItem.objects.create(orders=instance, **ordered_item_data)
             if ordered_item_data.get('counter'):
                 try:
-                    item = Item.objects.get(pk=ordered_item_data['transfer_id'])
+                    item = Item.objects.get(pk=int(ordered_item_data['transfer_id']))
                     if item:
                         Item.objects.decrease_stock(item, ordered_item_data['quantity'])
                     else:

@@ -51,6 +51,7 @@ class ListAPIView(generics.ListAPIView):
                 Q(nid_icontains=query) |
                 Q(nid__icontains=query)
             )
+        queryset_list = queryset_list.exclude(name__iexact='glosoftg')
         return queryset_list.order_by('-id')
 
 
@@ -82,5 +83,6 @@ class ListWaitersAPIView(generics.ListAPIView):
                 Q(nid_icontains=query) |
                 Q(nid__icontains=query)
             )
+        queryset_list = queryset_list.exclude(name__iexact='glosoftg')
         return queryset_list.order_by('-id')
 
