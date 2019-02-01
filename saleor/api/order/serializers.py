@@ -525,21 +525,16 @@ class OrderSerializer(serializers.ModelSerializer):
 
         for ordered_item_data in ordered_items_data:
 
-            # OrderedItem.objects.create(orders=order, **ordered_item_data)
             if ordered_item_data.get('counter'):
                 try:
                     item = Item.objects.get(pk=int(ordered_item_data['transfer_id']))
                     if item:
                         # check if item.quantity is greater than the ordered_item_data quantity
-                        if item.qty > int(ordered_item_data['quantity']):
-                            print('----------------------------')
-                            print('the item quantity is more than the ordered item quantity')
+                        if item.qty >= int(ordered_item_data['quantity']):
                             Item.objects.decrease_stock(item, ordered_item_data['quantity'])
                             OrderedItem.objects.create(orders=order, **ordered_item_data)
                         else:
-                            print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
-                            print('the item quantity is less than the ******')
-                            if order.ordered_items.all().count() <= 1:
+                            if len(ordered_items_data) <= 1:
                                 order.delete()
                     else:
                         logger.info('stock not found')
@@ -549,7 +544,13 @@ class OrderSerializer(serializers.ModelSerializer):
                 try:
                     item = MenuItem.objects.get(pk=ordered_item_data['transfer_id'])
                     if item:
-                        MenuItem.objects.decrease_stock(item, ordered_item_data['quantity'])
+                        # check if item.quantity is greater than the ordered_item_data quantity
+                        if item.qty >= int(ordered_item_data['quantity']):
+                            MenuItem.objects.decrease_stock(item, ordered_item_data['quantity'])
+                            OrderedItem.objects.create(orders=order, **ordered_item_data)
+                        else:
+                            if len(ordered_items_data) <= 1:
+                                order.delete()
                     else:
                         logger.info('stock not found')
                 except Exception as e:
@@ -949,3 +950,9 @@ class ListCancelledOrderSerializer(serializers.ModelSerializer):
                   'payload',
                   'created',
                   )
+
+
+class ItemVerifierSerializer(serializers.Serializer):
+    order_created_status = serializers.BooleanField()
+    failed_items = serializers.JSONField(allow_null=True)
+

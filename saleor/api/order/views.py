@@ -23,11 +23,13 @@ from .serializers import (
     OrderReadyOrCollectedSerializer,
     SearchListOrderSerializer,
     ListCancelledOrderSerializer,
-    MenuSearchListOrderSerializer
+    MenuSearchListOrderSerializer,
+    ItemVerifierSerializer
 )
 from ...decorators import user_trail
 from rest_framework.request import Request
 from rest_framework.test import APIRequestFactory
+from rest_framework.views import APIView
 from saleor.countertransfer.models import CounterTransferItems as Item
 from saleor.menutransfer.models import TransferItems as MenuItem
 from structlog import get_logger
@@ -508,7 +510,6 @@ def send_to_sale(credit):
             pay_opt = PaymentOption.objects.get(pk=int(option['payment_id']))
             sale.payment_options.add(pay_opt)
         except Exception as e:
-            print (e)
             logger.error("error adding options " + str(e))
 
     for item in credit.items():
@@ -603,3 +604,94 @@ class SearchMenuOrderListAPIView(generics.ListAPIView):
 
         serializer = MenuSearchListOrderSerializer(queryset, context=serializer_context, many=True)
         return Response(serializer.data)
+
+
+class OrderSavedConfirmationAPIView(APIView):
+    def get(self, request):
+
+        order_json = json.loads(self.request.GET.get('order_json'))
+
+        order_invoice_number = order_json['invoice_number']
+        order_items = order_json['ordered_items']
+        successful_items = []
+        failed_items = []
+        order_created_status = False
+
+        # check if order exists
+        try:
+            order_checker = Orders.objects.get(invoice_number=order_invoice_number)
+            order_created_status = True
+            # go through the items and check if the items are available in db
+            for i in order_items:
+
+                stock_item = Item.objects.get(pk=int(i['transfer_id']))
+                stock_quantity = stock_item.qty
+
+                if i['counter']:
+                    counter = i['counter']
+                else:
+                    counter = None
+
+                if i['kitchen']:
+                    kitchen = i['kitchen']
+                else:
+                    kitchen = None
+
+                try:
+                    ordered_item_checker = OrderedItem.objects.get(
+                        orders=order_checker,
+                        product_name=i['product_name'],
+                        sku=i['sku'],
+                        transfer_id=int(i['transfer_id']),
+                        quantity=int(i['quantity'])
+                    )
+
+                    if ordered_item_checker:
+                        item_record = {
+                            'quantity': i['quantity'],
+                            'current_quantity': stock_quantity,
+                            'product_name': i['product_name'],
+                            'counter': counter,
+                            'kitchen': kitchen
+                        }
+                        successful_items.append(item_record)
+                except Exception as e:
+                    item_record = {
+                        "quantity": i['quantity'],
+                        "current_quantity": stock_quantity,
+                        "product_name": i['product_name'],
+                        'counter': counter,
+                        'kitchen': kitchen
+                    }
+                    failed_items.append(item_record)
+        except Exception as e:
+            for i in order_items:
+                stock_item = Item.objects.get(pk=int(i['transfer_id']))
+                stock_quantity = stock_item.qty
+                try:
+                    counter = i['counter']
+                except:
+                    counter = None
+
+                try:
+                    kitchen = i['kitchen']
+                except:
+                    kitchen = None
+
+                item_record = {
+                    "quantity": i['quantity'],
+                    "current_quantity": stock_quantity,
+                    "product_name": i['product_name'],
+                    'counter': counter,
+                    'kitchen': kitchen
+                }
+                failed_items.append(item_record)
+
+        order_detail = {
+            "order_created_status": order_created_status,
+            "failed_items": failed_items
+        }
+
+        serializer = ItemVerifierSerializer(order_detail)
+        return Response(serializer.data)
+
