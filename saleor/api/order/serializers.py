@@ -755,6 +755,15 @@ class OrderUpdateSerializer(serializers.ModelSerializer):
             except Exception as e:
                 logger.error(e.message, exception=e)
 
+    def diff(self, list1, list2):
+        s = set(list2)
+        d = [x for x in list1 if x not in s]
+        return list(d)
+
+    def same(self, list1, list2):
+        s = set(list1) & set(list2)
+        return list(s)
+
     def update(self, instance, validated_data):
 
         terminal = validated_data.get('terminal', instance.terminal.id)
@@ -799,33 +808,85 @@ class OrderUpdateSerializer(serializers.ModelSerializer):
         # return order sold item to transfer stock then delete them
         # Item = CounterTransferItems
         items = instance.ordered_items.all()
-        for data in items:
-            if data.counter:
-                try:
-                    item = Item.objects.get(pk=data.transfer_id)
-                    if item:
-                        Item.objects.increase_stock(item, int(data.quantity))
-                    else:
-                        logger.info('counter stock not found')
-                except Exception as e:
-                    logger.error('could not find the counter item', exception=e)
 
-            elif data.kitchen:
-                try:
-                    item = MenuItem.objects.get(pk=data.transfer_id)
-                    if item:
-                        MenuItem.objects.increase_stock(item, int(data.quantity))
-                    else:
-                        logger.info('kitchen stock not found')
-                except Exception as e:
-                    logger.error('could not find the kitchen item', exception=e)
-            else:
-                logger.info('Unkown point')
+        client_ids = [int(i['transfer_id']) for i in ordered_items_data]
+        server_ids = [int(i.transfer_id) for i in items]
 
+        # get the ids in client not in server
+        client_ids_to_add = self.diff(client_ids, server_ids)
+
+        # get ids that are both in the client and the server to update their quantities
+        common_ids = self.same(server_ids, client_ids)
+
+        # add client_ids to the new payload
+        new_payload = [i for i in ordered_items_data if int(i['transfer_id']) in client_ids_to_add]
+
+        # loop through the ordered_items_data and get those that have changed in quantities
+        for item_data in ordered_items_data:
+            # check if the transfer_id exists in the common_ids to match the item
+            if item_data['transfer_id'] in common_ids:
+                try:
+                    ordered_item_match = items.get(
+                        product_name=item_data['product_name'],
+                        sku=item_data['sku'],
+                        transfer_id=int(item_data['transfer_id'])
+                    )
+
+                    # check if item from counter
+                    if ordered_item_match.counter and ordered_item_match.counter == item_data['counter']:
+                        try:
+                            transferred_item = Item.objects.get(pk=ordered_item_match.transfer_id)
+                            # check if stock returned to store and the current stock quantity exceeds the ordered
+                            # quantity
+                            if (ordered_item_match.quantity + transferred_item.qty) >= int(item_data['quantity']):
+                                Item.objects.increase_stock(transferred_item, int(ordered_item_match.quantity))
+                                new_payload.append(item_data)
+                            else:
+                                # should remain the same
+                                item_data['quantity'] = ordered_item_match.quantity
+                                item_data['unit_cost'] = ordered_item_match.unit_cost
+                                item_data['total_cost'] = ordered_item_match.total_cost
+                                item_data['unit_purchase'] = ordered_item_match.unit_purchase
+                                item_data['discount_id'] = ordered_item_match.discount_id
+                                item_data['discount_quantity'] = ordered_item_match.discount_quantity
+                                item_data['discount_total'] = ordered_item_match.discount_total
+                                item_data['discount_set_status'] = ordered_item_match.discount_set_status
+                                new_payload.append(item_data)
+
+                        except Exception as e:
+                            logger.error(e.message, exception=e)
+
+                    # check if item from kitchen
+                    elif ordered_item_match.kitchen and ordered_item_match.kitchen == item_data['kitchen']:
+                        try:
+                            transferred_item = MenuItem.objects.get(pk=ordered_item_match.transfer_id)
+                            # check if stock returned to store and the current stock quantity exceeds the ordered
+                            # quantity
+                            if (ordered_item_match.quantity + transferred_item.qty) >= int(item_data['quantity']):
+                                MenuItem.objects.increase_stock(transferred_item, int(ordered_item_match.quantity))
+                                new_payload.append(item_data)
+                            else:
+                                # should remain the same
+                                item_data['quantity'] = ordered_item_match.quantity
+                                item_data['unit_cost'] = ordered_item_match.unit_cost
+                                item_data['total_cost'] = ordered_item_match.total_cost
+                                item_data['unit_purchase'] = ordered_item_match.unit_purchase
+                                item_data['discount_id'] = ordered_item_match.discount_id
+                                item_data['discount_quantity'] = ordered_item_match.discount_quantity
+                                item_data['discount_total'] = ordered_item_match.discount_total
+                                item_data['discount_set_status'] = ordered_item_match.discount_set_status
+                                new_payload.append(item_data)
+                        except Exception as e:
+                            logger.error(e.message, exception=e)
+
+                except Exception as e:
+                    logger.error(e.message, exception=e)
+
+        # delete all order items
         items.delete()
 
-        # recreate orders
-        for ordered_item_data in ordered_items_data:
+        """ recreate orders """
+        for ordered_item_data in new_payload:
             OrderedItem.objects.create(orders=instance, **ordered_item_data)
             if ordered_item_data.get('counter'):
                 try:
@@ -838,7 +899,7 @@ class OrderUpdateSerializer(serializers.ModelSerializer):
                     logger.error('Error reducing counter stock!', exception=e)
             elif ordered_item_data.get('kitchen'):
                 try:
-                    item = MenuItem.objects.get(pk=ordered_item_data['transfer_id'])
+                    item = MenuItem.objects.get(pk=int(ordered_item_data['transfer_id']))
                     if item:
                         MenuItem.objects.decrease_stock(item, ordered_item_data['quantity'])
                     else:

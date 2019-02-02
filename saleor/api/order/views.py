@@ -32,6 +32,8 @@ from rest_framework.test import APIRequestFactory
 from rest_framework.views import APIView
 from saleor.countertransfer.models import CounterTransferItems as Item
 from saleor.menutransfer.models import TransferItems as MenuItem
+from saleor.counter.models import Counter
+from saleor.kitchen.models import Kitchen
 from structlog import get_logger
 import json
 
@@ -627,15 +629,25 @@ class OrderSavedConfirmationAPIView(APIView):
                 stock_item = Item.objects.get(pk=int(i['transfer_id']))
                 stock_quantity = stock_item.qty
 
-                if i['counter']:
-                    counter = i['counter']
-                else:
+                try:
+                    counter = Counter.objects.get(pk=int(i['counter'])).name
+                except:
                     counter = None
 
-                if i['kitchen']:
-                    kitchen = i['kitchen']
-                else:
+                try:
+                    kitchen = Kitchen.objects.get(pk=int(i['kitchen'])).name
+                except:
                     kitchen = None
+
+                try:
+                    order_item_qty = OrderedItem.objects.get(
+                        orders=order_checker,
+                        product_name=i['product_name'],
+                        sku=i['sku'],
+                        transfer_id=int(i['transfer_id'])
+                    ).quantity
+                except:
+                    order_item_qty = 0
 
                 try:
                     ordered_item_checker = OrderedItem.objects.get(
@@ -650,6 +662,7 @@ class OrderSavedConfirmationAPIView(APIView):
                         item_record = {
                             'quantity': i['quantity'],
                             'current_quantity': stock_quantity,
+                            'order_item_qty': order_item_qty,
                             'product_name': i['product_name'],
                             'counter': counter,
                             'kitchen': kitchen
@@ -659,6 +672,7 @@ class OrderSavedConfirmationAPIView(APIView):
                     item_record = {
                         "quantity": i['quantity'],
                         "current_quantity": stock_quantity,
+                        'order_item_qty': order_item_qty,
                         "product_name": i['product_name'],
                         'counter': counter,
                         'kitchen': kitchen
@@ -669,18 +683,19 @@ class OrderSavedConfirmationAPIView(APIView):
                 stock_item = Item.objects.get(pk=int(i['transfer_id']))
                 stock_quantity = stock_item.qty
                 try:
-                    counter = i['counter']
+                    counter = Counter.objects.get(pk=int(i['counter'])).name
                 except:
                     counter = None
 
                 try:
-                    kitchen = i['kitchen']
+                    kitchen = Kitchen.objects.get(pk=int(i['kitchen'])).name
                 except:
                     kitchen = None
 
                 item_record = {
                     "quantity": i['quantity'],
                     "current_quantity": stock_quantity,
+                    'order_item_qty': 0,
                     "product_name": i['product_name'],
                     'counter': counter,
                     'kitchen': kitchen
