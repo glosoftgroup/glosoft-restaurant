@@ -62,7 +62,6 @@ export class TransferTableRow extends Component {
     var payload = { ...this.props.instance };
     payload.deficit = this.state.deficit;
     payload.description = this.state.description;
-    payload.qty = this.state.qty;
     checked === 'checked' ? this.props.addCartItem(payload) : this.props.deleteCartItem(payload.id);
   }
   updateCart = (actualQuantity, deficit, description) => {

@@ -47,7 +47,7 @@ class ItemList extends Component {
   allToCart = () => {
     /* add all items to cart */
     var instance = { ...this.props };
-    instance.items.results.map(obj => {
+    instance.items.results.map(obj => {  
       this.props.addCartItem(obj);
     });
   }
@@ -97,9 +97,9 @@ class ItemList extends Component {
         <div className="col-md-8 text-bold ">
         <ToastContainer />
           <div className="row">
-            <div className="col-md-2 bulk-actions no-print ">
+            <div className="col-md-2 bulk-actions no-print hidden ">
               <label>
-              <div className="all no-print ">
+              <div className="all no-print hidden ">
                 <div onClick={this.toggleCheckBox} className="">
                   <span className={this.state.checked}>
                     <input className="styled" type="checkbox" />

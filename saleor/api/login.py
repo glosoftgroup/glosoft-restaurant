@@ -28,14 +28,23 @@ class CustomJWTSerializer(JSONWebTokenSerializer):
         # check the working period first
         time_now = datetime.now().time()
 
+
         try:
             opening_time = SiteSettings.objects.all().first().opening_time
             closing_time = SiteSettings.objects.all().first().closing_time
 
-            if opening_time < time_now and time_now < closing_time:
+            if opening_time <= time_now and time_now <= closing_time:
                 logger.info('time is  within operational hours', time_now=time_now)
             else:
-                raise serializers.ValidationError(_('Unauthorized User Login.'))
+                logger.info('checking ... if midnight')
+                midnight_time_obj = datetime.strptime('00:00:00', '%H:%M:%S')
+                midnight = midnight_time_obj.time()
+                if closing_time >= midnight and time_now <= closing_time:
+                    logger.info('time is  within operational hours', time_now=time_now)
+                    logger.info('after midnight')
+                else:
+                    logger.info('not after midnight')
+                    raise serializers.ValidationError(_('Unauthorized User Login.'))
         except Exception as ex:
             logger.error('exception in checking closing time', exception=ex)
             raise serializers.ValidationError(_('Unauthorized User Login.'))
