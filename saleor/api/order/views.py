@@ -484,6 +484,7 @@ class OrderUpdateAPIView(generics.RetrieveUpdateAPIView):
 
 def send_to_sale(credit):
     sale = Sales()
+    sale.created = credit.created
     sale.user = credit.user
     sale.invoice_number = credit.invoice_number
     sale.total_net = credit.total_net

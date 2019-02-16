@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, time
 from django.contrib.auth import authenticate, get_user_model
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.translation import ugettext as _
@@ -7,6 +7,7 @@ from rest_framework_jwt.serializers import JSONWebTokenSerializer
 from rest_framework_jwt.settings import api_settings
 from rest_framework_jwt.views import JSONWebTokenAPIView
 from saleor.site.models import SiteSettings
+from saleor.utils import is_time_between
 
 from structlog import get_logger
 
@@ -28,23 +29,14 @@ class CustomJWTSerializer(JSONWebTokenSerializer):
         # check the working period first
         time_now = datetime.now().time()
 
-
         try:
             opening_time = SiteSettings.objects.all().first().opening_time
             closing_time = SiteSettings.objects.all().first().closing_time
 
-            if opening_time <= time_now and time_now <= closing_time:
+            if is_time_between(time(opening_time.hour, opening_time.minute), time(closing_time.hour, closing_time.minute)):
                 logger.info('time is  within operational hours', time_now=time_now)
             else:
-                logger.info('checking ... if midnight')
-                midnight_time_obj = datetime.strptime('00:00:00', '%H:%M:%S')
-                midnight = midnight_time_obj.time()
-                if closing_time >= midnight and time_now <= closing_time:
-                    logger.info('time is  within operational hours', time_now=time_now)
-                    logger.info('after midnight')
-                else:
-                    logger.info('not after midnight')
-                    raise serializers.ValidationError(_('Unauthorized User Login.'))
+                raise serializers.ValidationError(_('Unauthorized User Login.'))
         except Exception as ex:
             logger.error('exception in checking closing time', exception=ex)
             raise serializers.ValidationError(_('Unauthorized User Login.'))
