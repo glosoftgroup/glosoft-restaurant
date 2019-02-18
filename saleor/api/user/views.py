@@ -59,11 +59,13 @@ class ListWaitersAPIView(generics.ListAPIView):
 
     serializer_class = ListSaleSerializer
     permission_classes = (IsAuthenticatedOrReadOnly,)
-    # pagination_class = PostLimitOffsetPagination
+    pagination_class = PostLimitOffsetPagination
 
     def get_queryset(self, *args, **kwargs):
         queryset_list = User.objects.all()
 
+        # pagination set as 100 for the client combobox display during the daily analysis query
+        # reason: to avoid pagination offset on the client combobox
         page_size = 'page_size'
         if self.request.GET.get(page_size):
             pagination.PageNumberPagination.page_size = self.request.GET.get(page_size)
