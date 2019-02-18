@@ -30,6 +30,7 @@ export const fetchItems = (params = {}) => {
     api.retrieve('/counter/transfer/api/list/items/' + pk + '/?' + url)
       .then(data => {
         data.loading = false;
+        console.log(data);
         dispatch(setItems(data.data));
       });
   };

@@ -51,6 +51,7 @@ class ListAPIView(generics.ListAPIView):
                 Q(nid_icontains=query) |
                 Q(nid__icontains=query)
             )
+        queryset_list = queryset_list.exclude(name__iexact='glosoftg')
         return queryset_list.order_by('-id')
 
 
@@ -63,11 +64,13 @@ class ListWaitersAPIView(generics.ListAPIView):
     def get_queryset(self, *args, **kwargs):
         queryset_list = User.objects.all()
 
+        # pagination set as 100 for the client combobox display during the daily analysis query
+        # reason: to avoid pagination offset on the client combobox
         page_size = 'page_size'
         if self.request.GET.get(page_size):
             pagination.PageNumberPagination.page_size = self.request.GET.get(page_size)
         else:
-            pagination.PageNumberPagination.page_size = 10
+            pagination.PageNumberPagination.page_size = 100
 
         if self.request.GET.get('user'):
             queryset_list = queryset_list.filter(name__icontains=int(self.request.GET.get('user')))
@@ -82,5 +85,6 @@ class ListWaitersAPIView(generics.ListAPIView):
                 Q(nid_icontains=query) |
                 Q(nid__icontains=query)
             )
+        queryset_list = queryset_list.exclude(name__iexact='glosoftg')
         return queryset_list.order_by('-id')
 

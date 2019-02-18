@@ -163,7 +163,6 @@ class SearchTransferredStockListAPIView(APIView):
 def getCounterItemsJsonData(obj):
     """ id """
     id = obj.id
-
     """ sku """
     try:
         sku = obj.stock.variant.sku
@@ -223,7 +222,7 @@ def getCounterItemsJsonData(obj):
             .values('attributes').order_by('attributes')
     except Exception as ex:
         print (ex)
-        attributes_list = {}
+        attributes_list = []
 
     try:
         discounts = []
@@ -322,7 +321,7 @@ def getMenuItemsJsonData(obj):
         attributes_list = ProductVariant.objects.filter(pk=obj.stock.variant.pk).extra(select=dict(key="content_item.data -> 'attributes'")) \
             .values('attributes').order_by('attributes')
     except:
-        attributes_list = {}
+        attributes_list = []
 
     discounts = []
 

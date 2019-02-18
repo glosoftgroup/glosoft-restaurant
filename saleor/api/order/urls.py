@@ -15,7 +15,8 @@ from .views import (
     SearchOrdersListAPIView,
     TableOrdersListAPIView,
     CancelledOrderListAPIView,
-    SearchMenuOrderListAPIView
+    SearchMenuOrderListAPIView,
+    OrderSavedConfirmationAPIView
     )
 
 
@@ -44,5 +45,6 @@ urlpatterns = [
     url(r'^ready/collect/order/(?P<pk>[0-9]+)/$', OrderReadyOrCollectedAPIView.as_view(),
         name='ready-collect-order'),
     url(r'^cancelled/$', CancelledOrderListAPIView.as_view(), name='cancelled-orders'),
+    url(r'^confirm/$', OrderSavedConfirmationAPIView.as_view(), name='confirm-order'),
 ]
 

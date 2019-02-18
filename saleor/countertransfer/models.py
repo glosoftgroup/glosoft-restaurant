@@ -347,9 +347,6 @@ class TransferItemManager(BaseUserManager):
                 sold=models.Sum('sold'),
                 transferred=models.Sum('transferred_qty')) \
             .order_by('counter')
-        for i in dataset:
-            print i
-            print '*' * 123
         return dataset
 
     def top_products(self, date_from=None, date_to=None, date=None, mode=None, counter=None, query_type='total'):
@@ -395,16 +392,16 @@ class TransferItemManager(BaseUserManager):
         return total_qty
 
     def decrease_stock(self, instance, quantity):
-        instance.sold = instance.sold + quantity
         instance.qty = instance.qty - quantity
+        instance.sold = instance.sold + quantity
         instance.expected_qty = instance.qty
-        instance.save()
+        instance.save(update_fields=['sold', 'qty', 'expected_qty'])
 
     def increase_stock(self, instance, quantity):
         instance.qty = instance.qty + quantity
         instance.sold = instance.sold - quantity
         instance.expected_qty = instance.qty
-        instance.save()
+        instance.save(update_fields=['sold', 'qty', 'expected_qty'])
 
     def instance_quantities(self, instance, filter_type='transfer', counter=None):
         if filter_type == 'transfer':

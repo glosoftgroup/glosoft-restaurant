@@ -437,30 +437,34 @@ class UpdateSerializer(serializers.ModelSerializer):
         date = validated_data.pop('date')
         items = validated_data.pop('items')
         for cart in items:
-            item = Item.objects.get(pk=cart['id'])
-            item.qty = cart['qty']
-            item.description = cart['description']
-            item.deficit = cart['deficit']
-            if action == 2:
-                # return to stock
-                if item.qty:
-                    Stock.objects.increase_stock(item.stock, item.qty)
-                    item.price = Decimal(item.sold * item.unit_price)
-                    item.qty = 0
-            else:
-                # carry forward
-                # transfer to tomorrows stock
-                query = Table.objects. \
-                    filter(counter=instance.counter, date__icontains=date)
-                if not query.exists():
-                    new_transfer = Table.objects.create(date=date, counter=instance.counter)
+            try:
+                item = Item.objects.get(pk=cart['id'])
+                item.qty = int(cart['qty'])
+                item.description = cart['description']
+                item.deficit = cart['deficit']
+                if action == 2:
+                    # return to stock
+                    if item.qty:
+                        Stock.objects.increase_stock(item.stock, item.qty)
+                        item.price = Decimal(item.sold * item.unit_price)
+                        item.qty = 0
                 else:
-                    new_transfer = query.first()
-                carry_items(new_transfer, [item])
-                item.qty = 0
+                    # carry forward
+                    # transfer to tomorrows stock
+                    query = Table.objects. \
+                        filter(counter=instance.counter, date__icontains=date)
+                    if not query.exists():
+                        new_transfer = Table.objects.create(date=date, counter=instance.counter)
+                    else:
+                        new_transfer = query.first()
+                    carry_items(new_transfer, [item])
+                    item.qty = 0
 
-            if not item.closed:
-                item.closed = True
-                item.save()
+                if not item.closed:
+                    item.closed = True
+                    item.save()
+            except Exception as e:
+                print(e)
+
         instance.save()
         return instance

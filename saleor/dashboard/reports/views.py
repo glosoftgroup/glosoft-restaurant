@@ -69,9 +69,7 @@ def sales_list(request):
 def sales_detail(request, pk=None, point=None):
     if point == '0':
         sale_point = None
-        print 'true'
     else:
-        print 'false'
         sale_point = SalePoint.objects.get(pk=int(point))
 
     try:
@@ -188,7 +186,7 @@ def sales_paginate(request):
                     if p.exists():
                         sales.append(i)
                 point = SalePoint.objects.get(name=point)
-                point_pk = point.pk
+                point_pk = 1
             else:
                 for sale in all_salesd:
                     quantity = SoldItem.objects.filter(sales=sale).aggregate(c=Count('sku'))
@@ -223,7 +221,7 @@ def sales_paginate(request):
 
         except ObjectDoesNotExist as e:
             return TemplateResponse(request, 'dashboard/reports/sales/p2.html',
-                                    {'point': point, 'point_pk': point_pk, 'date': date})
+                                    {'point': point, 'point_pk': 1, 'date': date})
 
     else:
         try:
@@ -272,11 +270,8 @@ def sales_paginate(request):
 
             paginator = Paginator(sales, 10)
             sales = paginator.page(page)
-            return TemplateResponse(request, 'dashboard/reports/sales/p2.html',
-                                    {'point': point, 'point_pk': point_pk, 'sales': sales, 'pn': paginator.num_pages,
-                                     'sz': 10, 'gid': date,
-                                     'total_sales': total_sales, 'total_tax': total_tax, 'tsum': tsum, 'date': date,
-                                     'today': today})
+            return TemplateResponse(request, 'dashboard/reports/sales/paginate.html',
+                                    {'point_pk': point_pk, 'sales': sales})
         except ObjectDoesNotExist as e:
             return TemplateResponse(request, 'dashboard/reports/sales/p2.html', {'date': date})
 

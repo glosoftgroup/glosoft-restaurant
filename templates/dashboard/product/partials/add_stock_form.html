@@ -295,7 +295,8 @@
                                             <input v-model="item.transaction_number" style="width: 65px;" type="text" placeholder="transaction" class="form-control">
                                         </td>
                                         <td>
-                                            <input v-model="item.tendered" style="width: 65px;" type="number" placeholder="amount" class="form-control">
+                                            <input v-model="item.tendered" style="width: 65px;" type="number" placeholder="amount" class="form-control"
+                                            onfocus="this.value == 0 ? this.value='' : null">
                                         </td>
 
                                         <td>
