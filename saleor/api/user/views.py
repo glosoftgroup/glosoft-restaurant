@@ -59,7 +59,7 @@ class ListWaitersAPIView(generics.ListAPIView):
 
     serializer_class = ListSaleSerializer
     permission_classes = (IsAuthenticatedOrReadOnly,)
-    pagination_class = PostLimitOffsetPagination
+    # pagination_class = PostLimitOffsetPagination
 
     def get_queryset(self, *args, **kwargs):
         queryset_list = User.objects.all()
@@ -68,7 +68,7 @@ class ListWaitersAPIView(generics.ListAPIView):
         if self.request.GET.get(page_size):
             pagination.PageNumberPagination.page_size = self.request.GET.get(page_size)
         else:
-            pagination.PageNumberPagination.page_size = 10
+            pagination.PageNumberPagination.page_size = 100
 
         if self.request.GET.get('user'):
             queryset_list = queryset_list.filter(name__icontains=int(self.request.GET.get('user')))
