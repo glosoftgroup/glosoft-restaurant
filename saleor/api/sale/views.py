@@ -195,7 +195,9 @@ class SoldItemListAPIView(APIView):
         else:
             date = DateFormat(datetime.datetime.today()).format('Y-m-d')
 
-        summary = Item.objects.filter(created__icontains=date).values('product_name', 'product_category').annotate(
+        sales = Sales.objects.filter(created__contains=date)
+
+        summary = Item.objects.filter(sales__in=sales).values('product_name', 'product_category').annotate(
             c=Count('product_name', distinct=True)) \
             .annotate(Sum('total_cost')) \
             .annotate(Sum('quantity')).order_by('-quantity__sum')
@@ -212,7 +214,8 @@ class SoldItemListAPIView(APIView):
             for j in i.payment_data:
                 try:
                     payment_name = PaymentOption.objects.get(pk=int(j['payment_id'])).name
-                except:
+                except Exception as e:
+                    logger.error(e)
                     payment_name = int(j['payment_id'])
 
                 if any(d['payment_id'] == int(j['payment_id']) for d in payments):

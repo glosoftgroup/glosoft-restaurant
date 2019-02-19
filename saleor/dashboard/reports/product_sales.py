@@ -4,10 +4,11 @@ from django.http import HttpResponse
 from django.db.models import Count, Sum, Q
 from django.core.paginator import Paginator, EmptyPage, InvalidPage, PageNotAnInteger
 import datetime
+from decimal import Decimal
 from django.utils.dateformat import DateFormat
 from operator import itemgetter
 from ..views import staff_member_required
-from ...sale.models import Sales, SoldItem
+from ...sale.models import Sales, SoldItem, PaymentOption
 from ...salepoints.models import SalePoint
 from ...product.models import ProductVariant
 from ...decorators import permission_decorator, user_trail
@@ -395,6 +396,8 @@ def sales_list_pdf(request):
             except:
                 date = DateFormat(datetime.datetime.today()).format('Y-m-d')
 
+        date_sales = Sales.objects.filter(created__icontains=date)
+
         if point and point != 'all':
             try:
                 all_items = SoldItem.objects.filter(sale_point__name__icontains=point)
@@ -464,6 +467,26 @@ def sales_list_pdf(request):
         if point == 'all':
             point = 'all item sales'
 
+        payments = []
+
+        for i in date_sales:
+            for j in i.payment_data:
+                try:
+                    payment_name = PaymentOption.objects.get(pk=int(j['payment_id'])).name
+                except:
+                    payment_name = int(j['payment_id'])
+
+                if any(d['payment_id'] == int(j['payment_id']) for d in payments):
+                    for d in payments:
+                        if d['payment_id'] == int(j['payment_id']):
+                            d['value'] += Decimal(j['value'])
+                else:
+                    payments.append(
+                        {"payment_id": int(j["payment_id"]), "value": Decimal(j["value"]), "name": payment_name})
+
+        total_sales = all_sales.aggregate(Sum("total_cost__sum"))["total_cost__sum__sum"]
+        total_tax = all_sales.aggregate(Sum("tax"))["tax__sum"]
+
         point = point.upper()
 
         img = default_logo()
@@ -475,7 +498,10 @@ def sales_list_pdf(request):
             'gid': gid,
             'date': datetime.datetime.strptime(date, '%Y-%m-%d').strftime('%b %d, %Y'),
             'margin': margin,
-            'point': point
+            'point': point,
+            "payments": payments,
+            "total_sales": total_sales,
+            "total_tax": total_tax
         }
         pdf = render_to_pdf('dashboard/reports/product_sales/pdf/list.html', data)
         return HttpResponse(pdf, content_type='application/pdf')
