@@ -9,7 +9,7 @@
   Item Sales Report
 {% endblock %}
 {% block breadcrumbs %}
-     <li class="active"><a href="{% url 'dashboard:product_sales_list' %}">Item Sales Reports</a></li>
+     <li class="active"><a href="{% url 'dashboard:product_sales_list' %}">Z-Report</a></li>
  {% endblock %}
 
 {% block menu_product_sales_report_class %}active{% endblock %}
@@ -74,6 +74,8 @@
                     <option value="5">5</option>
                     <option value="10">10</option>
                     <option value="20">20</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
                   </select>
               </div>
             </div>
@@ -105,7 +107,7 @@
       <div class="panel-body">
         <div class="row">
           <div class="col-md-12">
-              <div class="col-md-12"> <h5 class="text-center" style="font-weight:bold">ALL ITEM SALES</h5></div>
+              <div class="col-md-12"> <h5 class="text-center" style="font-weight:bold">Z-REPORT</h5></div>
             <div class="table-responsives">
                 <table class="table  datatable-header-footer table-hover">
                   <caption style="margin-bottom: 10px;">
@@ -153,6 +155,8 @@
                     <option value="5">5</option>
                     <option value="10">10</option>
                     <option value="20">20</option>
+                     <option value="50">50</option>
+                    <option value="100">100</option>
                   </select>
               </div>
             </div>

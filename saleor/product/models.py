@@ -329,15 +329,10 @@ class ProductVariant(models.Model, Item):
             return 0
 
     def get_stock_quantity_single(self):
-        # if not len(self.stock.all()):
-        #     return 0
-        # return max([stock.quantity_available for stock in self.stock.all()])
         checker = True
         quantity = 0
         try:
             while checker:
-                quantity = self.stock.filter(quantity__gte=1).first().quantity
-                # if quantity > 0:
                 quantity = self.stock.all().first().quantity
                 checker = False
             return quantity
@@ -345,13 +340,10 @@ class ProductVariant(models.Model, Item):
             return quantity
 
     def get_min_price_per_item(self):
-        # return self.minimum_price or self.product.minimum_price
         checker = True
         price = 0
         try:
             while checker:
-                stock = self.stock.filter(quantity__gte=1).first().quantity
-                # if stock > 0:
                 price = self.stock.all().first().minimum_price
                 checker = False
             return price
@@ -363,9 +355,7 @@ class ProductVariant(models.Model, Item):
         price = 0
         try:
             while checker:
-                stock = self.stock.all().first().quantity
-                # if stock > 0:
-                price = self.stock.filter(quantity__gte=1).first().price_override
+                price = self.stock.all().first().price_override
                 checker = False
             price = calculate_discounted_price(self.product, price, discounts,
                                                **kwargs)
@@ -378,9 +368,7 @@ class ProductVariant(models.Model, Item):
         price = 0
         try:
             while checker:
-                quantity = self.stock.all().first().quantity
-                # if quantity > 0:
-                price = self.stock.filter(quantity__gte=1).first().wholesale_override
+                price = self.stock.all().first().wholesale_override
                 checker = False
             price = calculate_discounted_price(self.product, price, discounts,
                                                **kwargs)
@@ -413,9 +401,7 @@ class ProductVariant(models.Model, Item):
         price = 0
         try:
             while checker:
-                quantity = self.stock.filter(quantity__gte=1).first().quantity
-                # if quantity > 0:
-                price = self.stock.filter(quantity__gte=1).first().cost_price.gross
+                price = self.stock.all().first().cost_price.gross
                 checker = False
             return price
         except Exception as e:

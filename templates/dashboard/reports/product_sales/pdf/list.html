@@ -2,7 +2,7 @@
  <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
  <html>
      <head>
-         <title>Sales Report</title>
+         <title>Z Report</title>
          <style type="text/css">
              body {sans-serif; color: #384047;}
              .header {font-family: 'Verdana';font-size: 15px;font-weight: 100;text-align: center;color: #007cae;}
@@ -31,15 +31,12 @@
      <body>
          <div class='wrapper'>
              <div class='header'>
-                  <p style="margin-bottom:0px;"><img class="img" src="{{image}}" alt="Red dot" /></p>
-                 <p class='title' style="margin-top:2px;margin-bottom:0px;font-size:13px;"> SALES REPORT
-                     {% if point %}
-                        <p style="margin-bottom:0px;margin-top:2px;font-size:13px;">{{point}}</p>
-                      {% endif %}
-                 {% if gid %}
+                 <p class='title' style="margin-top:2px;margin-bottom:0px;font-size:13px;"> Z-REPORT
+                    {% if gid %}
                      <p style="margin-bottom:0px;margin-top:2px;font-size:11px;">
                         SALES DATE: {{gid}}
-                 </p>{% endif %}
+                     </p>
+                    {% endif %}
                    <p style="margin-top:2px;font-size:11px;">{{today | date:'jS F Y'}}</p>
                  </p>
              </div>
@@ -78,8 +75,39 @@
                            <tr><td colspan="6"><h2 class="text-center" style="text-align:center;">No Products Sales Reports Available</h2></td></tr>
                          {% endif %}
                         {% endif %}
+                    <tr>
+                        <td colspan="3"></td>
+                        <td>Totals Sales:</td>
+                        <td>KShs {{total_sales}}</td>
+                    </tr>
+                    <tr>
+                        <td colspan="3"></td>
+                        <td>Totals Tax:</td>
+                        <td>KShs {{total_tax}}</td>
+                    </tr>
                   </tbody>
            </table>
+             {% if payments %}
+             <div class='header'>
+                 <p class='title' style="margin-top:2px;margin-bottom:0px;font-size:13px;"> Payment Methods</p>
+             </div>
+             <table repeat="1" class="table  table-hover datatable-header-footer" style="">
+                <thead>
+                  <tr>
+                      <th>Method</th>
+                      <th>Amount</th>
+                  </tr>
+                </thead>
+                <tbody id="tb">
+                    {% for payment in payments %}
+                      <tr class='clickable-row'>
+                        <td class="td">{{payment.name }}</td>
+                          <td class="td">{{payment.value }}</td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+           </table>
+             {% endif %}
          </div>
 
 
