@@ -1,6 +1,7 @@
 from rest_framework.views import exception_handler
 from .api.product.serializers import UserSerializer
 from .site.models import SiteSettings
+from saleor.utils import is_shift_started
 from datetime import datetime
 from structlog import get_logger
 
@@ -44,7 +45,8 @@ def jwt_response_payload_handler(token, user=None, request=None):
     # the serialized representation of the User.
     return {
         'token': token,
-        'user': UserSerializer(user, context={'request': request}).data
+        'user': UserSerializer(user, context={'request': request}).data,
+        'main_shift_status': is_shift_started()
     }
 
 

@@ -264,6 +264,12 @@ def add_view_permissions(sender, **kwargs):
             name='can generate invoice',
             content_type=client_url_content_type, codename='make_invoice')
 
+    # start_and_end_shift
+    if not Permission.objects.filter(codename='change_main_shift'):
+        Permission.objects.create(
+            name='can start and end main shift',
+            content_type=client_url_content_type, codename='change_main_shift')
+
     """ Reports Module Custom permissions """
     try:
         report_url_content_type = ContentType.objects.get(app_label='reports', model='reports')

@@ -1,5 +1,4 @@
 import datetime
-from datetime import date
 from rest_framework import generics
 from django.db.models import Q
 from django.contrib.auth import get_user_model
@@ -15,7 +14,8 @@ from saleor.product.models import ProductVariant
 from saleor.product.models import Stock as Table
 from saleor.countertransfer.models import CounterTransferItems as CounterItems
 from saleor.menutransfer.models import TransferItems as MenuItem
-from saleor.core.utils.closing_time import is_business_time
+from saleor.utils import is_shift_started
+from saleor.main_shift.models import MainShift
 from .serializers import (
     CreateListSerializer,
     TableListSerializer,
@@ -91,67 +91,67 @@ class SearchTransferredStockListAPIView(APIView):
     def get(self, request):
 
         query = self.request.GET.get('q', '')
-        today = datetime.date.today()
-        show_yesterday = is_business_time()
-        today = datetime.date.today()
-        if show_yesterday:
-            yesterday = datetime.date.today() - datetime.timedelta(days=1)
-        else:
-            yesterday = today
+        # today = datetime.date.today()
+        # show_yesterday = is_business_time()
+        # today = datetime.date.today()
+        # if show_yesterday:
+        #     yesterday = datetime.date.today() - datetime.timedelta(days=1)
+        # else:
+        #     yesterday = today
+
         all_counter_menu_stock = []
-        """ get the counter stocks """
-        try:
-            counter_stock = CounterItems.objects.filter(
-                Q(transfer__date=today) |
-                Q(transfer__date=yesterday)
-            ).filter(qty__gte=1).distinct('stock').select_related()
+        if is_shift_started():
+            shift = MainShift.objects.all().last()
+            open_date = shift.opening_time.replace(tzinfo=None)
+            close_date = shift.closing_time.replace(tzinfo=None)
+            """ get the counter stocks """
+            try:
+                counter_stock = CounterItems.objects.filter(
+                    transfer__date__range=[open_date, close_date]
+                ).filter(qty__gte=1).distinct('stock').select_related()
 
-            if query:
-                counter_stock = counter_stock.filter(
-                    Q(stock__variant__sku__icontains=query) |
-                    Q(stock__variant__product__name__icontains=query) |
-                    Q(counter__name__icontains=query)).order_by('stock')
+                if query:
+                    counter_stock = counter_stock.filter(
+                        Q(stock__variant__sku__icontains=query) |
+                        Q(stock__variant__product__name__icontains=query) |
+                        Q(counter__name__icontains=query)).order_by('stock')
 
-            if counter_stock.exists():
-                for i in counter_stock:
-                    """ set the json data fields 
-                        using getCounterItemsJsonData(obj)
-                    """
-                    all_counter_menu_stock.append(getCounterItemsJsonData(i))
+                if counter_stock.exists():
+                    for i in counter_stock:
+                        """ set the json data fields 
+                            using getCounterItemsJsonData(obj)
+                        """
+                        all_counter_menu_stock.append(getCounterItemsJsonData(i))
 
+            except Exception as e:
+                """ log error """
+                logger.info('Error in getting counter stock: ' + str(e))
+                pass
 
-        except Exception as e:
-            """ log error """
-            logger.info('Error in getting counter stock: ' + str(e))
-            pass
+            """ get the menu stocks """
+            try:
+                menu_stock = MenuItem.objects.filter(
+                    transfer__date__range=[open_date, close_date]
+                ).filter(qty__gte=1).distinct('menu').select_related()
+                if query:
+                    menu_stock = menu_stock.filter(
+                        Q(menu__category__name__icontains=query) |
+                        Q(name__icontains=query) |
+                        Q(counter__name__icontains=query) |
+                        Q(menu__name__icontains=query) |
+                        Q(menu__id__icontains=query)).order_by('menu')
 
-        """ get the menu stocks """
-        try:
-            menu_stock = MenuItem.objects.filter(
-                Q(transfer__date=today) |
-                Q(transfer__date=yesterday)
-            ).filter(qty__gte=1).distinct('menu').select_related()
-            print (menu_stock)
-            if query:
-                menu_stock = menu_stock.filter(
-                    Q(menu__category__name__icontains=query) |
-                    Q(name__icontains=query) |
-                    Q(counter__name__icontains=query) |
-                    Q(menu__name__icontains=query) |
-                    Q(menu__id__icontains=query)).order_by('menu')
+                if menu_stock.exists():
+                    for i in menu_stock:
+                        """ set the json data fields 
+                            using getMenuItemsJsonData(obj)
+                        """
+                        all_counter_menu_stock.append(getMenuItemsJsonData(i))
 
-            if menu_stock.exists():
-                for i in menu_stock:
-                    """ set the json data fields 
-                        using getMenuItemsJsonData(obj)
-                    """
-                    all_counter_menu_stock.append(getMenuItemsJsonData(i))
-
-
-        except Exception as e:
-            """ log error """
-            logger.info('Error in getting menu stock: ' + str(e))
-            pass
+            except Exception as e:
+                """ log error """
+                logger.info('Error in getting menu stock: ' + str(e))
+                pass
 
         serializer = SearchTransferredStockListSerializer(all_counter_menu_stock, many=True)
         return Response(serializer.data)
