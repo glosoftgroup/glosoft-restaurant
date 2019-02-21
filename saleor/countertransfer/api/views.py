@@ -173,14 +173,6 @@ class ListStockAPIView(generics.ListAPIView):
         return {"date": None, 'request': self.request}
 
     def get_queryset(self, *args, **kwargs):
-        # determine whether to show yesterdays transfer
-        # This will enable selling today's stock after mid day
-        # show_yesterday = is_business_time()
-        # today = datetime.date.today()
-        # if show_yesterday:
-        #     yesterday = datetime.date.today() - datetime.timedelta(days=1)
-        # else:
-        #     yesterday = today
 
         if is_shift_started():
             shift = MainShift.objects.all().last()
@@ -237,12 +229,6 @@ class ListCategoryAPIView(generics.ListAPIView):
         return {"date": None, 'request': self.request}
 
     def get_queryset(self, *args, **kwargs):
-        # show_yesterday = is_business_time()
-        # today = datetime.date.today()
-        # if show_yesterday:
-        #     yesterday = datetime.date.today() - datetime.timedelta(days=1)
-        # else:
-        #     yesterday = today
 
         if is_shift_started():
             shift = MainShift.objects.all().last()

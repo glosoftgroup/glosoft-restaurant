@@ -91,13 +91,6 @@ class SearchTransferredStockListAPIView(APIView):
     def get(self, request):
 
         query = self.request.GET.get('q', '')
-        # today = datetime.date.today()
-        # show_yesterday = is_business_time()
-        # today = datetime.date.today()
-        # if show_yesterday:
-        #     yesterday = datetime.date.today() - datetime.timedelta(days=1)
-        # else:
-        #     yesterday = today
 
         all_counter_menu_stock = []
         if is_shift_started():
