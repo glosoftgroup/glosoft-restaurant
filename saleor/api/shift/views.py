@@ -38,9 +38,6 @@ def start_shift(request):
         if bool(main_shift_status):
             if not is_shift_started():
                 date_now = timezone.localtime(timezone.now())
-                print(" -- now -- ")
-                print(date_now)
-                print(" -- now -- ")
                 open_time_from_now = date_now
                 close_date = date_now + timedelta(days=1)
                 close_time = close_date.replace(hour=6, minute=0, second=0)

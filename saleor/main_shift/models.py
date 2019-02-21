@@ -1,11 +1,11 @@
 from __future__ import unicode_literals
 
-from datetime import datetime
 from django.db import models
+from django.utils.timezone import now
 
 
 class MainShift(models.Model):
-    opening_time = models.DateTimeField(default=datetime.now, editable=True)
+    opening_time = models.DateTimeField(default=now, editable=True)
     closing_time = models.DateTimeField(blank=True, null=True)
     start_note = models.TextField(blank=True, null=True)
     end_note = models.TextField(blank=True, null=True)
