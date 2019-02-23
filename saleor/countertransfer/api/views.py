@@ -95,7 +95,7 @@ class ListAPIView(generics.ListAPIView):
         if query:
             queryset_list = queryset_list.filter(
                 Q(counter__name__icontains=query))
-        return queryset_list.order_by('-id')
+        return queryset_list.order_by('-id')[:5]
 
 
 class ListItemsAPIView(generics.ListAPIView):
