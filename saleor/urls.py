@@ -72,8 +72,6 @@ from .shift.urls import urlpatterns as shift_urls
 from .main_shift.urls import urlpatterns as main_shift_urls
 import notifications.urls
 from .api.login import ObtainJSONWebToken
-from . import decorators
-
 
 
 urlpatterns = [
@@ -145,8 +143,6 @@ urlpatterns = [
     url(r'^sale/points/', include(salepoints_urls, namespace='salepoints')),
     url(r'', include('payments.urls')),
     url('', include('social_django.urls', namespace='social')),
-    #jwt post token code url
-    # url(r'^api/auth/token/', obtain_jwt_token),
     url(r'^api/auth/token/', ObtainJSONWebToken.as_view()),
 ]
 if settings.DEBUG:
