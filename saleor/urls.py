@@ -69,10 +69,9 @@ from .visa_transactions.urls import urlpatterns as visa_transactions_urls
 from .return_sale.urls import urlpatterns as return_sale_urls
 from .return_purchase.urls import urlpatterns as return_purchase_urls
 from .shift.urls import urlpatterns as shift_urls
+from .main_shift.urls import urlpatterns as main_shift_urls
 import notifications.urls
 from .api.login import ObtainJSONWebToken
-from . import decorators
-
 
 
 urlpatterns = [
@@ -140,11 +139,10 @@ urlpatterns = [
     url(r'^sitemap\.xml$', sitemap, {'sitemaps': sitemaps},
         name='django.contrib.sitemaps.views.sitemap'),
     url(r'^shift/', include(shift_urls, namespace='shift')),
+    url(r'^shift/main/', include(main_shift_urls, namespace='main_shift')),
     url(r'^sale/points/', include(salepoints_urls, namespace='salepoints')),
     url(r'', include('payments.urls')),
     url('', include('social_django.urls', namespace='social')),
-    #jwt post token code url
-    # url(r'^api/auth/token/', obtain_jwt_token),
     url(r'^api/auth/token/', ObtainJSONWebToken.as_view()),
 ]
 if settings.DEBUG:

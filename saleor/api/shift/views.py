@@ -1,12 +1,16 @@
 from rest_framework.response import Response
 from django.utils.translation import ugettext as _
+from django.utils import timezone
+from django.utils.timezone import utc
 from rest_framework import serializers
 from ...userprofile.models import User
 from rest_framework.decorators import api_view
-from datetime import datetime
+from datetime import datetime, timedelta
 from structlog import get_logger
 from saleor.shift.models import Shift
+from saleor.main_shift.models import MainShift
 from saleor.sale.models import Terminal
+from saleor.utils import is_shift_started
 
 
 from .serializers import ShiftSerializer
@@ -28,6 +32,23 @@ def start_shift(request):
         email = request.data.get('email')
         note = request.data.get('note')
         balance = request.data.get('balance')
+        main_shift_status = request.data.get('main_shift_status')
+
+        """ if the main status is True then check if shift already exists, else create one if not """
+        if bool(main_shift_status):
+            if not is_shift_started():
+                date_now = timezone.localtime(timezone.now())
+                open_time_from_now = date_now
+                close_date = date_now + timedelta(days=1)
+                close_time = close_date.replace(hour=6, minute=0, second=0)
+                close_time_from_now = close_time
+
+                main_shift = MainShift()
+                main_shift.opening_time = open_time_from_now
+                main_shift.closing_time = close_time_from_now
+                main_shift.start_note = note
+                main_shift.start_balance = balance
+                main_shift.save()
 
         if code and email:
 
@@ -84,6 +105,15 @@ def end_shift(request):
         email = request.data.get('email')
         note = request.data.get('note')
         balance = request.data.get('balance')
+        main_shift_status = request.data.get('main_shift_status')
+
+        """ if the main status is True then check if shift already exists and close it """
+        if bool(main_shift_status):
+            if is_shift_started():
+                close_time_from_now = timezone.localtime(timezone.now())
+                main_shift = MainShift.objects.all().last()
+                main_shift.closing_time = close_time_from_now
+                main_shift.save()
 
         if code and email:
 

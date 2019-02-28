@@ -222,6 +222,7 @@ INSTALLED_APPS = [
     'saleor.return_sale',
     'saleor.return_purchase',
     'saleor.shift',
+    'saleor.main_shift',
 
     # External apps
     'versatileimagefield',

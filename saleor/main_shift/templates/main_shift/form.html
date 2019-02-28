@@ -1,0 +1,122 @@
+{% extends "dashboard/base.html" %}
+{% load staticfiles %}
+{% load i18n %}
+
+{% block title %}
+    View {{object.user.name}} - Shift
+{% endblock %}
+
+ {% block breadcrumbs %}
+     <li><a href="{% url 'dashboard:users' %}">Users</a></li>
+     <li class=""><a href="{% url 'shift:index' %}" >User Shifts</a></li>
+     <li class="active"><a href="{% url 'shift:update' pk=object.id %}" >Shift Detail</a></li>
+ {% endblock %}
+
+
+{% block menu_shift_class %}active{% endblock %}
+
+{% block custom_css %}
+<link rel="stylesheet" href="https://unpkg.com/react-select/dist/react-select.css">
+<link rel="stylesheet" href="{% static 'js/plugins/react/react-datepicker.min.css">
+{% endblock %}
+{% block content %}
+ <!--house details-->
+
+<div class="panel panel-flat animated fadeIn" id="vue-app">
+    <div class="panel-body">
+        <div class="row">
+           <div id="app-root">
+               <h2 class="text-center text-bold">{{object.user.name|title}}</h2>
+               <div class="col-md-12">
+                 <h2 class="" style="font-weight:bold">Start Shift</h2>
+               </div>
+               <table class="table  datatable-header-footer">
+                     <thead style="border-top:1px solid #ddd;">
+                        <tr class="bg-primary">
+                            <th>Time</th>
+                            <th>Drawer Balance Entered By Cashier</th>
+                            <th>Drawer Balance By System</th>
+                            <th>Note</th>
+                        </tr>
+                     </thead>
+                     <tbody id="tb">
+                        <tr>
+                            <td>{% if object.start_time %} {{object.start_time}} {% else %} - {% endif %}</td>
+                            <td>{% if object.cashier_start_balance %}{{object.cashier_start_balance}} {% else %} - {% endif %}</td>
+                            <td>
+                                {% if object.start_counter_balance %}{{object.start_counter_balance}} {% else %} - {% endif %}
+                            </td>
+                            <td>
+                                {% if object.start_note %} {{object.start_note}} {% else %} - {% endif %}
+                            </td>
+                        </tr>
+                     </tbody>
+                 </table>
+
+               <div class="col-md-12">
+                 <h2 class="" style="font-weight:bold">End Shift</h2>
+               </div>
+               <table class="table  datatable-header-footer">
+                     <thead style="border-top:1px solid #ddd;">
+                        <tr class="bg-primary">
+                            <th>Time</th>
+                            <th>Drawer Balance Entered By Cashier</th>
+                            <th>Drawer Balance By System</th>
+                            <th>Note</th>
+                        </tr>
+                     </thead>
+                     <tbody id="tb">
+                        <tr>
+                            <td>{% if object.end_time %} {{object.end_time}} {% else %} - {% endif %}</td>
+                            <td>{% if object.cashier_end_balance %}{{object.cashier_end_balance}} {% else %} - {% endif %}</td>
+                            <td>
+                                {% if object.end_counter_balance %}{{object.end_counter_balance}} {% else %} - {% endif %}
+                            </td>
+                            <td>
+                                {% if object.end_note %} {{object.end_note}} {% else %} - {% endif %}
+                            </td>
+                        </tr>
+                     </tbody>
+                 </table>
+           </div>
+        </div>
+    </div>
+</div>
+<!--./house details-->
+{% endblock %}
+
+{% block custom_js %}
+<script type="text/javascript" src="{% static 'js/plugins/forms/selects/bootstrap_select.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/plugins/pickers/daterangepicker.js' %}"></script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $('.bootstrap-select').selectpicker();
+
+    // datepicker
+    $('.datepicker').daterangepicker({
+        singleDatePicker: true,
+        locale:{format: 'YYYY-MM-DD'},
+        showDropdowns:true,
+        autoUpdateInput:false
+    },function(chosen_date) {
+        parent.date = chosen_date.format('YYYY-MM-DD');
+        $('.datepicker').val(chosen_date.format('YYYY-MM-DD'));
+
+    });
+
+    // pikcer2
+    $('.datepicker2').daterangepicker({
+        singleDatePicker: true,
+        locale:{format: 'YYYY-MM-DD'},
+        showDropdowns:true,
+        autoUpdateInput:false,
+        minDate: new Date()
+    },function(chosen_date) {
+        parent.date = chosen_date.format('YYYY-MM-DD');
+        $('.datepicker2').val(chosen_date.format('YYYY-MM-DD'));
+
+    });
+  });
+</script>
+
+{% endblock %}

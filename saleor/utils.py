@@ -8,6 +8,8 @@ import cgi
 import os
 from .site.models import SiteSettings
 
+from saleor.main_shift.models import MainShift
+
 
 def render_to_pdf(template_src, context_dict={}):
     template = get_template(template_src)
@@ -65,3 +67,17 @@ def is_time_between(begin_time, end_time, check_time=None):
         return check_time >= begin_time and check_time <= end_time
     else: # crosses midnight
         return check_time >= begin_time or check_time <= end_time
+
+
+def is_shift_started():
+    if MainShift.objects.all().last():
+        begin_time = MainShift.objects.all().last().opening_time.replace(tzinfo=None)
+        end_time = MainShift.objects.all().last().closing_time.replace(tzinfo=None)
+        check_time = datetime.now()
+        if begin_time < end_time:
+            return check_time >= begin_time and check_time<=end_time
+        else:
+            return check_time >= begin_time or check_time <= end_time
+    else:
+        return False
+

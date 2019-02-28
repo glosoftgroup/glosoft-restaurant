@@ -54,3 +54,4 @@ class Shift(models.Model):
         if self.user:
             return self.user.name
         return self.created
+

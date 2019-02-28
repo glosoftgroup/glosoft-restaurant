@@ -1,4 +1,3 @@
-import datetime
 from rest_framework import generics
 from django.db.models import Q
 from django.contrib.auth import get_user_model
@@ -8,6 +7,7 @@ from .pagination import PostLimitOffsetPagination
 from saleor.countertransfer.models import CounterTransfer as Table
 from saleor.product.models import Stock
 from saleor.countertransfer.models import CounterTransferItems as Item
+from saleor.main_shift.models import MainShift
 from .serializers import (
     CloseTransferItemSerializer,
     CreateListSerializer,
@@ -17,7 +17,7 @@ from .serializers import (
     ItemsSerializer,
     ItemsStockSerializer
      )
-from saleor.core.utils.closing_time import is_business_time
+from saleor.utils import is_shift_started
 from ...decorators import user_trail
 User = get_user_model()
 
@@ -95,7 +95,7 @@ class ListAPIView(generics.ListAPIView):
         if query:
             queryset_list = queryset_list.filter(
                 Q(counter__name__icontains=query))
-        return queryset_list.order_by('-id')
+        return queryset_list.order_by('-id')[:5]
 
 
 class ListItemsAPIView(generics.ListAPIView):
@@ -145,7 +145,7 @@ class ListItemsAPIView(generics.ListAPIView):
             queryset_list = queryset_list.filter(
                 Q(stock__variant__sku__icontains=query) |
                 Q(stock__variant__product__name__icontains=query))
-        return queryset_list.order_by('-id')
+        return queryset_list.order_by('-id')[:5]
 
 
 class ListStockAPIView(generics.ListAPIView):
@@ -173,47 +173,42 @@ class ListStockAPIView(generics.ListAPIView):
         return {"date": None, 'request': self.request}
 
     def get_queryset(self, *args, **kwargs):
-        # determine whether to show yesterdays transfer
-        # This will enable selling today's stock after mid day
-        show_yesterday = is_business_time()
-        today = datetime.date.today()
-        if show_yesterday:
-            yesterday = datetime.date.today() - datetime.timedelta(days=1)
-        else:
-            yesterday = today
 
-        try:
-            if self.kwargs['pk']:
-                queryset_list = Item.objects.filter(
-                    Q(transfer__date=today) |
-                    Q(transfer__date=yesterday)
-                ).filter(transfer__counter__pk=self.kwargs['pk'])\
-                    .distinct('stock').select_related()
+        if is_shift_started():
+            shift = MainShift.objects.all().last()
+            open_date = shift.opening_time.replace(tzinfo=None)
+            close_date = shift.closing_time.replace(tzinfo=None)
+
+            try:
+                if self.kwargs['pk']:
+                    queryset_list = Item.objects.filter(
+                        transfer__date__range=[open_date, close_date]
+                    ).filter(transfer__counter__pk=self.kwargs['pk']).distinct('stock').select_related()
+                else:
+                    queryset_list = Item.objects.filter(
+                        transfer__date__range=[open_date, close_date]
+                    ).distinct('stock').select_related()
+            except Exception as e:
+                queryset_list = Item.objects.all().filter(
+                    transfer__date__range=[open_date, close_date]
+                ).distinct('stock')
+
+            page_size = 'page_size'
+            if self.request.GET.get(page_size):
+                pagination.PageNumberPagination.page_size = self.request.GET.get(page_size)
             else:
-                queryset_list = Item.objects.filter(
-                    Q(transfer__date=today) |
-                    Q(transfer__date=yesterday)
-                ).distinct('stock').select_related()
-        except Exception as e:
-            queryset_list = Item.objects.all().filter(
-                Q(transfer__date=today) |
-                Q(transfer__date=yesterday)
-            ).distinct('stock')
+                pagination.PageNumberPagination.page_size = 10
+            if self.request.GET.get('date'):
+                queryset_list = queryset_list.filter(transfer__date__icontains=self.request.GET.get('date'))
 
-        page_size = 'page_size'
-        if self.request.GET.get(page_size):
-            pagination.PageNumberPagination.page_size = self.request.GET.get(page_size)
+            query = self.request.GET.get('q')
+            if query:
+                queryset_list = queryset_list.filter(
+                    Q(stock__variant__sku__icontains=query) |
+                    Q(stock__variant__product__name__icontains=query))
+            return queryset_list.order_by('stock')
         else:
-            pagination.PageNumberPagination.page_size = 10
-        if self.request.GET.get('date'):
-            queryset_list = queryset_list.filter(transfer__date__icontains=self.request.GET.get('date'))
-
-        query = self.request.GET.get('q')
-        if query:
-            queryset_list = queryset_list.filter(
-                Q(stock__variant__sku__icontains=query) |
-                Q(stock__variant__product__name__icontains=query))
-        return queryset_list.order_by('stock')
+            return Item.objects.none()  # to return empty queryset
 
 
 class ListCategoryAPIView(generics.ListAPIView):
@@ -234,49 +229,47 @@ class ListCategoryAPIView(generics.ListAPIView):
         return {"date": None, 'request': self.request}
 
     def get_queryset(self, *args, **kwargs):
-        show_yesterday = is_business_time()
-        today = datetime.date.today()
-        if show_yesterday:
-            yesterday = datetime.date.today() - datetime.timedelta(days=1)
-        else:
-            yesterday = today
 
-        queryset_list = Item.objects.filter(qty__gte=1)
-        try:
-            if self.kwargs['pk']:
-                queryset_list = queryset_list.filter(
-                    Q(transfer__date=today) |
-                    Q(transfer__date=yesterday)
-                ).filter(stock__variant__product__categories__pk=self.kwargs['pk'])
+        if is_shift_started():
+            shift = MainShift.objects.all().last()
+            open_date = shift.opening_time.replace(tzinfo=None)
+            close_date = shift.closing_time.replace(tzinfo=None)
 
-            else:
-                queryset_list = Item.objects.filter(
-                    Q(transfer__date=today) |
-                    Q(transfer__date=yesterday)
+            queryset_list = Item.objects.filter(qty__gte=1)
+            try:
+                if self.kwargs['pk']:
+                    queryset_list = queryset_list.filter(
+                        transfer__date__range=[open_date, close_date]
+                    ).filter(stock__variant__product__categories__pk=self.kwargs['pk'])
+
+                else:
+                    queryset_list = Item.objects.filter(
+                        transfer__date__range=[open_date, close_date]
+                    )
+            except Exception as e:
+                queryset_list = Item.objects.all().filter(
+                    transfer__date__range=[open_date, close_date]
                 )
-        except Exception as e:
-            queryset_list = Item.objects.all().filter(
-                Q(transfer__date=today) |
-                Q(transfer__date=yesterday)
-            )
 
-        page_size = 'page_size'
-        if self.request.GET.get(page_size):
-            pagination.PageNumberPagination.page_size = self.request.GET.get(page_size)
+            page_size = 'page_size'
+            if self.request.GET.get(page_size):
+                pagination.PageNumberPagination.page_size = self.request.GET.get(page_size)
+            else:
+                pagination.PageNumberPagination.page_size = 8
+            if self.request.GET.get('date'):
+                queryset_list = queryset_list.filter(date__icontains=self.request.GET.get('date'))
+
+            if self.request.GET.get('counter'):
+                queryset_list = queryset_list.filter(counter__pk=self.request.GET.get('counter'))
+
+            query = self.request.GET.get('q')
+            if query:
+                queryset_list = queryset_list.filter(
+                    Q(stock__variant__sku__icontains=query) |
+                    Q(stock__variant__product__name__icontains=query))
+            return queryset_list.distinct('stock').select_related().order_by('stock')
         else:
-            pagination.PageNumberPagination.page_size = 8
-        if self.request.GET.get('date'):
-            queryset_list = queryset_list.filter(date__icontains=self.request.GET.get('date'))
-
-        if self.request.GET.get('counter'):
-            queryset_list = queryset_list.filter(counter__pk=self.request.GET.get('counter'))
-
-        query = self.request.GET.get('q')
-        if query:
-            queryset_list = queryset_list.filter(
-                Q(stock__variant__sku__icontains=query) |
-                Q(stock__variant__product__name__icontains=query))
-        return queryset_list.distinct('stock').select_related().order_by('stock')
+            return Item.objects.none()  # to return empty queryset
 
 
 class UpdateAPIView(generics.RetrieveUpdateAPIView):
