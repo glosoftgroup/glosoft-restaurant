@@ -5,7 +5,7 @@ from django.utils.timezone import utc
 from rest_framework import serializers
 from ...userprofile.models import User
 from rest_framework.decorators import api_view
-from datetime import datetime, date, timedelta
+from datetime import datetime, timedelta
 from structlog import get_logger
 from saleor.shift.models import Shift
 from saleor.main_shift.models import MainShift
@@ -46,6 +46,8 @@ def start_shift(request):
                 main_shift = MainShift()
                 main_shift.opening_time = open_time_from_now
                 main_shift.closing_time = close_time_from_now
+                main_shift.start_note = note
+                main_shift.start_balance = balance
                 main_shift.save()
 
         if code and email:
