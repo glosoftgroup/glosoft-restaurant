@@ -145,7 +145,7 @@ class ListItemsAPIView(generics.ListAPIView):
             queryset_list = queryset_list.filter(
                 Q(stock__variant__sku__icontains=query) |
                 Q(stock__variant__product__name__icontains=query))
-        return queryset_list.order_by('-id')
+        return queryset_list.order_by('-id')[:5]
 
 
 class ListStockAPIView(generics.ListAPIView):
