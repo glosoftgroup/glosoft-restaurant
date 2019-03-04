@@ -39,7 +39,7 @@ def sales_list(request):
         total_tax_amount = all_sales.aggregate(Sum('total_tax'))
         total_sales = []
         for sale in all_sales:
-            quantity = SoldItem.objects.filter(sales=sale).aggregate(c=Sum('quantity'))
+            quantity = SoldItem.objects.filter(sales=sale).aggregate(c=Count('sku'))
             setattr(sale, 'quantity', quantity['c'])
             total_sales.append(sale)
 
@@ -79,18 +79,6 @@ def sales_detail(request, pk=None, point=None):
         items = []
         for n in SalePoint.objects.all():
             sale_points.append(n.name)
-
-        all_sale_points = list(set(sale_points))
-
-        # for i in all_sale_points:
-        # 	sale_items = SoldItem.objects.filter(sales=sale, sale_point__name=i)
-        # 	if sale_items.exists():
-        # 		try:
-        # 			totals = sale_items.aggregate(Sum('total_cost'))['total_cost__sum']
-        # 		except:
-        # 			totals = 0
-        # 		pks = SalePoint.objects.get(name=i).pk
-        # 		items.append({'name': i, 'pk':pks, 'items': sale_items, 'amount': totals})
 
         counter_items = SoldItem.objects.filter(sales=sale, kitchen__isnull=True)
         if counter_items.exists():
@@ -299,7 +287,7 @@ def sales_search(request):
                 Q(customer__name__icontains=q) | Q(customer__mobile__icontains=q) |
                 Q(solditems__product_name__icontains=q) |
                 Q(user__email__icontains=q) |
-                Q(user__name__icontains=q)).order_by('id').distinct()
+                Q(user__name__icontains=q)).distinct()
             sales = []
 
             if request.GET.get('gid'):
@@ -385,14 +373,6 @@ def sales_search(request):
                                             {'point_pk': point_pk, 'sales': sales})
 
                 paginator = Paginator(sales, 10)
-                try:
-                    sales = paginator.page(page)
-                except PageNotAnInteger:
-                    sales = paginator.page(1)
-                except InvalidPage:
-                    sales = paginator.page(1)
-                except EmptyPage:
-                    sales = paginator.page(paginator.num_pages)
                 if p2_sz:
                     sales = paginator.page(page)
                     return TemplateResponse(request, 'dashboard/reports/sales/paginate.html',
