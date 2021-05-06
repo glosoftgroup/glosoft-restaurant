@@ -34,7 +34,7 @@
     "glamor": "^2.20.40",
     "graphql": "^0.13.2",
     "graphql-tag": "^2.9.2",
-    "highcharts": "^6.1.1",
+    "highcharts": "^9.0.0",
     "immutable": "^3.8.2",
     "jgrowl": "^1.4.6",
     "jquery": "^3.3.1",
